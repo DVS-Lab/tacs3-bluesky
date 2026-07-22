@@ -1,16 +1,16 @@
 <ProtocolTemplates>
  <Template>
-  <TemplateName>Bandit_Protocol-A_Run-1</TemplateName>
+  <TemplateName>TACS3-Pilot_Run-1_750T</TemplateName>
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
-   <stepName>Run 1</stepName>
+   <stepName>750 Theta</stepName>
    <stepConfigurationType>ADVANCED</stepConfigurationType>
    <stepBasicStimChannel>-1</stepBasicStimChannel>
-   <stepType>7</stepType>
-   <stimulationTime>360</stimulationTime>
-   <rampUp>30</rampUp>
-   <rampDown>30</rampDown>
+   <stepType>0</stepType>
+   <stimulationTime>480</stimulationTime>
+   <rampUp>60</rampUp>
+   <rampDown>60</rampDown>
    <rampSham>0</rampSham>
    <stimulationSham>Single</stimulationSham>
    <tRNSLowFreq>0</tRNSLowFreq>
@@ -20,41 +20,41 @@
    <Channel>
     <index>1</index>
     <location>F3</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <atacsValue>750</atacsValue>
+    <ftacsValue>6.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>2</index>
     <location>Fp1</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <atacsValue>250</atacsValue>
+    <ftacsValue>6.00</ftacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>3</index>
     <location>FCz</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <atacsValue>250</atacsValue>
+    <ftacsValue>6.00</ftacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>4</index>
     <location>FT7</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <atacsValue>250</atacsValue>
+    <ftacsValue>6.00</ftacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
@@ -89,7 +89,7 @@
    </Channel>
    <Channel>
     <index>8</index>
-    <location>EOG1</location>
+    <location>EXT</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
