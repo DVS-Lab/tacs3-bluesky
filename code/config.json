@@ -1,62 +1,28 @@
 {
   "experiment": {
-    "mode": "LOCALIZER_FAST_THETA",
-    "run_duration_minutes": 6,
-    "run_types": {
-      "1": "baseline",
-      "2": "stimulation",
-      "3": "stimulation",
-      "4": "post_stimulation",
-      "5": "baseline",
-      "6": "stimulation",
-      "7": "stimulation",
-      "8": "post_stimulation"
-    },
-    "counterbalance_stimulation": true,
-    "break_after_run_4_minutes": 5
+    "run_duration_minutes": 6
   },
   "task": {
-    "min_trials_same_contingency": 25,
+    "min_trials_same_contingency": 20,
     "contingency_jitter": 4,
     "win_fraction": 0.75,
+    "target_trials": 120,
+    "stop_rule": "duration_or_trials",
     "reversal_learning": true
   },
   "timing": {
-    "fixation_duration": 0.5,
-    "max_response_time": 2.0,
-    "choice_highlight_duration": 0.5,
-    "wait_duration_min": 2.0,
-    "wait_duration_max": 2.0,
-    "outcome_duration": 1.0,
-    "iti_duration": 0.25
-  },
-  "localizer_fast_theta": {
-    "enabled": true,
-    "duration_minutes": 6,
-    "target_trials": 120,
-    "stop_rule": "duration_or_trials",
-    "min_feedback_epochs_total": 80,
-    "hard_min_usable_epochs": 60,
-    "recommended_min_usable_epochs": 80,
-    "win_fraction": 0.75,
-    "min_trials_same_contingency": 20,
-    "contingency_jitter": 4,
-    "timing": {
-      "fixation_duration": 0.3,
-      "max_response_time": 1.25,
-      "choice_highlight_duration": 0.25,
-      "wait_duration_min": 0.5,
-      "wait_duration_max": 0.7,
-      "outcome_duration": 0.7,
-      "iti_duration": 0.3
-    }
+    "fixation_duration": 0.3,
+    "max_response_time": 1.25,
+    "choice_highlight_duration": 0.25,
+    "wait_duration_min": 0.5,
+    "wait_duration_max": 0.7,
+    "outcome_duration": 0.7,
+    "iti_duration": 0.3
   },
   "sst": {
     "enabled": true,
-    "mode": "LOCALIZER_SST",
-    "runs": 3,
-    "trials_per_run": 74,
-    "localizer_trials": 120,
+    "stop_rule": "duration_or_trials",
+    "target_trials": 200,
     "stop_probability": 0.3,
     "stimulus_duration_sec": 1.5,
     "initial_ssd_sec": 0.25,
@@ -64,8 +30,7 @@
     "min_ssd_sec": 0.05,
     "max_ssd_sec": 0.9,
     "isi_range_sec": [0.8, 2.5],
-    "iti_range_sec": [1.5, 4.0],
-    "test_mode_trials": 24
+    "iti_range_sec": [1.5, 4.0]
   },
   "eeg_recording": {
     "record_lsl_eeg_during_localizer": true,
@@ -269,12 +234,6 @@
   "stimulation": {
     "enabled": true,
     "test_mode": false,
-    "communication_type": "lsl_triggered",
-    "command_directory": "./nic_commands",
-    "protocols": {
-      "active": "DLPFC_Active",
-      "sham": "DLPFC_Sham"
-    },
     "lsl": {
       "enabled": true,
       "marker_stream_timeout": 5.0,

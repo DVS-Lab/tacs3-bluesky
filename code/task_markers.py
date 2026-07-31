@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import datetime
 import json
 from pathlib import Path
+import queue
+import threading
 import time
 from typing import Any
 
@@ -72,3 +74,74 @@ class TaskMarkerLogger:
         with output_path.open("w", encoding="utf-8") as handle:
             for event in self.events:
                 handle.write(json.dumps(event) + "\n")
+
+
+class LSLStimulationTrigger:
+    """Listens for NIC-2 stimulation start/stop markers over LSL.
+
+    Marker 203 is used by NIC-2 to mean "stimulation is starting" for both
+    active and sham protocols, so listening for it lets a task auto-start
+    in sync with the experimenter clicking Go on the stimulation machine,
+    without the task knowing which condition is running.
+    """
+
+    RAMP_UP_START = 201
+    RAMP_DOWN_START = 202
+    STIMULATION_START = 203
+    STIMULATION_STOP = 204
+    TASK_START_MARKER = 203
+
+    def __init__(self):
+        self.inlet = None
+        self.listening = False
+        self.marker_queue: queue.Queue = queue.Queue()
+        self.listener_thread: threading.Thread | None = None
+
+    def connect(self) -> bool:
+        if not LSL_AVAILABLE:
+            print("LSL: pylsl not available; the task will only start on SPACE.")
+            return False
+        try:
+            streams = pylsl.resolve_streams(wait_time=5.0)
+            marker_streams = [s for s in streams if s.type() == "Markers"]
+            chosen = marker_streams[0] if marker_streams else (streams[0] if streams else None)
+            if chosen is None:
+                print("LSL: no marker streams found; the task will only start on SPACE.")
+                return False
+            self.inlet = pylsl.StreamInlet(chosen)
+            print(f"LSL: connected to marker stream '{chosen.name()}'.")
+            return True
+        except Exception as exc:
+            print(f"LSL: failed to connect to marker stream: {exc}")
+            return False
+
+    def start_listening(self) -> None:
+        if self.listening or self.inlet is None:
+            return
+        self.listening = True
+        self.listener_thread = threading.Thread(target=self._listen_loop, daemon=True)
+        self.listener_thread.start()
+
+    def stop_listening(self) -> None:
+        self.listening = False
+        if self.listener_thread:
+            self.listener_thread.join(timeout=1.0)
+
+    def _listen_loop(self) -> None:
+        while self.listening:
+            try:
+                marker, timestamp = self.inlet.pull_sample(timeout=0.1)
+                if marker:
+                    self.marker_queue.put((int(marker[0]), timestamp))
+            except Exception:
+                time.sleep(0.1)
+
+    def check_for_stimulation_stop(self) -> bool:
+        try:
+            while True:
+                marker_code, _ = self.marker_queue.get_nowait()
+                if marker_code == self.STIMULATION_STOP:
+                    return True
+        except queue.Empty:
+            pass
+        return False

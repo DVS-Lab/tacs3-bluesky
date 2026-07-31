@@ -32,8 +32,19 @@ def _auto_find_inputs(subject_id: str, session_id: str, task: str) -> tuple[Path
     session = session_id.replace("ses-", "")
     subject_dir = _repo_root() / "data" / f"sub-{subject}"
     if task == "sst":
-        events = _find_latest(subject_dir, [f"**/*ses-{session}*task-SST*.csv", f"**/*ses-{session}*task-sst*.csv"])
-        eeg = _find_latest(subject_dir, [f"**/*ses-{session}*sst*eeg.npz", f"**/*ses-{session}*sst*eeg.csv", f"**/*ses-{session}*localizer*eeg.npz"])
+        events = _find_latest(
+            subject_dir,
+            [f"**/*ses-{session}*run-localizer*task-SST*.csv", f"**/*ses-{session}*run-localizer*task-sst*.csv"],
+        )
+        eeg = _find_latest(
+            subject_dir,
+            [
+                f"**/*ses-{session}*run-localizer*task-SST*eeg.npz",
+                f"**/*ses-{session}*run-localizer*task-sst*eeg.npz",
+                f"**/*ses-{session}*run-localizer*task-SST*eeg.csv",
+                f"**/*ses-{session}*run-localizer*task-sst*eeg.csv",
+            ],
+        )
     else:
         events = _find_latest(subject_dir, [f"**/*ses-{session}*run-localizer*task-bandit*.csv", f"**/*ses-{session}*localizer*.csv"])
         eeg = _find_latest(subject_dir, [f"**/*ses-{session}*localizer*eeg.npz", f"**/*ses-{session}*localizer*eeg.csv"])

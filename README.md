@@ -6,8 +6,8 @@ The current structure follows Jimmy's `tacs_bandit` layout: task entry points an
 
 ## What This Implements
 
-- `code/bandit_main.py`: localizer-aware two-armed bandit task based on Jimmy's individualized theta branch.
-- `code/sst_main.py`: Stop Signal Task workflow adapted from `DVS-Lab/gambling-2025/stimuli/Scan-SST`.
+- `code/bandit_main.py`: two-armed bandit reversal-learning task (PsychoPy). Trial mechanics are identical on every run regardless of stimulation condition; the only run-type distinction is the pre-stimulation `--localizer` baseline run.
+- `code/sst_main.py`: Stop Signal Task (PsychoPy), adapted from `DVS-Lab/gambling-2025/stimuli/Scan-SST`. Mirrors `bandit_main.py`'s architecture exactly: no mode/frequency argument, `--localizer` for the pre-stimulation baseline run, LSL trigger sync, and the same duration-or-trial-count stop rule (both tasks share `experiment.run_duration_minutes`, so a run is the same length regardless of task).
 - `code/rhythm_estimator.py`: shared power-based estimator for task-evoked theta and beta.
 - `code/eeg_lsl_recorder.py`: live StarStim EEG recording over LSL during localizers.
 - `code/select_stimulation_frequency.py`: reliable individualized rhythm selection with fixed-frequency fallback.
@@ -23,35 +23,48 @@ For SST, the default targets are stop-signal theta and response beta. These can 
 
 ## Standard Bandit Workflow
 
+`bandit_main.py` has no concept of stimulation mode or frequency — trial
+timing and structure are identical on every run. Frequency/condition
+selection happens entirely outside the task (see below) and is applied by
+the operator directly in NIC-2. The only run-type flag is `--localizer`,
+for the pre-stimulation baseline run used to estimate individualized
+rhythms; every other run is auto-numbered (`run-01`, `run-02`, ...) so
+repeated active/sham runs never overwrite each other or reveal condition
+in the filename.
+
 ```bash
 cd code
-python bandit_main.py --mode LOCALIZER_FAST_THETA --subject 001 --session 001
+python bandit_main.py --subject 001 --session 001 --localizer
 python run_rhythm_estimation.py --task bandit --subject 001 --session 001 --auto-find --all-defaults
-python bandit_main.py --mode ITHETA_TACS --subject 001 --session 001 --run 1
-python bandit_main.py --mode IBETA_TACS --subject 001 --session 001 --run 1
+python bandit_main.py --subject 001 --session 001
+python bandit_main.py --subject 001 --session 001
 ```
 
-Fixed-frequency controls/fallbacks remain available:
-
-```bash
-python bandit_main.py --mode FIXED_THETA_TACS --subject 001 --session 001 --run 1 --frequency 6.0
-python bandit_main.py --mode FIXED_BETA_TACS --subject 001 --session 001 --run 1 --frequency 20.0
-```
+The task waits for either SPACE or an LSL marker `203` from NIC-2 (sent
+when the experimenter starts a stimulation protocol) before beginning
+trials, so it can be started in sync with stimulation onset from a
+separate machine on the same network. `--localizer` runs skip that wait
+and start on SPACE only, since there is no stimulation device running yet.
 
 ## Standard SST Workflow
 
+`sst_main.py` has no concept of stimulation mode or frequency either —
+same as bandit, and for the same reason. It waits for SPACE or the LSL
+marker `203` from NIC-2 before beginning trials (skipped on `--localizer`
+runs), and every non-localizer run is auto-numbered.
+
 ```bash
 cd code
-python sst_main.py --mode LOCALIZER_SST --subject 001 --session 001
+python sst_main.py --subject 001 --session 001 --localizer
 python run_rhythm_estimation.py --task sst --subject 001 --session 001 --auto-find --all-defaults
-python sst_main.py --mode ITHETA_TACS --subject 001 --session 001 --run 1
-python sst_main.py --mode IBETA_TACS --subject 001 --session 001 --run 1
+python sst_main.py --subject 001 --session 001
+python sst_main.py --subject 001 --session 001
 ```
 
 Hardware-free smoke test:
 
 ```bash
-python sst_main.py --mode LOCALIZER_SST --subject 001 --session 001 --test-mode
+python sst_main.py --subject 001 --session 001 --localizer --test-mode
 ```
 
 ## Frequency Decision Rules
@@ -61,11 +74,11 @@ python sst_main.py --mode LOCALIZER_SST --subject 001 --session 001 --test-mode
 - Unreliable individualized beta: use fixed 20.0 Hz unless config says to stop.
 - No estimate file: warn and use the configured fallback unless `stop_if_no_*_file` is enabled.
 
-The task does not silently substitute frequencies. Operator-facing output and CSVs log intended frequency, confirmed frequency, rhythm source, estimate path, reliability flag, and reason.
+The task does not silently substitute frequencies, but neither `bandit_main.py` nor `sst_main.py` has a mode/frequency argument at all, so neither task's own output can leak condition. Frequency selection for both tasks lives entirely in `select_stimulation_frequency.py`, run and logged separately from the task itself. `select_stimulation_frequency.py` is currently a library with no standalone CLI — the operator reads `run_rhythm_estimation.py`'s QC output and applies the reliability-gated decision rules below manually. A small CLI wrapper for `select_stimulation_frequency.py` is a known follow-up, not yet built.
 
 ## StarStim/NIC-2 Notes
 
-Python determines the intended stimulation frequency and displays operator instructions. It does not claim to program NIC-2 directly. The operator should load/edit the matching NIC-2 protocol, confirm the actual protocol/frequency, and then start the run. The task logs the operator-confirmed frequency.
+Python determines the intended stimulation frequency (via `select_stimulation_frequency.py`) and that's as far as it goes — it does not claim to program NIC-2 directly, and neither task script prompts for or logs an operator-confirmed protocol/frequency anymore. The operator loads/edits the matching NIC-2 protocol and starts the run; `bandit_main.py`/`sst_main.py` sync trial onset to that via the LSL marker `203` trigger, without knowing or recording which protocol was loaded.
 
 ## EEG and Blink Notes
 
