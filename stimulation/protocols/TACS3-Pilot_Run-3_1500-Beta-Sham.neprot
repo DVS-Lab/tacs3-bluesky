@@ -1,17 +1,17 @@
 <ProtocolTemplates>
  <Template>
-  <TemplateName>TACS3-Pilot_Run-5_750B</TemplateName>
+  <TemplateName>TACS3-Pilot_Run-3_1500-Beta-Sham</TemplateName>
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
-   <stepName>750 Beta</stepName>
+   <stepName>1500 Beta Sham</stepName>
    <stepConfigurationType>ADVANCED</stepConfigurationType>
    <stepBasicStimChannel>-1</stepBasicStimChannel>
-   <stepType>0</stepType>
-   <stimulationTime>480</stimulationTime>
+   <stepType>2</stepType>
+   <stimulationTime>180</stimulationTime>
    <rampUp>60</rampUp>
    <rampDown>60</rampDown>
-   <rampSham>0</rampSham>
+   <rampSham>30</rampSham>
    <stimulationSham>Single</stimulationSham>
    <tRNSLowFreq>0</tRNSLowFreq>
    <tRNSHighFreq>0</tRNSHighFreq>
@@ -22,7 +22,7 @@
     <location>F3</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>750</atacsValue>
+    <atacsValue>1500</atacsValue>
     <ftacsValue>20.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -32,7 +32,7 @@
     <location>Fp1</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>250</atacsValue>
+    <atacsValue>500</atacsValue>
     <ftacsValue>20.00</ftacsValue>
     <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -42,7 +42,7 @@
     <location>FCz</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>250</atacsValue>
+    <atacsValue>500</atacsValue>
     <ftacsValue>20.00</ftacsValue>
     <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -52,7 +52,7 @@
     <location>FT7</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>250</atacsValue>
+    <atacsValue>500</atacsValue>
     <ftacsValue>20.00</ftacsValue>
     <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
