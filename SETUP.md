@@ -72,6 +72,36 @@ Confirms the environment/config are sane before touching a real window. Use a th
 
 ## Still open / in progress
 
-- [ ] LSL trigger sync between the task computer and the stimulation computer (in progress).
-- [ ] NIC-2 LSL marker output configuration.
+- [ ] End-to-end test of LSL trigger sync against real NIC-2 hardware (procedure below — nothing past step 2 of that procedure has actually been run against real hardware yet).
 - [ ] Windows Firewall rules for LSL traffic across the two machines (not yet hit/confirmed).
+
+## Testing the task ↔ stimulation LSL trigger sync
+
+The task waits at a "press SPACE or wait for stimulation trigger" screen and auto-starts when it sees LSL marker `203` (NIC-2's "stimulation starting" marker) — this lets an experimenter start the task in sync with hitting Go in NIC-2, without the task knowing which condition is running. As of 2026-07-31, this has been verified in isolation (single-machine simulation of both sides) but **never against a real cross-machine NIC-2 broadcast**. Three specific things could still go wrong the first time it's tried for real — this procedure is written to catch which one, if any.
+
+### Setup on the stimulation computer (NIC-2)
+
+1. Open the Protocol Editor → Settings. Near the bottom there's an "LSL Server" toggle — turn it **on**.
+2. Note the "Outlet for Lab Streaming Layer" name shown there. As of this writing it's `LSLOutletStreamName`, and `code/config.json`'s `stimulation.lsl.outlet_stream_name` is already set to match. **If your NIC-2 shows a different name, update that config value to match before testing** — the task specifically looks for a stream with this exact name (deliberately, so it doesn't accidentally bind to some other stream on the network) and won't find NIC-2 if the names don't match.
+3. Load any stimulation protocol you can hit "Go" on — doesn't need to be a real active/sham condition for this test.
+
+### Setup on the task computer
+
+4. `git pull`, then from `code/`:
+   ```powershell
+   python .\bandit_main.py --subject 999 --session 001 --windowed
+   ```
+   (No `--localizer` — that flag skips the LSL wait entirely, since the localizer run happens before any stimulation setup. You want a normal run here so it actually waits on the trigger.)
+5. It should print `LSL: connected to marker stream 'LSLOutletStreamName'.` near the start, then sit at the waiting screen. **If it doesn't print that line**, or prints a "no stream named ... found, falling back" warning instead, stop here — that's the network/discovery problem (see Troubleshooting).
+
+### The actual test
+
+6. On the stimulation computer, click Go on the loaded protocol.
+7. On the task computer, the waiting screen should immediately advance to the trial sequence within a second or two of clicking Go.
+
+### Troubleshooting, by failure mode
+
+- **Task never prints "LSL: connected to marker stream..." at all, even before you click Go on NIC-2**: this means the task couldn't discover *any* LSL stream on the network — likely a firewall or multicast problem, not a NIC-2 problem specifically. Check Windows Firewall on the task computer for a blocked-connection prompt (may need "Allow" on both Private and Public/Domain profiles), and confirm nothing about the network (VPN, guest WiFi, managed switch) blocks UDP multicast between `.159` and `.140` — note that `ping` working does *not* guarantee multicast works, they're different protocols.
+- **Task prints a "no stream named 'LSLOutletStreamName' found... falling back" warning**: LSL discovery itself is working (good sign), but NIC-2 either isn't broadcasting yet (double check the LSL Server toggle actually took effect — may need the protocol loaded/armed first) or is using a different outlet name than what's configured — check what name actually appears in NIC-2's settings and update `config.json` to match.
+- **Task connects to the right stream name, but never advances when you click Go**: NIC-2 is broadcasting *something*, but not marker code `203` specifically, or not at the moment you expect (e.g., maybe only on ramp-up-complete, not on Go). Worth checking whether NIC-2 has a way to show/log what it's actually sending on that outlet, to confirm the real marker code and timing.
+- **Windows Firewall shows a prompt when you first run the task or start the NIC-2 protocol**: click Allow for both network profile types offered, not just one — labs/university networks are often categorized "Domain" or "Public" rather than "Private," and firewall rules are commonly scoped per-profile.
