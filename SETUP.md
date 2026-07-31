@@ -54,11 +54,25 @@ python sst_main.py --subject 001 --session 001 --localizer
 
 Config paths and stimulus loading assume this is the working directory.
 
+## Every subsequent session (after the one-time setup above)
+
+You do **not** need to redo steps 1–4 again on the same machine. Each new terminal session, just:
+
+```powershell
+cd C:\path\to\tacs3-bluesky
+.venv\Scripts\activate
+git pull
+cd code
+python .\bandit_main.py --subject 001 --session 001 --localizer
+```
+
+You'll know the venv is active when the prompt shows `(.venv)` at the start of the line. If a command says something like `psychopy` or `pylsl` isn't found, the venv almost certainly isn't activated — that's the first thing to check, not a reinstall.
+
 ## Known non-errors — expected output, not a problem
 
 - `No matching EEG stream was found for type='EEG'...` — expected unless a live StarStim/LSL EEG stream is actually running.
 - `Stream transmission broke off... re-connecting` printed right at the very end of a run — harmless LSL teardown noise as the process exits.
-- Bandit shows colored circles with numbers instead of flower images — expected until PNG stimuli are added to `../stimuli/images`.
+- Bandit's flower/win/loss stimuli live in `stimuli/images/` at the repo root and are already in place — if you ever see colored circles with numbers instead of real flower images, that means those files are missing on that machine (make sure `stimuli/` came through on `git pull`), not expected behavior.
 - `Monitor specification not found. Creating a temporary one...` — harmless PsychoPy warning, no monitor calibration file exists yet.
 
 ## Quick smoke test (no PsychoPy window, no hardware needed)
