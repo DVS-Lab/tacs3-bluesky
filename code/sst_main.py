@@ -429,6 +429,13 @@ class SSTTask:
                     "Next step: python run_rhythm_estimation.py --task sst "
                     f"--subject {self.subject_id} --session {self.session_id} --auto-find --all-defaults"
                 )
+            end_msg = visual.TextStim(win, text="Run complete.\n\nThank you!", color="white", height=36)
+            end_msg.draw()
+            win.flip()
+            if self.auto_respond:
+                core.wait(0.05)
+            else:
+                event.waitKeys(keyList=["space", "escape"], maxWait=8.0)
         finally:
             if self.win is not None:
                 self.win.close()

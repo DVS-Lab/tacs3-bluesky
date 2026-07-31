@@ -759,9 +759,19 @@ class BanditTask:
                     "Next step: python run_rhythm_estimation.py --task bandit "
                     f"--subject {self.subject_id} --session {self.session_id} --auto-find --all-defaults"
                 )
+            self._show_run_end_screen()
         finally:
             if self.win is not None:
                 self.win.close()
+
+    def _show_run_end_screen(self) -> None:
+        self._instructions_stim.text = "Run complete.\n\nThank you!"
+        self._instructions_stim.draw()
+        self.win.flip()
+        if self.auto_respond:
+            core.wait(0.05)
+            return
+        event.waitKeys(keyList=["space", "escape"], maxWait=8.0)
 
     # -- entry point ----------------------------------------------------
 
