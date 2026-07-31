@@ -239,7 +239,8 @@
       "marker_stream_timeout": 5.0,
       "task_start_marker": 203,
       "stimulation_start_marker": 203,
-      "stimulation_stop_marker": 204
+      "stimulation_stop_marker": 204,
+      "outlet_stream_name": "LSLOutletStreamName"
     },
     "markers": {
       "enabled": true,

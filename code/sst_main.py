@@ -110,8 +110,9 @@ class SSTTask:
         self.eeg_recorder: LSLEEGRecorder | None = None
 
         self.lsl_trigger: LSLStimulationTrigger | None = None
-        if not self.test_mode and config.get("stimulation", {}).get("lsl", {}).get("enabled", True):
-            self.lsl_trigger = LSLStimulationTrigger()
+        lsl_config = config.get("stimulation", {}).get("lsl", {})
+        if not self.test_mode and lsl_config.get("enabled", True):
+            self.lsl_trigger = LSLStimulationTrigger(stream_name=lsl_config.get("outlet_stream_name"))
             self.lsl_trigger.connect()
             self.lsl_trigger.start_listening()
 

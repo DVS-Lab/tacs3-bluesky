@@ -4,6 +4,8 @@ Working scaffold for two tACS3 tasks that estimate task-evoked individualized rh
 
 The current structure follows Jimmy's `tacs_bandit` layout: task entry points and EEG helpers live under `code/`, with synthetic workflow tests under `tests/`.
 
+Setting up a new task-presentation computer? See [SETUP.md](SETUP.md).
+
 ## What This Implements
 
 - `code/bandit_main.py`: two-armed bandit reversal-learning task (PsychoPy). Trial mechanics are identical on every run regardless of stimulation condition; the only run-type distinction is the pre-stimulation `--localizer` baseline run.

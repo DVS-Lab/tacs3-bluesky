@@ -91,7 +91,13 @@ class LSLStimulationTrigger:
     STIMULATION_STOP = 204
     TASK_START_MARKER = 203
 
-    def __init__(self):
+    def __init__(self, stream_name: str | None = None):
+        # stream_name, when given, is matched exactly against the LSL stream's
+        # own name (e.g. NIC-2's configured outlet name) so this doesn't
+        # accidentally bind to some other "Markers"-type stream on the network -
+        # including the task's own TaskMarkerLogger outlet, which is also alive
+        # and discoverable at the same time.
+        self.stream_name = stream_name
         self.inlet = None
         self.listening = False
         self.marker_queue: queue.Queue = queue.Queue()
@@ -104,7 +110,19 @@ class LSLStimulationTrigger:
         try:
             streams = pylsl.resolve_streams(wait_time=5.0)
             marker_streams = [s for s in streams if s.type() == "Markers"]
-            chosen = marker_streams[0] if marker_streams else (streams[0] if streams else None)
+            chosen = None
+            if self.stream_name:
+                named_matches = [s for s in marker_streams if s.name() == self.stream_name]
+                if named_matches:
+                    chosen = named_matches[0]
+                else:
+                    seen = [s.name() for s in marker_streams] or [s.name() for s in streams]
+                    print(
+                        f"LSL: no stream named '{self.stream_name}' found (saw: {seen}); "
+                        "falling back to the first available marker stream."
+                    )
+            if chosen is None:
+                chosen = marker_streams[0] if marker_streams else (streams[0] if streams else None)
             if chosen is None:
                 print("LSL: no marker streams found; the task will only start on SPACE.")
                 return False
