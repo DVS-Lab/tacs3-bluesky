@@ -318,7 +318,10 @@ class SSTTask:
                 text=(
                     f"Stop Signal Task — {self.run_label}\n\n"
                     "Please wait for the experimenter to start the task.\n\n"
-                    "Respond quickly to black arrows. Try to stop when the arrow turns red.\n\n"
+                    "Press A when the arrow points LEFT.\n"
+                    "Press L when the arrow points RIGHT.\n"
+                    "Respond as quickly as possible.\n\n"
+                    "If the arrow turns RED, try to stop yourself from pressing anything.\n\n"
                     "Press SPACE to begin"
                 ),
                 color="white",
@@ -340,7 +343,7 @@ class SSTTask:
                 trial_num = self.current_trial + 1
                 direction = random.choice(["left", "right"])
                 is_stop = random.random() < self.stop_probability
-                expected_key = "1" if direction == "left" else "2"
+                expected_key = "a" if direction == "left" else "l"
                 isi = random.uniform(*self.isi_range_sec)
                 iti = random.uniform(*self.iti_range_sec)
 
@@ -366,10 +369,10 @@ class SSTTask:
                     if self.auto_respond:
                         if not responded and simulated_rt is not None and trial_clock.getTime() >= simulated_rt:
                             responded = True
-                            response_key = expected_key if random.random() < 0.95 else ("2" if expected_key == "1" else "1")
+                            response_key = expected_key if random.random() < 0.95 else ("l" if expected_key == "a" else "a")
                             response_time = simulated_rt
                     else:
-                        keys = event.getKeys(keyList=["1", "2", "z"], timeStamped=trial_clock)
+                        keys = event.getKeys(keyList=["a", "l", "z"], timeStamped=trial_clock)
                         if keys:
                             for key, timestamp in keys:
                                 if key == "z":
@@ -462,7 +465,7 @@ class SSTTask:
         # always passes the real outcome of that race explicitly.
         stop_presented = is_stop if stop_presented is None else stop_presented
         m = self.marker_codes
-        expected_key = "1" if direction == "left" else "2"
+        expected_key = "a" if direction == "left" else "l"
         now_task = time.time() - self.run_start_time
         stim_onset_task_time = now_task if stim_onset_task_time is None else stim_onset_task_time
         stim_onset_lsl_time = (
