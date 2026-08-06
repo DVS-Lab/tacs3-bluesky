@@ -33,7 +33,7 @@
     "iti_range_sec": [1.5, 4.0]
   },
   "eeg_recording": {
-    "record_lsl_eeg_during_localizer": true,
+    "record_lsl_eeg_during_localizer": false,
     "preferred_stream_type": "EEG",
     "preferred_stream_name_contains": "StarStim",
     "write_raw_csv": true,
