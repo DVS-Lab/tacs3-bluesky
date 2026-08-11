@@ -221,22 +221,9 @@ class BanditTask:
         )
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create subdirectories used elsewhere in the script
-        self.eeg_dir = self.data_dir / "eeg"
-        self.eeg_dir.mkdir(exist_ok=True)
-
-        self.qc_dir = self.data_dir / "qc"
-        self.qc_dir.mkdir(exist_ok=True)
-
-        self.logs_dir = self.data_dir / "logs"
-        self.logs_dir.mkdir(exist_ok=True)
-
         # Always use a single run label
         self.run_label = "run-01"
 
-        base = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit"
-        self.marker_log_path = self.logs_dir / f"{base}_markers.jsonl"
-        self.eeg_summary_path = self.logs_dir / f"{base}_eeg_summary.json"
 
     def _select_flowers_for_run(self) -> bool:
         available = set(self.flower_id_pool) - self.used_flowers
@@ -283,40 +270,6 @@ class BanditTask:
             self.contingency_trials = self._get_contingency_duration()
             self.contingency_id += 1
 
-    # -- EEG recording -----------------------------------------------------
-
-    def _start_eeg_recording_if_requested(self) -> None:
-        eeg_config = self.config.get("eeg_recording", {})
-        if not eeg_config.get("record_lsl_eeg_during_localizer", True):
-            return
-        self.eeg_recorder = LSLEEGRecorder(
-            preferred_stream_type=eeg_config.get("preferred_stream_type", "EEG"),
-            preferred_stream_name_contains=eeg_config.get("preferred_stream_name_contains", "StarStim"),
-        )
-        if not self.eeg_recorder.start():
-            summary = self.eeg_recorder.fail_summary()
-            summary.message = summary.message or "No live EEG stream found. Behavioral output will still be saved."
-            save_recording_summary(summary, self.eeg_summary_path)
-            self.eeg_recording_saved = True
-            print(summary.message)
-
-    def _stop_eeg_recording(self) -> None:
-        if not self.eeg_recorder or self.eeg_recording_saved:
-            return
-        basename = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit_eeg"
-        summary = self.eeg_recorder.save(
-            self.eeg_dir,
-            basename,
-            write_raw_csv=bool(self.config.get("eeg_recording", {}).get("write_raw_csv", True)),
-            write_raw_npz=bool(self.config.get("eeg_recording", {}).get("write_raw_npz", True)),
-            extra_metadata={
-                "subject_id": self.subject_id,
-                "session_id": self.session_id,
-                "run_label": self.run_label,
-            },
-        )
-        save_recording_summary(summary, self.eeg_summary_path)
-        self.eeg_recording_saved = True
 
     # -- trial row / persistence -------------------------------------------
 
@@ -405,10 +358,7 @@ class BanditTask:
         self.save_data()
         if self.lsl_trigger:
             self.lsl_trigger.stop_listening()
-        self._stop_eeg_recording()
-        if not self._marker_log_saved and self.event_logger.events:
-            self.event_logger.save(self.marker_log_path)
-            self._marker_log_saved = True
+
 
     # -- test-mode (headless, no PsychoPy/pygame required) ------------------
 
@@ -735,7 +685,6 @@ class BanditTask:
                 return
             if not self._show_instructions():
                 return
-            self._start_eeg_recording_if_requested()
             event.clearEvents()
             if not self._show_waiting_screen():
                 return
