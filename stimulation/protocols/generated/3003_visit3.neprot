@@ -1,6 +1,6 @@
 <ProtocolTemplates>
  <Template>
-  <TemplateName>Bandit_Protocol-A_Run-1</TemplateName>
+  <TemplateName>TACS3-Protocol-Template</TemplateName>
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
@@ -22,8 +22,8 @@
     <location>F3</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <atacsValue>1800</atacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -32,8 +32,8 @@
     <location>Fp1</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <atacsValue>600</atacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -42,8 +42,8 @@
     <location>FCz</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <atacsValue>600</atacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -52,8 +52,8 @@
     <location>FT7</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <atacsValue>600</atacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -63,7 +63,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -73,7 +73,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -83,7 +83,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -93,7 +93,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
