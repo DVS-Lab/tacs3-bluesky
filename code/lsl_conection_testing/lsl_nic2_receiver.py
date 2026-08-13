@@ -1,31 +1,20 @@
-from pylsl import resolve_byprop, StreamInlet
+from pylsl import resolve_streams
 
-STREAM_NAME = "LSLOutletStreamName-test-Markers"
+print("Searching for ANY LSL streams...")
+print("Waiting 15 seconds...\n")
 
-print(f"Looking for: {STREAM_NAME}")
-
-streams = resolve_byprop("name", STREAM_NAME, timeout=10)
+streams = resolve_streams(wait_time=15)
 
 if not streams:
-    print("ERROR: Stream not found.")
-    input("Press Enter to exit...")
-    raise SystemExit
+    print("NO LSL STREAMS FOUND")
+else:
+    print(f"FOUND {len(streams)} STREAM(S):\n")
 
-stream = streams[0]
-
-print("Connected!")
-print("Stream:", stream.name())
-print("Type:", stream.type())
-print()
-print("Waiting for markers...")
-print("Click START in NIC2 on Computer A.")
-print("Press Ctrl+C to stop.")
-print()
-
-inlet = StreamInlet(stream)
-
-while True:
-    sample, timestamp = inlet.pull_sample(timeout=1)
-
-    if sample:
-        print(f"RECEIVED: {sample}  |  LSL timestamp: {timestamp}")
+    for s in streams:
+        print(
+            f"Name={s.name()} | "
+            f"Type={s.type()} | "
+            f"Channels={s.channel_count()} | "
+            f"Rate={s.nominal_srate()} | "
+            f"Source={s.source_id()}"
+        )
