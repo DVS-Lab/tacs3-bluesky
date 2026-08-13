@@ -1,10 +1,10 @@
 from pylsl import resolve_byprop
 
-print("Searching specifically for NIC marker stream...")
+print("Looking for TEST_STREAM...")
 
 streams = resolve_byprop(
     "name",
-    "LSLOutletStreamName-Markers",
+    "TEST_STREAM",
     timeout=10
 )
 
@@ -13,5 +13,4 @@ print("Found:", len(streams))
 for s in streams:
     print("Name:", s.name())
     print("Hostname:", s.hostname())
-    print("Source ID:", s.source_id())
-    print("UID:", s.uid())
+    print("Source:", s.source_id())

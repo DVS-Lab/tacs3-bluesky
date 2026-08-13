@@ -1,14 +1,25 @@
-from pylsl import resolve_byprop
+from pylsl import StreamInfo, StreamOutlet
+import time
 
-streams = resolve_byprop(
-    "name",
-    "LSLOutletStreamName-Markers",
-    timeout=5
+info = StreamInfo(
+    name="TEST_STREAM",
+    type="Markers",
+    channel_count=1,
+    nominal_srate=0,
+    channel_format="string",
+    source_id="TEST_SOURCE"
 )
 
-s = streams[0]
+outlet = StreamOutlet(info)
 
-print("Name:", s.name())
-print("Hostname:", s.hostname())
-print("Source ID:", s.source_id())
-print("UID:", s.uid())
+print("TEST_STREAM is running.")
+print("Sending a marker every 2 seconds...")
+
+i = 0
+
+while True:
+    marker = f"TEST_{i}"
+    outlet.push_sample([marker])
+    print("Sent:", marker)
+    i += 1
+    time.sleep(2)
