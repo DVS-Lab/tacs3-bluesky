@@ -19,10 +19,13 @@ from __future__ import annotations
 
 import argparse
 import colorsys
+import ctypes
 import json
 import queue
 import random
 import re
+import subprocess
+import threading
 import time
 from datetime import datetime
 from pathlib import Path
@@ -43,6 +46,146 @@ except ImportError:  # pragma: no cover - operator dependency
 
 PRE_RUN_BUFFER_SEC = 5.0
 
+
+# ============================================================
+# NETWORK PING TRIGGER
+# ============================================================
+
+PING_SOURCE_IP = "192.168.50.1"
+PING_DEST_IP = "192.168.50.2"
+PING_DUPLICATE_WINDOW = 0.100  # seconds
+
+PING_PATTERN = re.compile(
+    rf"{re.escape(PING_SOURCE_IP)}\s*>\s*{re.escape(PING_DEST_IP)}:\s*ICMP echo request",
+    re.IGNORECASE,
+)
+
+
+class PingTriggerDetector:
+    """
+    Background detector for the NIC2 start ping.
+
+    Computer A:
+        192.168.50.1
+
+    Computer B:
+        192.168.50.2
+
+    When an ICMP echo request from A to B is detected,
+    trigger_received becomes True.
+    """
+
+    def __init__(self):
+        self.trigger_received = threading.Event()
+        self.stop_event = threading.Event()
+        self.process = None
+        self.thread = None
+        self.last_trigger_time = 0.0
+
+    def _setup_pktmon(self):
+        """Configure pktmon to watch traffic from Computer A."""
+
+        subprocess.run(
+            ["pktmon", "filter", "remove"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+
+        subprocess.run(
+            ["pktmon", "filter", "add", "-i", PING_SOURCE_IP],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+
+    def _detector_loop(self):
+        """Run pktmon continuously in the background."""
+
+        try:
+            self._setup_pktmon()
+
+            print()
+            print("=" * 60)
+            print("PING TRIGGER DETECTOR STARTED")
+            print(f"Watching: {PING_SOURCE_IP} -> {PING_DEST_IP}")
+            print("=" * 60)
+            print()
+
+            self.process = subprocess.Popen(
+                ["pktmon", "start", "--etw", "-m", "real-time"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+
+            for line in self.process.stdout:
+
+                if self.stop_event.is_set():
+                    break
+
+                if not PING_PATTERN.search(line):
+                    continue
+
+                now = time.perf_counter()
+
+                # pktmon can report the same packet multiple times.
+                if now - self.last_trigger_time < PING_DUPLICATE_WINDOW:
+                    continue
+
+                self.last_trigger_time = now
+
+                timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+
+                print()
+                print(">>> PING FROM COMPUTER A RECEIVED <<<")
+                print(f">>> Detection time: {timestamp}")
+                print(">>> SETTING PSYCHOPY START TRIGGER <<<")
+                print()
+
+                self.trigger_received.set()
+
+        except Exception as e:
+            print()
+            print("PING DETECTOR ERROR:")
+            print(e)
+            print()
+
+    def start(self):
+        """Start the detector in a background thread."""
+
+        self.thread = threading.Thread(
+            target=self._detector_loop,
+            daemon=True,
+        )
+
+        self.thread.start()
+
+    def stop(self):
+        """Stop pktmon and the detector thread."""
+
+        self.stop_event.set()
+
+        try:
+            subprocess.run(
+                ["pktmon", "stop"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW,
+            )
+        except Exception:
+            pass
+
+        if self.process is not None:
+            try:
+                self.process.terminate()
+            except Exception:
+                pass
+
+        if self.thread is not None:
+            self.thread.join(timeout=1.0)
 
 def normalize_id(value: str, prefix: str) -> str:
     return str(value).replace(prefix, "").strip()
@@ -160,6 +303,14 @@ class BanditTask:
         self._saved = False
         self._marker_log_saved = False
         self.eeg_recording_saved = False
+
+        # Network ping trigger detector.
+        # Disabled in test mode and localizer mode.
+        self.ping_detector = None
+
+        if not self.test_mode and not cli_args.localizer:
+            self.ping_detector = PingTriggerDetector()
+            self.ping_detector.start()
 
         self.event_logger = TaskMarkerLogger(
             config.get("eeg_recording", {}).get("marker_stream_name", "LSLOutletStreamName-Markers")
@@ -352,12 +503,24 @@ class BanditTask:
         print(f"\nData saved to: {filepath}")
 
     def cleanup(self) -> None:
+
         if self.run_start_time is not None and self.run_end_lsl_time is None:
             self.run_end_task_time = time.time() - self.run_start_time
-            self.run_end_lsl_time = self.event_logger.send(200, "run_end", {"run_label": self.run_label})
+            self.run_end_lsl_time = self.event_logger.send(
+                200,
+                "run_end",
+                {"run_label": self.run_label},
+            )
+
         self.save_data()
+
         if self.lsl_trigger:
             self.lsl_trigger.stop_listening()
+
+        # Stop the background network ping detector.
+        if self.ping_detector:
+            print("Stopping ping trigger detector...")
+            self.ping_detector.stop()
 
 
     # -- test-mode (headless, no PsychoPy/pygame required) ------------------
@@ -522,21 +685,56 @@ class BanditTask:
             return True
 
         listen_lsl = (not self.cli_args.localizer) and self.lsl_trigger is not None
+
         while True:
+
+            # --------------------------------------------------------
+            # MANUAL SPACEBAR TRIGGER
+            # --------------------------------------------------------
+
             keys = event.getKeys(keyList=["space", "escape"])
+
             if "space" in keys:
+                print("SPACEBAR: manual task start.")
                 return True
+
             if "escape" in keys:
                 return False
+
+            # --------------------------------------------------------
+            # NETWORK PING TRIGGER
+            # --------------------------------------------------------
+
+            if self.ping_detector is not None:
+                if self.ping_detector.trigger_received.is_set():
+
+                    print("PING TRIGGER: starting task.")
+
+                    # Clear the event so it cannot accidentally
+                    # trigger another start later.
+                    self.ping_detector.trigger_received.clear()
+
+                    return True
+
+            # --------------------------------------------------------
+            # EXISTING LSL TRIGGER
+            # --------------------------------------------------------
+
             if listen_lsl:
                 try:
                     marker_code, _ = self.lsl_trigger.marker_queue.get_nowait()
+
                     if marker_code == self.lsl_trigger.TASK_START_MARKER:
-                        print(f"LSL: marker {marker_code} received. Starting task.")
+                        print(
+                            f"LSL: marker {marker_code} received. "
+                            "Starting task."
+                        )
                         return True
+
                 except queue.Empty:
                     pass
-            core.wait(0.01)
+
+            core.wait(0.005)
 
     def _show_start_buffer(self) -> bool:
         if self.auto_respond:
