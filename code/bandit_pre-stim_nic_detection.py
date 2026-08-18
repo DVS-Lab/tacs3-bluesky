@@ -1,3 +1,6 @@
+
+
+
 #!/usr/bin/env python3
 """Two-armed bandit reversal-learning task with StarStim/NIC-2 sync support.
 
@@ -17,6 +20,10 @@ LSL start trigger since there is nothing to sync to yet.
 
 from __future__ import annotations
 
+
+
+
+
 import argparse
 import colorsys
 import ctypes
@@ -31,6 +38,8 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+from scapy.all import ICMP, IP, sniff
+
 
 from eeg_lsl_recorder import LSLEEGRecorder, save_recording_summary
 from task_markers import LSLStimulationTrigger, TaskMarkerLogger, lsl_clock
@@ -63,7 +72,9 @@ PING_PATTERN = re.compile(
 
 class PingTriggerDetector:
     """
-    Background detector for the NIC2 start ping.
+    Background detector for the NIC2 start ping using Npcap/Scapy.
+
+    Listens on ALL network adapters.
 
     Computer A:
         192.168.50.1
@@ -71,9 +82,121 @@ class PingTriggerDetector:
     Computer B:
         192.168.50.2
 
-    When an ICMP echo request from A to B is detected,
-    trigger_received becomes True.
+    Only an ICMP echo request from PING_SOURCE_IP to
+    PING_DEST_IP will trigger the task.
     """
+
+    def __init__(self):
+        self.trigger_received = threading.Event()
+        self.stop_event = threading.Event()
+        self.thread = None
+        self.last_trigger_time = 0.0
+
+    def _packet_callback(self, packet):
+        """Called by Scapy whenever a packet is captured."""
+
+        if self.stop_event.is_set():
+            return
+
+        # Make sure this is an IP packet.
+        if not packet.haslayer(IP):
+            return
+
+        # Make sure this is ICMP.
+        if not packet.haslayer(ICMP):
+            return
+
+        ip = packet[IP]
+        icmp = packet[ICMP]
+
+        # ICMP type 8 = Echo Request (ping).
+        if icmp.type != 8:
+            return
+
+        source_ip = ip.src
+        destination_ip = ip.dst
+
+        # Only accept the specific A -> B ping.
+        if source_ip != PING_SOURCE_IP:
+            return
+
+        if destination_ip != PING_DEST_IP:
+            return
+
+        now = time.perf_counter()
+
+        # Prevent duplicate detection of the same ping.
+        if now - self.last_trigger_time < PING_DUPLICATE_WINDOW:
+            return
+
+        self.last_trigger_time = now
+
+        timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+
+        print()
+        print("=" * 60)
+        print(">>> PING FROM COMPUTER A RECEIVED <<<")
+        print(f">>> {source_ip} -> {destination_ip}")
+        print(f">>> Detection time: {timestamp}")
+        print(">>> SETTING PSYCHOPY START TRIGGER <<<")
+        print("=" * 60)
+        print()
+
+        self.trigger_received.set()
+
+    def _detector_loop(self):
+        """Listen for ICMP packets on all network adapters."""
+
+        try:
+            print()
+            print("=" * 60)
+            print("NPCAP PING TRIGGER DETECTOR STARTED")
+            print(f"Watching: {PING_SOURCE_IP} -> {PING_DEST_IP}")
+            print("Listening on: ALL network adapters")
+            print("=" * 60)
+            print()
+
+            sniff(
+                filter="icmp",
+                prn=self._packet_callback,
+                store=False,
+                stop_filter=lambda packet: self.stop_event.is_set(),
+            )
+
+        except Exception as e:
+            print()
+            print("=" * 60)
+            print("NPCAP PING DETECTOR ERROR")
+            print("=" * 60)
+            print(e)
+            print()
+            print(
+                "Make sure Npcap is installed and that Python/Scapy "
+                "can access the Npcap capture driver."
+            )
+            print()
+
+    def start(self):
+        """Start the Npcap detector in a background thread."""
+
+        self.thread = threading.Thread(
+            target=self._detector_loop,
+            daemon=True,
+        )
+
+        self.thread.start()
+
+    def stop(self):
+        """Stop the Npcap detector."""
+
+        self.stop_event.set()
+
+        # Scapy's sniff() can block waiting for a packet.
+        # The daemon thread will therefore be allowed to terminate
+        # with the Python process even if sniff() hasn't returned yet.
+
+        if self.thread is not None:
+            self.thread.join(timeout=1.0)
 
     def __init__(self):
         self.trigger_received = threading.Event()
