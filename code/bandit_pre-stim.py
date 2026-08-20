@@ -26,6 +26,8 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
+import subprocess
+import sys
 
 import pandas as pd
 
@@ -43,6 +45,13 @@ except ImportError:  # pragma: no cover - operator dependency
 
 PRE_RUN_BUFFER_SEC = 5.0
 
+
+def launch_npcap_detector():
+    detector_path = Path(__file__).resolve().parent / "npcap_ping_detector.py"
+    subprocess.Popen(
+        [sys.executable, str(detector_path)],
+        creationflags=subprocess.CREATE_NEW_CONSOLE
+    )
 
 def normalize_id(value: str, prefix: str) -> str:
     return str(value).replace(prefix, "").strip()
@@ -764,6 +773,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main() -> int:
     cli_args = build_arg_parser().parse_args()
     config = load_config(cli_args.config)
+
+    launch_npcap_detector()
+
     task = BanditTask(config, cli_args)
     task.run()
     return 0
