@@ -300,9 +300,11 @@ class BanditTask:
         choice_window_onset_lsl_time,
         choice_onset_task_time,
         choice_onset_lsl_time,
+        choice_onset_unix_time,
         choice_marker_send_lsl_time,
         feedback_task_time,
         feedback_lsl_time,
+        feedback_onset_unix_time,
         wait_time,
     ) -> dict:
         left_stimulus = self.current_flowers[0] if slot1_side == "left" else self.current_flowers[1]
@@ -335,9 +337,11 @@ class BanditTask:
             "choice_window_onset_lsl_time": choice_window_onset_lsl_time,
             "choice_onset_task_time": choice_onset_task_time,
             "choice_onset_lsl_time": choice_onset_lsl_time,
+            "choice_onset_unix_time": choice_onset_unix_time,
             "choice_marker_send_lsl_time": choice_marker_send_lsl_time,
             "feedback_onset_task_time": feedback_task_time,
             "feedback_onset_lsl_time": feedback_lsl_time,
+            "feedback_onset_unix_time": feedback_onset_unix_time,
             "lsl_marker_send_time": feedback_lsl_time,
             "wait_time": wait_time * 1000.0,
             "iti": self.timing["iti_duration"] * 1000.0,
@@ -428,9 +432,11 @@ class BanditTask:
                 choice_window_onset_lsl_time=choice_window_onset_lsl_time,
                 choice_onset_task_time=choice_onset_task_time,
                 choice_onset_lsl_time=choice_onset_lsl_time,
+                choice_onset_unix_time=choice_onset_unix_time,
                 choice_marker_send_lsl_time=choice_marker_send_lsl_time,
                 feedback_task_time=feedback_task_time,
                 feedback_lsl_time=feedback_lsl_time,
+                feedback_onset_unix_time=feedback_onset_unix_time,
                 wait_time=wait_time,
             )
             self.trial_data.append(row)
@@ -614,8 +620,11 @@ class BanditTask:
             rt = min(self.timing["max_response_time"] - 0.05, 0.5)
             core.wait(rt)
             choice = random.choice([1, 2])
+            choice_onset_unix_time = time.time()
         else:
             choice, rt = self._get_response(self.timing["max_response_time"])
+            choice_onset_unix_time = time.time() if choice is not None else None
+
 
         if choice in ("escape", "stim_stopped"):
             self.task_should_stop = True
@@ -648,8 +657,22 @@ class BanditTask:
         core.wait(wait_time)
 
         feedback_marker, outcome = self._feedback_marker(reward)
-        feedback_lsl_time = self.event_logger.send(feedback_marker, f"feedback_{outcome}", {"trial_num": trial_num})
-        feedback_task_time = time.time() - self.run_start_time
+
+        # Capture Unix timestamp at feedback onset
+        feedback_onset_unix_time = time.time()
+
+        feedback_lsl_time = self.event_logger.send(
+            feedback_marker,
+            f"feedback_{outcome}",
+            {
+                "trial_num": trial_num,
+                "feedback_onset_unix_time": feedback_onset_unix_time,
+            }
+        )
+
+        feedback_task_time = feedback_onset_unix_time - self.run_start_time
+
+
         self._feedback_stims[outcome].draw()
         self.win.flip()
         core.wait(self.timing["outcome_duration"])
@@ -673,9 +696,11 @@ class BanditTask:
             choice_window_onset_lsl_time=choice_window_onset_lsl_time,
             choice_onset_task_time=choice_onset_task_time,
             choice_onset_lsl_time=choice_onset_lsl_time,
+            choice_onset_unix_time=choice_onset_unix_time,
             choice_marker_send_lsl_time=choice_marker_send_lsl_time,
             feedback_task_time=feedback_task_time,
             feedback_lsl_time=feedback_lsl_time,
+            feedback_onset_unix_time=feedback_onset_unix_time,
             wait_time=wait_time,
         )
         self.trial_data.append(row)
