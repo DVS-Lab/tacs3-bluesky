@@ -620,10 +620,10 @@ class BanditTask:
             rt = min(self.timing["max_response_time"] - 0.05, 0.5)
             core.wait(rt)
             choice = random.choice([1, 2])
-            choice_onset_unix_time = time.time()
+            choice_onset_unix_time = time.time() * 1000.0
         else:
             choice, rt = self._get_response(self.timing["max_response_time"])
-            choice_onset_unix_time = time.time() if choice is not None else None
+            choice_onset_unix_time = time.time() * 1000.0 if choice is not None else None
 
 
         if choice in ("escape", "stim_stopped"):
@@ -659,7 +659,7 @@ class BanditTask:
         feedback_marker, outcome = self._feedback_marker(reward)
 
         # Capture Unix timestamp at feedback onset
-        feedback_onset_unix_time = time.time()
+        feedback_onset_unix_time = time.time() * 1000.0
 
         feedback_lsl_time = self.event_logger.send(
             feedback_marker,
