@@ -1,6 +1,6 @@
 <ProtocolTemplates>
  <Template>
-  <TemplateName>TACS3-Protocol-Template</TemplateName>
+  <TemplateName>tACS-3 Bandit Pre-stim</TemplateName>
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
@@ -22,7 +22,7 @@
     <location>F3</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>1800</atacsValue>
+    <atacsValue>0</atacsValue>
     <ftacsValue>0.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -32,7 +32,7 @@
     <location>Fp1</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>600</atacsValue>
+    <atacsValue>0</atacsValue>
     <ftacsValue>0.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -42,7 +42,7 @@
     <location>FCz</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>600</atacsValue>
+    <atacsValue>0</atacsValue>
     <ftacsValue>0.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -52,7 +52,7 @@
     <location>FT7</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>600</atacsValue>
+    <atacsValue>0</atacsValue>
     <ftacsValue>0.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -89,7 +89,7 @@
    </Channel>
    <Channel>
     <index>8</index>
-    <location>EXT</location>
+    <location>EOG1</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>

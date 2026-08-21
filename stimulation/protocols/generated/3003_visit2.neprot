@@ -23,7 +23,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>1800</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -33,7 +33,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>600</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -43,7 +43,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>600</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -53,7 +53,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>600</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -63,7 +63,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -73,7 +73,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -83,7 +83,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -93,7 +93,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>6.25</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
