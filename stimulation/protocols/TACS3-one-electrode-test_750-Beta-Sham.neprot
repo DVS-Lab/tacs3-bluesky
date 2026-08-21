@@ -1,6 +1,6 @@
 <ProtocolTemplates>
  <Template>
-  <TemplateName>TACS3-Pilot_Run-1_750-Beta-Sham</TemplateName>
+  <TemplateName>TACS3-one-electrode-test-1_750-Beta-Sham</TemplateName>
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
@@ -18,12 +18,12 @@
    <tRNSType>TRNS_FILTERING_NONE</tRNSType>
    <waveForm>NO_WAVEFORM</waveForm>
    <Channel>
-    <index>2</index>
+    <index>1</index>
     <location>F3</location>
-    <electrodeType>2</electrodeType>
+    <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>750</atacsValue>
-    <ftacsValue>20.00</ftacsValue>
+    <atacsValue>0</atacsValue>
+    <ftacsValue>0.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
