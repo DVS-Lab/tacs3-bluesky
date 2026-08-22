@@ -87,6 +87,17 @@ N_CYCLES = 5
 SMOOTH_SIGMA = 1.0
 NV_TO_UV = 1e-3
 
+CHANNEL_LABELS = {
+    1: "F3",
+    2: "Fp1",
+    3: "FCz",
+    4: "FT7",
+    5: "F4",
+    6: "P4",
+    7: "P3",
+    8: "EXT",
+}
+
 
 def parse_channels(text):
     """Convert comma-separated 1-based channel numbers to 0-based indices."""
@@ -189,14 +200,21 @@ def epoch_from_unix(
     reject_ch_idx=None,
 ):
     """
-    Extract event-locked epochs directly from the Unix timestamp column.
+    Extract event-locked epochs directly from Unix timestamps.
+
+    In addition to rejecting epochs that exceed the amplitude threshold,
+    this records which EEG channel(s) caused each rejection.
 
     Returns
     -------
-    epochs : n_epochs x n_times x n_channels
-    times  : relative time vector in seconds
-    kept_event_indices : indices into the supplied event_times_ms vector
-    reject_reason : dict of counts
+    epochs : ndarray
+        n_epochs x n_times x n_channels
+    times : ndarray
+        Relative time vector in seconds.
+    kept_event_indices : list
+        Indices into event_times_ms for retained epochs.
+    reject_reason : dict
+        Counts plus artifact-by-channel and per-epoch artifact details.
     """
     n_pre = int(round(abs(tmin) * srate))
     n_post = int(round(tmax * srate))
@@ -205,9 +223,21 @@ def epoch_from_unix(
 
     epochs = []
     kept = []
+
     rejected_artifact = 0
     rejected_bounds = 0
     skipped_missing = 0
+
+    # Number of rejected epochs in which each reduced-data channel exceeded
+    # the amplitude threshold.
+    artifact_by_channel = {}
+
+    # One row per channel per rejected epoch. This makes it easy to inspect
+    # exactly which channel caused a rejection and by how much.
+    artifact_details = []
+
+    if reject_ch_idx is None:
+        reject_ch_idx = list(range(eeg.shape[1]))
 
     for i, event_ms in enumerate(event_times_ms):
         if not np.isfinite(event_ms):
@@ -223,20 +253,46 @@ def epoch_from_unix(
             continue
 
         ep = eeg[s0:s1].copy()
+
         if ep.shape[0] != n_epoch:
             rejected_bounds += 1
             continue
 
-        if reject_ch_idx is None:
-            reject_ch_idx = list(range(ep.shape[1]))
+        # ---------------------------------------------------------
+        # Artifact rejection + channel diagnostics
+        # ---------------------------------------------------------
+        if reject_uv is not None:
+            channel_max = np.max(
+                np.abs(ep[:, reject_ch_idx]),
+                axis=0,
+            )
 
-        if (
-            reject_uv is not None
-            and np.max(np.abs(ep[:, reject_ch_idx])) > reject_uv
-        ):
-            rejected_artifact += 1
-            continue
+            bad_mask = channel_max > reject_uv
 
+            if np.any(bad_mask):
+                rejected_artifact += 1
+
+                bad_positions = np.where(bad_mask)[0]
+
+                for pos in bad_positions:
+                    reduced_idx = reject_ch_idx[pos]
+                    max_uv = float(channel_max[pos])
+
+                    artifact_by_channel[reduced_idx] = (
+                        artifact_by_channel.get(reduced_idx, 0) + 1
+                    )
+
+                    artifact_details.append({
+                        "event_index": int(i),
+                        "event_unix_ms": float(event_ms),
+                        "reduced_channel_index": int(reduced_idx),
+                        "max_abs_uv": max_uv,
+                    })
+
+                continue
+
+        # Linear detrend per channel after amplitude rejection,
+        # matching the original pipeline ordering.
         for ci in range(ep.shape[1]):
             ep[:, ci] = signal.detrend(ep[:, ci], type="linear")
 
@@ -252,7 +308,10 @@ def epoch_from_unix(
         "missing_timestamp": skipped_missing,
         "out_of_bounds": rejected_bounds,
         "artifact": rejected_artifact,
+        "artifact_by_channel": artifact_by_channel,
+        "artifact_details": artifact_details,
     }
+
     return epochs, times, kept, reject_reason
 
 
@@ -451,6 +510,101 @@ def beta_analysis(
     return peak_hz, peak_db, edge, spectrum_df
 
 
+
+def artifact_breakdown_dataframe(
+    phase,
+    reject_info,
+    available_original_idx,
+):
+    """
+    Convert per-epoch artifact diagnostics into a readable DataFrame.
+
+    One rejected epoch can appear on multiple rows if multiple channels
+    exceeded the threshold.
+    """
+    rows = []
+
+    for item in reject_info.get("artifact_details", []):
+        reduced_idx = item["reduced_channel_index"]
+
+        # Map position in the reduced EEG matrix back to the original
+        # 1-based .easy channel number.
+        original_ch = int(available_original_idx[reduced_idx]) + 1
+        channel_name = CHANNEL_LABELS.get(
+            original_ch,
+            f"Ch{original_ch}",
+        )
+
+        rows.append({
+            "phase": phase,
+            "event_index": item["event_index"],
+            "event_unix_ms": item["event_unix_ms"],
+            "channel_number": original_ch,
+            "channel_name": channel_name,
+            "max_abs_uv": item["max_abs_uv"],
+        })
+
+    return pd.DataFrame(
+        rows,
+        columns=[
+            "phase",
+            "event_index",
+            "event_unix_ms",
+            "channel_number",
+            "channel_name",
+            "max_abs_uv",
+        ],
+    )
+
+
+def print_artifact_breakdown(
+    label,
+    reject_info,
+    available_original_idx,
+):
+    """
+    Print how many rejected epochs implicated each scalp EEG channel.
+
+    Counts can sum to more than the total number of rejected epochs because
+    a single rejected epoch may exceed threshold on multiple channels.
+    """
+    print(f"\n{label} artifact breakdown:")
+
+    counts = reject_info.get("artifact_by_channel", {})
+
+    if not counts:
+        print("  No artifact-rejected epochs.")
+        print(f"  Total rejected epochs: {reject_info['artifact']}")
+        return
+
+    mapped = []
+
+    for reduced_idx, count in counts.items():
+        original_ch = int(available_original_idx[reduced_idx]) + 1
+        channel_name = CHANNEL_LABELS.get(
+            original_ch,
+            f"Ch{original_ch}",
+        )
+        mapped.append(
+            (count, original_ch, channel_name)
+        )
+
+    for count, original_ch, channel_name in sorted(
+        mapped,
+        reverse=True,
+    ):
+        print(
+            f"  {channel_name} "
+            f"(channel {original_ch}): "
+            f"{count} rejected epochs"
+        )
+
+    print(
+        f"  Total unique artifact-rejected epochs: "
+        f"{reject_info['artifact']}"
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Lab-style outcome theta and decision beta peak-frequency estimation."
@@ -587,6 +741,21 @@ def main():
     )
 
     # -------------------------------------------------------------
+    # Artifact diagnostics
+    # -------------------------------------------------------------
+    print_artifact_breakdown(
+        "Feedback",
+        rej_fb,
+        available_original_idx,
+    )
+
+    print_artifact_breakdown(
+        "Decision",
+        rej_dec,
+        available_original_idx,
+    )
+
+    # -------------------------------------------------------------
     # Frequency estimates
     # -------------------------------------------------------------
     theta_peak_hz = np.nan
@@ -646,10 +815,141 @@ def main():
         "beta_erd_peak_hz": beta_peak_hz,
         "beta_erd_peak_db_change": beta_peak_db,
         "beta_peak_at_band_edge": beta_edge,
+
+        # Artifact-rejection counts by scalp channel.
+        # A single epoch may be counted for more than one channel.
+        "feedback_artifact_F3": rej_fb["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 1),
+                -1,
+            ),
+            0,
+        ),
+        "feedback_artifact_Fp1": rej_fb["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 2),
+                -1,
+            ),
+            0,
+        ),
+        "feedback_artifact_FCz": rej_fb["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 3),
+                -1,
+            ),
+            0,
+        ),
+        "feedback_artifact_FT7": rej_fb["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 4),
+                -1,
+            ),
+            0,
+        ),
+        "feedback_artifact_F4": rej_fb["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 5),
+                -1,
+            ),
+            0,
+        ),
+        "feedback_artifact_P4": rej_fb["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 6),
+                -1,
+            ),
+            0,
+        ),
+        "feedback_artifact_P3": rej_fb["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 7),
+                -1,
+            ),
+            0,
+        ),
+        "decision_artifact_F3": rej_dec["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 1),
+                -1,
+            ),
+            0,
+        ),
+        "decision_artifact_Fp1": rej_dec["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 2),
+                -1,
+            ),
+            0,
+        ),
+        "decision_artifact_FCz": rej_dec["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 3),
+                -1,
+            ),
+            0,
+        ),
+        "decision_artifact_FT7": rej_dec["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 4),
+                -1,
+            ),
+            0,
+        ),
+        "decision_artifact_F4": rej_dec["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 5),
+                -1,
+            ),
+            0,
+        ),
+        "decision_artifact_P4": rej_dec["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 6),
+                -1,
+            ),
+            0,
+        ),
+        "decision_artifact_P3": rej_dec["artifact_by_channel"].get(
+            next(
+                (i for i, orig in enumerate(available_original_idx)
+                 if orig + 1 == 7),
+                -1,
+            ),
+            0,
+        ),
     }])
 
     spectra = pd.concat(
         [theta_spec_df, beta_spec_df],
+        ignore_index=True,
+    )
+
+    feedback_artifacts_df = artifact_breakdown_dataframe(
+        "feedback",
+        rej_fb,
+        available_original_idx,
+    )
+    decision_artifacts_df = artifact_breakdown_dataframe(
+        "decision",
+        rej_dec,
+        available_original_idx,
+    )
+
+    artifact_df = pd.concat(
+        [feedback_artifacts_df, decision_artifacts_df],
         ignore_index=True,
     )
 
@@ -658,9 +958,11 @@ def main():
 
     summary_path = Path(str(prefix) + "_summary.csv")
     spectra_path = Path(str(prefix) + "_spectra.csv")
+    artifact_path = Path(str(prefix) + "_artifact_rejections.csv")
 
     summary.to_csv(summary_path, index=False)
     spectra.to_csv(spectra_path, index=False)
+    artifact_df.to_csv(artifact_path, index=False)
 
     print("\n--- Results ---")
     print(f"Feedback epochs kept: {len(ep_fb)}")
@@ -689,6 +991,7 @@ def main():
 
     print(f"\nSaved: {summary_path}")
     print(f"Saved: {spectra_path}")
+    print(f"Saved: {artifact_path}")
 
 
 if __name__ == "__main__":
