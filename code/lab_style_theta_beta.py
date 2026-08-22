@@ -29,7 +29,7 @@ Primary outputs
 Preprocessing follows the executable lab notebook:
    - 0.5-45 Hz, 4th-order Butterworth, zero-phase
    - 60 Hz IIR notch, Q=30
-   - average reference across available EEG channels
+   - average reference across scalp EEG channels 1-7 (EXT/cheek excluded)
    - ±200 uV epoch rejection by default
    - linear detrending per epoch / channel
 
@@ -186,6 +186,7 @@ def epoch_from_unix(
     tmin,
     tmax,
     reject_uv=200.0,
+    reject_ch_idx=None,
 ):
     """
     Extract event-locked epochs directly from the Unix timestamp column.
@@ -226,8 +227,13 @@ def epoch_from_unix(
             rejected_bounds += 1
             continue
 
-        # Match notebook ordering: reject on amplitude before detrending.
-        if reject_uv is not None and np.max(np.abs(ep)) > reject_uv:
+        if reject_ch_idx is None:
+            reject_ch_idx = list(range(ep.shape[1]))
+
+        if (
+            reject_uv is not None
+            and np.max(np.abs(ep[:, reject_ch_idx])) > reject_uv
+        ):
             rejected_artifact += 1
             continue
 
@@ -459,7 +465,7 @@ def main():
     )
     parser.add_argument(
         "--frontal-channels",
-        default="5",
+        default="1,3,5",
         help=(
             "1-based .easy EEG channel numbers for frontal ROI. "
             "Default 1,3,5 matches the lab notebook's F3, FCz, F4."
@@ -488,9 +494,10 @@ def main():
     eeg_uv, unix_ms, srate, available_original_idx, unavailable = load_easy(args.eeg)
 
 
-    # Use channels 5=F4, 6=P4, 7=P3 for the average reference.
-    # Channel 8=EXT is on the cheek and is excluded from the reference.
-    REF_CHANNELS = [5, 6, 7]
+    # Average-reference using scalp EEG electrodes only:
+    # 1=F3, 2=Fp1, 3=FCz, 4=FT7, 5=F4, 6=P4, 7=P3.
+    # 8=EXT is on the cheek and is excluded from the reference.
+    REF_CHANNELS = [1, 2, 3, 4, 5, 6, 7]
 
     ref_idx = [
         reduced_idx
@@ -499,7 +506,9 @@ def main():
     ]
 
     eeg_clean = preprocess(eeg_uv, srate, ref_idx=ref_idx)
-
+    # Same scalp channels are used for the ±200 uV artifact threshold.
+    # Channel 8 = EXT/cheek is excluded.
+    reject_idx = ref_idx
     
     events = pd.read_csv(args.events)
 
@@ -553,6 +562,7 @@ def main():
         FEEDBACK_EPOCH[0],
         FEEDBACK_EPOCH[1],
         reject_uv=args.reject_uv,
+        reject_ch_idx=reject_idx,
     )
 
     # -------------------------------------------------------------
@@ -573,6 +583,7 @@ def main():
         DECISION_EPOCH[0],
         DECISION_EPOCH[1],
         reject_uv=args.reject_uv,
+        reject_ch_idx=reject_idx,
     )
 
     # -------------------------------------------------------------
