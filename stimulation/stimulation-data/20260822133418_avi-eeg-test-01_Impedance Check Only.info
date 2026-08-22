@@ -1,0 +1,107 @@
+Step Details
+Info Version: 1.2
+Step name: Impedance Check Only
+StartDate (firstEEGtimestamp): 0
+StartDate (firstSTIMtimestamp): 0
+Device class: STARSTIM
+Communication type: WiFi
+Device ID: NE-Wifi(00:07:80:0D:76:0B)
+Software's version: NIC 2.1.4.3
+Firmware's version: 4021
+Operative system: Windows
+SDCard Filename: NONE
+Additional channel: NONE
+Accelerometer data: ON
+
+Number of channels of Accelerometer: 3
+Accelerometer sampling rate: 100 Samples/second
+Accelerometer units: mm/s^2
+
+STIM Settings
+Total number of channels: 8
+Number of records of Stimulation: 0
+Stimulation sampling rate: 1000 Samples/second
+Effective STIM sampling rate: N/A
+Stimulation units: uA
+Number of stimulation channels: 8
+Ramp up duration (s): 30
+Ramp down duration (s): 30
+Sham ramp duration (s): 0
+Stimulation configured duration (s): 300
+Stimulation parameters:
+	Channel 1: 
+		Position: F3
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 750
+		Ftacs (Hz): 6
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 2: 
+		Position: Fp1
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 250
+		Ftacs (Hz): 6
+		Ptacs (º): 180
+		Atrns (uA): 0
+	Channel 3: 
+		Position: FCz
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 250
+		Ftacs (Hz): 6
+		Ptacs (º): 180
+		Atrns (uA): 0
+	Channel 4: 
+		Position: FT7
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 250
+		Ftacs (Hz): 6
+		Ptacs (º): 180
+		Atrns (uA): 0
+	Channel 5: 
+		Position: F4
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 6: 
+		Position: P4
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 7: 
+		Position: P3
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 8: 
+		Position: EXT
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+
+Trigger information:
+	Code	Description
+	1	
+	2	
+	3	
+	4	
+	5	
+	6	
+	7	
+	8	
+	9	

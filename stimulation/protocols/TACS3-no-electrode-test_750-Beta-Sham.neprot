@@ -1,6 +1,6 @@
 <ProtocolTemplates>
  <Template>
-  <TemplateName>TACS3-one-electrode-test-1_750-Beta-Sham</TemplateName>
+  <TemplateName>TACS3-no-electrode-test-1_750-Beta-Sham</TemplateName>
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
@@ -30,31 +30,31 @@
    <Channel>
     <index>2</index>
     <location>Fp1</location>
-    <electrodeType>2</electrodeType>
+    <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>250</atacsValue>
-    <ftacsValue>20.00</ftacsValue>
-    <ptacsValue>180</ptacsValue>
+    <atacsValue>0</atacsValue>
+    <ftacsValue>0.00</ftacsValue>
+    <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>3</index>
     <location>FCz</location>
-    <electrodeType>2</electrodeType>
+    <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>250</atacsValue>
-    <ftacsValue>20.00</ftacsValue>
-    <ptacsValue>180</ptacsValue>
+    <atacsValue>0</atacsValue>
+    <ftacsValue>0.00</ftacsValue>
+    <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>4</index>
     <location>FT7</location>
-    <electrodeType>2</electrodeType>
+    <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>250</atacsValue>
-    <ftacsValue>20.00</ftacsValue>
-    <ptacsValue>180</ptacsValue>
+    <atacsValue0</atacsValue>
+    <ftacsValue>0.00</ftacsValue>
+    <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
