@@ -26,8 +26,6 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
-import subprocess
-import sys
 
 import pandas as pd
 
@@ -45,13 +43,6 @@ except ImportError:  # pragma: no cover - operator dependency
 
 PRE_RUN_BUFFER_SEC = 5.0
 
-
-def launch_npcap_detector():
-    detector_path = Path(__file__).resolve().parent / "npcap_ping_detector.py"
-    subprocess.Popen(
-        [sys.executable, str(detector_path)],
-        creationflags=subprocess.CREATE_NEW_CONSOLE
-    )
 
 def normalize_id(value: str, prefix: str) -> str:
     return str(value).replace(prefix, "").strip()
@@ -150,7 +141,7 @@ class BanditTask:
 
         self.used_flowers: set[int] = set()
         self.current_flowers: list[int] = []
-        self.current_good: int | None = None
+        self.current_good = random.randint(1, 2)
         self.trial_in_contingency = 0
         self.contingency_id = 1
         self.contingency_trials = self._get_contingency_duration()
@@ -224,15 +215,25 @@ class BanditTask:
         self.session_id = normalize_id(self.cli_args.session or "001", "ses-")
         self.date_label = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        # Save all participant data to a single directory
-        self.data_dir = Path(
-            r"C:\Users\Public\LAB PROJECTS\Smith-Lab\tacs3-bluesky\stimulation\pre-stimulation-participant-responses"
-        )
+        data_root = Path(self.config.get("paths", {}).get("data_dir", "../data"))
+        self.data_dir = (Path(__file__).resolve().parent / data_root).resolve() / f"sub-{self.subject_id}"
         self.data_dir.mkdir(parents=True, exist_ok=True)
+        self.eeg_dir = self.data_dir / "eeg"
+        self.eeg_dir.mkdir(exist_ok=True)
+        self.qc_dir = self.data_dir / "qc"
+        self.qc_dir.mkdir(exist_ok=True)
+        self.logs_dir = self.data_dir / "logs"
+        self.logs_dir.mkdir(exist_ok=True)
 
-        # Always use a single run label
-        self.run_label = "run-01"
+        if self.cli_args.localizer:
+            self.run_label = "run-localizer"
+        else:
+            run_number = self.cli_args.run if self.cli_args.run is not None else self._next_run_number()
+            self.run_label = f"run-{int(run_number):02d}"
 
+        base = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit"
+        self.marker_log_path = self.logs_dir / f"{base}_markers.jsonl"
+        self.eeg_summary_path = self.logs_dir / f"{base}_eeg_summary.json"
 
     def _select_flowers_for_run(self) -> bool:
         available = set(self.flower_id_pool) - self.used_flowers
@@ -243,7 +244,6 @@ class BanditTask:
             print("Error: need at least 2 configured flower stimulus ids (stimuli.flower_indices).")
             return False
         self.current_flowers = random.sample(sorted(available), 2)
-        self.current_good = random.choice(self.current_flowers)
         self.used_flowers.update(self.current_flowers)
         return True
 
@@ -275,15 +275,45 @@ class BanditTask:
     def _advance_contingency(self) -> None:
         self.trial_in_contingency += 1
         if self.trial_in_contingency >= self.contingency_trials:
-            if self.current_good == self.current_flowers[0]:
-                self.current_good = self.current_flowers[1]
-            else:
-                self.current_good = self.current_flowers[0]
-
+            self.current_good = 3 - self.current_good
             self.trial_in_contingency = 0
             self.contingency_trials = self._get_contingency_duration()
             self.contingency_id += 1
 
+    # -- EEG recording -----------------------------------------------------
+
+    def _start_eeg_recording_if_requested(self) -> None:
+        eeg_config = self.config.get("eeg_recording", {})
+        if not eeg_config.get("record_lsl_eeg_during_localizer", True):
+            return
+        self.eeg_recorder = LSLEEGRecorder(
+            preferred_stream_type=eeg_config.get("preferred_stream_type", "EEG"),
+            preferred_stream_name_contains=eeg_config.get("preferred_stream_name_contains", "StarStim"),
+        )
+        if not self.eeg_recorder.start():
+            summary = self.eeg_recorder.fail_summary()
+            summary.message = summary.message or "No live EEG stream found. Behavioral output will still be saved."
+            save_recording_summary(summary, self.eeg_summary_path)
+            self.eeg_recording_saved = True
+            print(summary.message)
+
+    def _stop_eeg_recording(self) -> None:
+        if not self.eeg_recorder or self.eeg_recording_saved:
+            return
+        basename = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit_eeg"
+        summary = self.eeg_recorder.save(
+            self.eeg_dir,
+            basename,
+            write_raw_csv=bool(self.config.get("eeg_recording", {}).get("write_raw_csv", True)),
+            write_raw_npz=bool(self.config.get("eeg_recording", {}).get("write_raw_npz", True)),
+            extra_metadata={
+                "subject_id": self.subject_id,
+                "session_id": self.session_id,
+                "run_label": self.run_label,
+            },
+        )
+        save_recording_summary(summary, self.eeg_summary_path)
+        self.eeg_recording_saved = True
 
     # -- trial row / persistence -------------------------------------------
 
@@ -305,11 +335,9 @@ class BanditTask:
         choice_window_onset_lsl_time,
         choice_onset_task_time,
         choice_onset_lsl_time,
-        choice_onset_unix_time,
         choice_marker_send_lsl_time,
         feedback_task_time,
         feedback_lsl_time,
-        feedback_onset_unix_time,
         wait_time,
     ) -> dict:
         left_stimulus = self.current_flowers[0] if slot1_side == "left" else self.current_flowers[1]
@@ -342,11 +370,9 @@ class BanditTask:
             "choice_window_onset_lsl_time": choice_window_onset_lsl_time,
             "choice_onset_task_time": choice_onset_task_time,
             "choice_onset_lsl_time": choice_onset_lsl_time,
-            "choice_onset_unix_time": choice_onset_unix_time,
             "choice_marker_send_lsl_time": choice_marker_send_lsl_time,
             "feedback_onset_task_time": feedback_task_time,
             "feedback_onset_lsl_time": feedback_lsl_time,
-            "feedback_onset_unix_time": feedback_onset_unix_time,
             "lsl_marker_send_time": feedback_lsl_time,
             "wait_time": wait_time * 1000.0,
             "iti": self.timing["iti_duration"] * 1000.0,
@@ -376,7 +402,10 @@ class BanditTask:
         self.save_data()
         if self.lsl_trigger:
             self.lsl_trigger.stop_listening()
-
+        self._stop_eeg_recording()
+        if not self._marker_log_saved and self.event_logger.events:
+            self.event_logger.save(self.marker_log_path)
+            self._marker_log_saved = True
 
     # -- test-mode (headless, no PsychoPy/pygame required) ------------------
 
@@ -403,8 +432,7 @@ class BanditTask:
             rt = random.uniform(0.25, max(0.26, self.timing["max_response_time"] - 0.05)) if responded else None
 
             if choice is not None:
-                chosen_flower = self.current_flowers[choice - 1]
-                correct = chosen_flower == self.current_good
+                correct = choice == self.current_good
                 reward_prob = self.win_fraction if correct else 1 - self.win_fraction
                 reward = random.random() < reward_prob
                 rt_ms = rt * 1000.0
@@ -438,11 +466,9 @@ class BanditTask:
                 choice_window_onset_lsl_time=choice_window_onset_lsl_time,
                 choice_onset_task_time=choice_onset_task_time,
                 choice_onset_lsl_time=choice_onset_lsl_time,
-                choice_onset_unix_time=choice_onset_unix_time,
                 choice_marker_send_lsl_time=choice_marker_send_lsl_time,
                 feedback_task_time=feedback_task_time,
                 feedback_lsl_time=feedback_lsl_time,
-                feedback_onset_unix_time=feedback_onset_unix_time,
                 wait_time=wait_time,
             )
             self.trial_data.append(row)
@@ -473,51 +499,15 @@ class BanditTask:
         self.win.mouseVisible = False
 
     def _build_base_stimuli(self) -> None:
-        self.fixation = visual.TextStim(
-            self.win,
-            text="+",
-            height=0.05,
-            color="white"
-        )
-
+        self.fixation = visual.TextStim(self.win, text="+", height=0.05, color="white")
         self._highlight_ring = visual.Circle(
-            self.win,
-            radius=self.slot_size / 2.0 + 0.02,
-            lineColor="white",
-            lineWidth=6,
-            fillColor=None,
-            edges=64
+            self.win, radius=self.slot_size / 2.0 + 0.02, lineColor="white", lineWidth=6, fillColor=None, edges=64
         )
+        self._instructions_stim = visual.TextStim(self.win, text="", color="white", height=0.045, wrapWidth=1.6)
 
-        self._instructions_stim = visual.TextStim(
-            self.win,
-            text="",
-            color="white",
-            height=0.045,
-            wrapWidth=1.6,
-            pos=(0, 0)
-        )
-
-        # Instruction-page feedback images
-        win_image_path = self.stimuli_dir / "006-win.png"
-        loss_image_path = self.stimuli_dir / "002-loss.png"
-
-        self._instruction_win_stim = visual.ImageStim(
-            self.win,
-            image=str(win_image_path),
-            size=(0.18, 0.18),
-            pos=(0.0, -0.15)
-        )
-
-        self._instruction_loss_stim = visual.ImageStim(
-            self.win,
-            image=str(loss_image_path),
-            size=(0.18, 0.18),
-            pos=(0.0, -0.15)
-        )
     def _build_feedback_stims(self) -> None:
-        win_images = sorted(self.stimuli_dir.glob("*6-win.png")) if self.stimuli_dir.exists() else []
-        loss_images = sorted(self.stimuli_dir.glob("*2-loss.png")) if self.stimuli_dir.exists() else []
+        win_images = sorted(self.stimuli_dir.glob("*-win.png")) if self.stimuli_dir.exists() else []
+        loss_images = sorted(self.stimuli_dir.glob("*-loss.png")) if self.stimuli_dir.exists() else []
         question_image = self.stimuli_dir / "question-mark.png"
         question_images = [question_image] if question_image.exists() else []
         self._feedback_stims = {
@@ -535,100 +525,31 @@ class BanditTask:
         return self._flower_stim_cache[flower_id]
 
     def _show_instructions(self) -> bool:
-        instruction_pages = [
-            [
-                "Welcome to the Two-Armed Bandit task!",
-                "",
-                "In this game, you will see two flowers on the screen.",
-                "",
-                "Each round, you will choose one of the two flowers",
-                "and then receive feedback about your choice.",
-                "",
-                "Use 1 to choose the flower on the left.",
-                "Use 0 to choose the flower on the right.",
-                "",
-                "You will only have a few seconds to make your decision.",
-                "Try to respond as quickly as possible.",
-                "",
-                "Press SPACE to continue.",
-            ],
-
-            [
-                "After making your choice, you will receive feedback",
-                "based on your decision.",
-                "",
-                "You can either receive a prize or receive nothing.",
-                "",
-                "Press SPACE to continue.",
-            ],
-
-            [
-                "When you receive a prize, you will see:",
-                "",
-            ],
-
-            [
-                "When you receive nothing, you will see:",
-                "",
-            ],
-
-            [
-                "One of these flowers is more likely to give you a prize,",
-                "and this flower may occasionally change during the game.",
-                "",
-                "Your goal is to earn as many prizes as you can.",
-                "",
-                "Press SPACE to continue.",
-            ],
-
-            [
-                "At the end of the study, the number of prizes you earn",
-                "will be used to calculate your bonus payment.",
-                "",
-                "This run of the game will last about 10 minutes.",
-                "",
-                "You will see the same two flowers for this run.",
-                "",
-                "Do you have any questions?",
-                "",
-                "Press SPACE to continue.",
-            ],
+        lines = [
+            f"Two-Armed Bandit Task — {self.run_label}",
+            "",
+            "Choose between two options using",
+            "A for left and L for right",
+            "",
+            "One option is better than the other.",
+            "The better option can change!",
+            "Try to win as much as possible.",
+            "",
+            "Press SPACE when ready to begin",
         ]
-
-        for page_num, page in enumerate(instruction_pages):
-
-            lines = page
-
-            self._instructions_stim.text = "\n".join(lines)
-            self._instructions_stim.draw()
-
-            # Prize image on its own screen
-            if page_num == 2:
-                self._instruction_win_stim.draw()
-
-            # Nothing/loss image on its own screen
-            elif page_num == 3:
-                self._instruction_loss_stim.draw()
-
-            self.win.flip()
-
-            if self.auto_respond:
-                core.wait(0.05)
-                continue
-
-            while True:
-                keys = event.getKeys(keyList=["space", "escape"])
-
-                if "space" in keys:
-                    break
-
-                if "escape" in keys:
-                    return False
-
-                core.wait(0.01)
-
-        return True
-
+        self._instructions_stim.text = "\n".join(lines)
+        self._instructions_stim.draw()
+        self.win.flip()
+        if self.auto_respond:
+            core.wait(0.05)
+            return True
+        while True:
+            keys = event.getKeys(keyList=["space", "escape"])
+            if "space" in keys:
+                return True
+            if "escape" in keys:
+                return False
+            core.wait(0.01)
 
     def _show_waiting_screen(self) -> bool:
         lines = [
@@ -683,14 +604,18 @@ class BanditTask:
         while clock.getTime() < max_time:
             if self.lsl_trigger and self.lsl_trigger.check_for_stimulation_stop():
                 return "stim_stopped", None
-            keys = event.getKeys(keyList=["1", "0", "escape"], timeStamped=clock)
+            keys = event.getKeys(keyList=["1", "2", "num_1", "num_2", "a", "l", "escape"], timeStamped=clock)
             if keys:
                 key, rt = keys[0]
                 if key == "escape":
                     return "escape", rt
-                if key == "1":
+                if key in ("1", "num_1"):
+                    return 1, rt
+                if key in ("2", "num_2"):
+                    return 2, rt
+                if key == "a":
                     return (1 if self.slot1_side == "left" else 2), rt
-                if key == "0":
+                if key == "l":
                     return (1 if self.slot1_side == "right" else 2), rt
             core.wait(0.005)
         return None, None
@@ -727,11 +652,8 @@ class BanditTask:
             rt = min(self.timing["max_response_time"] - 0.05, 0.5)
             core.wait(rt)
             choice = random.choice([1, 2])
-            choice_onset_unix_time = time.time() * 1000.0
         else:
             choice, rt = self._get_response(self.timing["max_response_time"])
-            choice_onset_unix_time = time.time() * 1000.0 if choice is not None else None
-
 
         if choice in ("escape", "stim_stopped"):
             self.task_should_stop = True
@@ -746,8 +668,7 @@ class BanditTask:
             self.win.flip()
             core.wait(self.timing["choice_highlight_duration"])
 
-            chosen_flower = self.current_flowers[choice - 1]
-            correct = chosen_flower == self.current_good
+            correct = choice == self.current_good
             reward_prob = self.win_fraction if correct else 1 - self.win_fraction
             reward = random.random() < reward_prob
             rt_ms = rt * 1000.0
@@ -765,22 +686,8 @@ class BanditTask:
         core.wait(wait_time)
 
         feedback_marker, outcome = self._feedback_marker(reward)
-
-        # Capture Unix timestamp at feedback onset
-        feedback_onset_unix_time = time.time() * 1000.0
-
-        feedback_lsl_time = self.event_logger.send(
-            feedback_marker,
-            f"feedback_{outcome}",
-            {
-                "trial_num": trial_num,
-                "feedback_onset_unix_time": feedback_onset_unix_time,
-            }
-        )
-
-        feedback_task_time = feedback_onset_unix_time - self.run_start_time
-
-
+        feedback_lsl_time = self.event_logger.send(feedback_marker, f"feedback_{outcome}", {"trial_num": trial_num})
+        feedback_task_time = time.time() - self.run_start_time
         self._feedback_stims[outcome].draw()
         self.win.flip()
         core.wait(self.timing["outcome_duration"])
@@ -804,11 +711,9 @@ class BanditTask:
             choice_window_onset_lsl_time=choice_window_onset_lsl_time,
             choice_onset_task_time=choice_onset_task_time,
             choice_onset_lsl_time=choice_onset_lsl_time,
-            choice_onset_unix_time=choice_onset_unix_time,
             choice_marker_send_lsl_time=choice_marker_send_lsl_time,
             feedback_task_time=feedback_task_time,
             feedback_lsl_time=feedback_lsl_time,
-            feedback_onset_unix_time=feedback_onset_unix_time,
             wait_time=wait_time,
         )
         self.trial_data.append(row)
@@ -827,6 +732,7 @@ class BanditTask:
                 return
             if not self._show_instructions():
                 return
+            self._start_eeg_recording_if_requested()
             event.clearEvents()
             if not self._show_waiting_screen():
                 return
@@ -906,9 +812,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main() -> int:
     cli_args = build_arg_parser().parse_args()
     config = load_config(cli_args.config)
-
-    launch_npcap_detector()
-
     task = BanditTask(config, cli_args)
     task.run()
     return 0
