@@ -467,12 +467,48 @@ class BanditTask:
         self.win.mouseVisible = False
 
     def _build_base_stimuli(self) -> None:
-        self.fixation = visual.TextStim(self.win, text="+", height=0.05, color="white")
-        self._highlight_ring = visual.Circle(
-            self.win, radius=self.slot_size / 2.0 + 0.02, lineColor="white", lineWidth=6, fillColor=None, edges=64
+        self.fixation = visual.TextStim(
+            self.win,
+            text="+",
+            height=0.05,
+            color="white"
         )
-        self._instructions_stim = visual.TextStim(self.win, text="", color="white", height=0.045, wrapWidth=1.6)
 
+        self._highlight_ring = visual.Circle(
+            self.win,
+            radius=self.slot_size / 2.0 + 0.02,
+            lineColor="white",
+            lineWidth=6,
+            fillColor=None,
+            edges=64
+        )
+
+        self._instructions_stim = visual.TextStim(
+            self.win,
+            text="",
+            color="white",
+            height=0.045,
+            wrapWidth=1.6,
+            pos=(0, 0)
+        )
+
+        # Instruction-page feedback images
+        win_image_path = self.stimuli_dir / "006-win.png"
+        loss_image_path = self.stimuli_dir / "002-loss.png"
+
+        self._instruction_win_stim = visual.ImageStim(
+            self.win,
+            image=str(win_image_path),
+            size=(0.18, 0.18),
+            pos=(0.0, -0.15)
+        )
+
+        self._instruction_loss_stim = visual.ImageStim(
+            self.win,
+            image=str(loss_image_path),
+            size=(0.18, 0.18),
+            pos=(0.0, -0.15)
+        )
     def _build_feedback_stims(self) -> None:
         win_images = sorted(self.stimuli_dir.glob("*-win.png")) if self.stimuli_dir.exists() else []
         loss_images = sorted(self.stimuli_dir.glob("*-loss.png")) if self.stimuli_dir.exists() else []
@@ -510,33 +546,40 @@ class BanditTask:
                 "",
                 "Press SPACE to continue.",
             ],
+
             [
                 "After making your choice, you will receive feedback",
                 "based on your decision.",
                 "",
                 "You can either receive a prize or receive nothing.",
                 "",
-                "When you receive a prize, you will see:",
-                "[prize_feedback.png]",
-                "",
-                "When you receive nothing, you will see:",
-                "[nothing_feedback.png]",
-                "",
                 "Press SPACE to continue.",
             ],
+
+            [
+                "When you receive a prize, you will see:",
+                "",
+            ],
+
+            [
+                "When you receive nothing, you will see:",
+                "",
+            ],
+
             [
                 "One of these flowers is more likely to give you a prize,",
-                "and this flower may occasionally change during the run.",
+                "and this flower may occasionally change during the game.",
                 "",
                 "Your goal is to earn as many prizes as you can.",
                 "",
                 "Press SPACE to continue.",
             ],
+
             [
                 "At the end of the study, the number of prizes you earn",
                 "will be used to calculate your bonus payment.",
                 "",
-                "This run will last about 10 minutes.",
+                "This run of the game will last about 10 minutes.",
                 "",
                 "You will see the same two flowers for this run.",
                 "",
@@ -546,14 +589,21 @@ class BanditTask:
             ],
         ]
 
-        for page in instruction_pages:
-            lines = [
-                f"Two-Armed Bandit Task — {self.run_label}",
-                "",
-            ] + page
+        for page_num, page in enumerate(instruction_pages):
+
+            lines = page
 
             self._instructions_stim.text = "\n".join(lines)
             self._instructions_stim.draw()
+
+            # Prize image on its own screen
+            if page_num == 2:
+                self._instruction_win_stim.draw()
+
+            # Nothing/loss image on its own screen
+            elif page_num == 3:
+                self._instruction_loss_stim.draw()
+
             self.win.flip()
 
             if self.auto_respond:
@@ -573,33 +623,6 @@ class BanditTask:
 
         return True
 
-
-    def _show_waiting_screen(self) -> bool:
-        lines = [
-            f"Two-Armed Bandit Task — {self.run_label}",
-            "",
-            "Please wait for your researcher",
-            "to begin this run.",
-        ]
-
-        self._instructions_stim.text = "\n".join(lines)
-        self._instructions_stim.draw()
-        self.win.flip()
-
-        if self.auto_respond:
-            core.wait(0.05)
-            return True
-
-        while True:
-            keys = event.getKeys(keyList=["space", "escape"])
-
-            if "space" in keys:
-                return True
-
-            if "escape" in keys:
-                return False
-
-            core.wait(0.01)
 
     def _show_waiting_screen(self) -> bool:
         lines = [
