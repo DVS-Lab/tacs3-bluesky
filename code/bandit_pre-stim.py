@@ -510,8 +510,8 @@ class BanditTask:
             pos=(0.0, -0.15)
         )
     def _build_feedback_stims(self) -> None:
-        win_images = sorted(self.stimuli_dir.glob("*-win.png")) if self.stimuli_dir.exists() else []
-        loss_images = sorted(self.stimuli_dir.glob("*-loss.png")) if self.stimuli_dir.exists() else []
+        win_images = sorted(self.stimuli_dir.glob("*6-win.png")) if self.stimuli_dir.exists() else []
+        loss_images = sorted(self.stimuli_dir.glob("*2-loss.png")) if self.stimuli_dir.exists() else []
         question_image = self.stimuli_dir / "question-mark.png"
         question_images = [question_image] if question_image.exists() else []
         self._feedback_stims = {
