@@ -1,0 +1,134 @@
+Step Details
+Info Version: 1.2
+Step name: Run 2
+StartDate (firstEEGtimestamp): 1787594120225
+StartDate (firstSTIMtimestamp): 0
+Device class: STARSTIM
+Communication type: WiFi
+Device ID: 
+Software's version: NIC 2.1.4.3
+Firmware's version: 4021
+Operative system: Windows
+SDCard Filename: NONE
+Additional channel: NONE
+
+EEG Settings
+Total number of channels: 8
+Number of EEG channels: 4
+Number of records of EEG: 1041
+EEG sampling rate: 500 Samples/second
+Effective EEG sampling rate: N/A
+EEG recording configured duration (s): 300
+Number of packets lost: 0
+Line filter status: OFF
+FIR filter status: OFF
+EOG correction filter status: OFF
+Reference filter status: OFF
+EEG units: nV
+EEG montage: 
+	Channel 1: F3
+	Channel 2: Fp1
+	Channel 3: FCz
+	Channel 4: FT7
+	Channel 5: F4
+	Channel 6: P4
+	Channel 7: P3
+	Channel 8: EXT
+Accelerometer data: ON
+
+Number of channels of Accelerometer: 3
+Accelerometer sampling rate: 100 Samples/second
+Accelerometer units: mm/s^2
+
+STIM Settings
+Total number of channels: 8
+Number of records of Stimulation: 0
+Stimulation sampling rate: 1000 Samples/second
+Effective STIM sampling rate: N/A
+Stimulation units: uA
+Number of records of EEG: 1041
+EEG sampling rate: 500 Samples/second
+Effective EEG sampling rate: N/A
+EEG units: nV
+Number of stimulation channels: 4
+Ramp up duration (s): 30
+Ramp down duration (s): 30
+Sham ramp duration (s): 0
+Stimulation configured duration (s): 300
+Stimulation parameters:
+	Channel 1: 
+		Position: F3
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 750
+		Ftacs (Hz): 6
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 2: 
+		Position: Fp1
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 250
+		Ftacs (Hz): 6
+		Ptacs (º): 180
+		Atrns (uA): 0
+	Channel 3: 
+		Position: FCz
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 250
+		Ftacs (Hz): 6
+		Ptacs (º): 180
+		Atrns (uA): 0
+	Channel 4: 
+		Position: FT7
+		Type: Stimulation
+		Atdcs (uA): 0
+		Atacs (uA): 250
+		Ftacs (Hz): 6
+		Ptacs (º): 180
+		Atrns (uA): 0
+	Channel 5: 
+		Position: F4
+		Type: EEG Recording
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 6: 
+		Position: P4
+		Type: EEG Recording
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 7: 
+		Position: P3
+		Type: EEG Recording
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+	Channel 8: 
+		Position: EXT
+		Type: EEG Recording
+		Atdcs (uA): 0
+		Atacs (uA): 0
+		Ftacs (Hz): 0
+		Ptacs (º): 0
+		Atrns (uA): 0
+
+Trigger information:
+	Code	Description
+	1	
+	2	
+	3	
+	4	
+	5	
+	6	
+	7	
+	8	
+	9	

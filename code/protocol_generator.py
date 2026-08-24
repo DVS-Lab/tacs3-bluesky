@@ -3,7 +3,6 @@ from tkinter import ttk, messagebox
 from pathlib import Path
 import shutil
 import re
-import datetime
 
 
 # ============================================================
@@ -25,7 +24,14 @@ OUTPUT_FOLDER = Path(
 
 # ============================================================
 # DOUBLE-BLIND COUNTERBALANCE
-# DO NOT DISPLAY THIS TABLE
+#
+# IMPORTANT:
+# This table is INTERNAL ONLY.
+#
+# A-F represent the six possible permutations of:
+# theta, beta, sham
+#
+# The GUI NEVER displays this information.
 # ============================================================
 
 COUNTERBALANCE = {
@@ -41,46 +47,81 @@ COUNTERBALANCE = {
 
 
 # ============================================================
-# EEG DATA SEARCH
+# FIND THE DATA FILE FOR THIS SUBJECT + VISIT
 # ============================================================
 
-def find_latest_csv(subject_id):
+def find_latest_csv(subject_id, visit_number):
+    """
+    Find the most recently modified CSV for the specified
+    subject and visit.
 
-    files = list(
-        DATA_FOLDER.glob(f"*{subject_id}*.csv")
-    )
+    Example:
 
-    if len(files) == 0:
+        subject_id = 2002
+        visit_number = 2
+
+    Searches for files containing:
+
+        2002-2
+
+    """
+
+    search_string = f"{subject_id}-{visit_number}"
+
+    matches = []
+
+    for file in DATA_FOLDER.glob("*.csv"):
+
+        if search_string in file.name:
+            matches.append(file)
+
+
+    if not matches:
+
         raise FileNotFoundError(
-            f"No CSV found for subject {subject_id}"
+            f"No CSV found for subject {subject_id}, "
+            f"visit {visit_number}.\n\n"
+            f"Expected the filename to contain:\n"
+            f"{search_string}"
         )
 
+
+    # If multiple files match, use the newest one
     newest = max(
-        files,
+        matches,
         key=lambda x: x.stat().st_mtime
     )
+
 
     return newest
 
 
-
 # ============================================================
 # FREQUENCY EXTRACTION
-# Replace this later with EEG processing
+#
+# TEMPORARY VERSION
+#
+# Later this function will:
+#   1. Read the CSV
+#   2. Locate the associated .easy EEG file
+#   3. Calculate theta from outcome phase
+#   4. Calculate beta from decision phase
+#
+# For now, the frequencies are hardcoded.
 # ============================================================
 
-def extract_frequency_values(subject_id):
+def extract_frequency_values(subject_id, visit_number):
 
-    csv_file = find_latest_csv(subject_id)
+    csv_file = find_latest_csv(
+        subject_id,
+        visit_number
+    )
 
 
     # ========================================================
     # TEMPORARY VALUES
     #
-    # Later:
-    #   theta = outcome phase peak
-    #   beta  = decision phase peak
-    #
+    # Replace these later with the EEG analysis.
     # ========================================================
 
     theta_peak = 6.25
@@ -94,9 +135,8 @@ def extract_frequency_values(subject_id):
     )
 
 
-
 # ============================================================
-# NEPROT EDITING
+# REPLACE <ftacsValue>
 # ============================================================
 
 def replace_frequency(file_path, frequency):
@@ -106,12 +146,25 @@ def replace_frequency(file_path, frequency):
     )
 
 
-    text = re.sub(
+    replacement = (
+        f"<ftacsValue>{frequency:.2f}</ftacsValue>"
+    )
+
+
+    text, number_replaced = re.subn(
         r"<ftacsValue>.*?</ftacsValue>",
-        f"<ftacsValue>{frequency:.2f}</ftacsValue>",
+        replacement,
         text,
         flags=re.DOTALL
     )
+
+
+    if number_replaced == 0:
+
+        raise ValueError(
+            "Could not find <ftacsValue></ftacsValue> "
+            "in the protocol template."
+        )
 
 
     file_path.write_text(
@@ -120,32 +173,60 @@ def replace_frequency(file_path, frequency):
     )
 
 
-
 # ============================================================
-# GENERATE FILES
+# CREATE ONE PROTOCOL FOR ONE VISIT
 # ============================================================
 
-def create_protocols(subject_id, counterbalance):
+def create_protocol(
+    subject_id,
+    visit_number,
+    counterbalance
+):
 
+    # --------------------------------------------------------
+    # Get the behavioral/EEG data associated with this visit
+    # --------------------------------------------------------
 
     csv_file, theta, beta = extract_frequency_values(
-        subject_id
+        subject_id,
+        visit_number
     )
 
+
+    # --------------------------------------------------------
+    # Determine the hidden condition
+    #
+    # THIS IS NEVER RETURNED TO THE GUI.
+    # --------------------------------------------------------
+
+    visit_conditions = COUNTERBALANCE[counterbalance]
+
+    hidden_condition = visit_conditions[
+        visit_number - 1
+    ]
+
+
+    # --------------------------------------------------------
+    # Assign the appropriate frequency
+    # --------------------------------------------------------
 
     frequencies = {
 
         "theta": theta,
         "beta": beta,
-        "sham": 0
+        "sham": 0.0
 
     }
 
 
-    # INTERNAL ONLY
-    # NEVER RETURN THIS
-    visit_conditions = COUNTERBALANCE[counterbalance]
+    frequency = frequencies[
+        hidden_condition
+    ]
 
+
+    # --------------------------------------------------------
+    # Make output directory
+    # --------------------------------------------------------
 
     OUTPUT_FOLDER.mkdir(
         parents=True,
@@ -153,57 +234,88 @@ def create_protocols(subject_id, counterbalance):
     )
 
 
-    created_files = []
+    # --------------------------------------------------------
+    # Output filenames
+    #
+    # All five files use the frequency assigned to this visit.
+    # --------------------------------------------------------
 
+    output_files = [
 
-    for visit_number, condition in enumerate(
-        visit_conditions,
-        start=1
-    ):
+        OUTPUT_FOLDER / (
+            f"{subject_id}_visit{visit_number}_bandit_run1.neprot"
+        ),
 
-        output_file = OUTPUT_FOLDER / (
-            f"{subject_id}_visit{visit_number}.neprot"
+        OUTPUT_FOLDER / (
+            f"{subject_id}_visit{visit_number}_bandit_run2.neprot"
+        ),
+
+        OUTPUT_FOLDER / (
+            f"{subject_id}_visit{visit_number}_SST_run1.neprot"
+        ),
+
+        OUTPUT_FOLDER / (
+            f"{subject_id}_visit{visit_number}_SST_run2.neprot"
         )
 
+    ]
+
+
+    # --------------------------------------------------------
+    # Copy template and insert frequency into each file
+    # --------------------------------------------------------
+
+    for output_file in output_files:
 
         shutil.copy(
             TEMPLATE,
             output_file
         )
 
-
         replace_frequency(
             output_file,
-            frequencies[condition]
+            frequency
         )
 
 
-        created_files.append(
-            output_file
-        )
+    # The first file is still the visit-specific protocol.
+    # Keep this as the primary output reported by the GUI.
+    output_file = output_files[0]
 
+
+    # --------------------------------------------------------
+    # IMPORTANT:
+    #
+    # Return the frequency, but NOT the condition.
+    #
+    # This means the researcher can see the frequency that
+    # was used, but cannot see whether it was theta, beta,
+    # or sham.
+    # --------------------------------------------------------
 
     return {
-
         "csv": csv_file,
         "theta": theta,
         "beta": beta,
-        "files": created_files
-
+        "frequency": frequency,
+        "output": output_file
     }
 
 
-
 # ============================================================
-# GUI FUNCTIONS
+# GUI
 # ============================================================
 
 def generate_clicked():
 
-    subject = subject_entry.get().strip()
+    # --------------------------------------------------------
+    # Subject ID
+    # --------------------------------------------------------
+
+    subject_text = subject_entry.get().strip()
 
 
-    if not subject.isdigit():
+    if not subject_text.isdigit():
 
         messagebox.showerror(
             "Invalid Subject ID",
@@ -213,11 +325,39 @@ def generate_clicked():
         return
 
 
+    subject_id = int(subject_text)
+
+
+    # --------------------------------------------------------
+    # Visit number
+    # --------------------------------------------------------
+
+    visit_text = visit_var.get()
+
+
+    if visit_text not in ["1", "2", "3"]:
+
+        messagebox.showerror(
+            "Invalid Visit",
+            "Select visit 1, 2, or 3."
+        )
+
+        return
+
+
+    visit_number = int(
+        visit_text
+    )
+
+
+    # --------------------------------------------------------
+    # Counterbalance
+    # --------------------------------------------------------
 
     counterbalance = counter_var.get()
 
 
-    if counterbalance == "":
+    if counterbalance not in COUNTERBALANCE:
 
         messagebox.showerror(
             "Missing Counterbalance",
@@ -227,14 +367,22 @@ def generate_clicked():
         return
 
 
+    # --------------------------------------------------------
+    # Generate
+    # --------------------------------------------------------
 
     try:
 
-        result = create_protocols(
-            int(subject),
+        result = create_protocol(
+            subject_id,
+            visit_number,
             counterbalance
         )
 
+
+        # ----------------------------------------------------
+        # Clear output area
+        # ----------------------------------------------------
 
         output_text.delete(
             "1.0",
@@ -242,44 +390,87 @@ def generate_clicked():
         )
 
 
+        # ----------------------------------------------------
+        # Display researcher-visible information
+        #
+        # DO NOT DISPLAY hidden_condition.
+        # ----------------------------------------------------
+
         output_text.insert(
             tk.END,
-            f"Subject ID: {subject}\n\n"
+            f"Subject ID: {subject_id}\n"
         )
 
 
         output_text.insert(
             tk.END,
-            f"EEG data used:\n"
+            f"Visit: {visit_number}\n\n"
+        )
+
+
+        output_text.insert(
+            tk.END,
+            "Data file used:\n"
+        )
+
+
+        output_text.insert(
+            tk.END,
             f"{result['csv']}\n\n"
         )
 
 
         output_text.insert(
             tk.END,
-            f"Extracted frequencies:\n"
-            f"Theta: {result['theta']:.2f} Hz\n"
-            f"Beta:  {result['beta']:.2f} Hz\n\n"
+            "Extracted frequency estimates:\n"
         )
 
 
         output_text.insert(
             tk.END,
-            "Generated files:\n"
+            f"Theta peak: {result['theta']:.2f} Hz\n"
         )
-
-
-        for f in result["files"]:
-
-            output_text.insert(
-                tk.END,
-                f"{f}\n"
-            )
 
 
         output_text.insert(
             tk.END,
-            "\nProtocol generation complete."
+            f"Beta peak:  {result['beta']:.2f} Hz\n\n"
+        )
+
+
+        output_text.insert(
+            tk.END,
+            "Frequency used for this visit:\n"
+        )
+
+
+        output_text.insert(
+            tk.END,
+            f"{result['frequency']:.2f} Hz\n\n"
+        )
+
+
+        output_text.insert(
+            tk.END,
+            "Generated protocol:\n"
+        )
+
+
+        output_text.insert(
+            tk.END,
+            f"{result['output']}\n\n"
+        )
+
+
+        output_text.insert(
+            tk.END,
+            "Protocol generation complete."
+        )
+
+
+        messagebox.showinfo(
+            "Complete",
+            "Protocol generated successfully."
         )
 
 
@@ -291,9 +482,8 @@ def generate_clicked():
         )
 
 
-
 # ============================================================
-# GUI
+# BUILD GUI
 # ============================================================
 
 root = tk.Tk()
@@ -303,36 +493,73 @@ root.title(
 )
 
 root.geometry(
-    "650x500"
+    "700x550"
 )
 
 
-
-# Subject ID
+# ============================================================
+# SUBJECT ID
+# ============================================================
 
 tk.Label(
     root,
-    text="Subject ID:"
+    text="Subject ID:",
+    font=("Arial", 11)
 ).pack(
-    pady=5
+    pady=(15, 5)
 )
 
 
 subject_entry = tk.Entry(
-    root
+    root,
+    width=20,
+    font=("Arial", 11)
 )
 
 subject_entry.pack()
 
 
-
-# Counterbalance
+# ============================================================
+# VISIT
+# ============================================================
 
 tk.Label(
     root,
-    text="Counterbalance Group:"
+    text="Visit:",
+    font=("Arial", 11)
 ).pack(
-    pady=5
+    pady=(15, 5)
+)
+
+
+visit_var = tk.StringVar()
+
+
+visit_dropdown = ttk.Combobox(
+    root,
+    textvariable=visit_var,
+    values=[
+        "1",
+        "2",
+        "3"
+    ],
+    state="readonly",
+    width=17
+)
+
+visit_dropdown.pack()
+
+
+# ============================================================
+# COUNTERBALANCE
+# ============================================================
+
+tk.Label(
+    root,
+    text="Counterbalance Group:",
+    font=("Arial", 11)
+).pack(
+    pady=(15, 5)
 )
 
 
@@ -350,39 +577,47 @@ counter_dropdown = ttk.Combobox(
         "E",
         "F"
     ],
-    state="readonly"
+    state="readonly",
+    width=17
 )
-
 
 counter_dropdown.pack()
 
 
-
-# Generate button
+# ============================================================
+# GENERATE BUTTON
+# ============================================================
 
 tk.Button(
     root,
-    text="Generate Protocols",
-    command=generate_clicked
+    text="Generate Protocol",
+    command=generate_clicked,
+    width=25,
+    height=2
 ).pack(
-    pady=15
+    pady=20
 )
 
 
-
-# Output display
+# ============================================================
+# OUTPUT WINDOW
+# ============================================================
 
 output_text = tk.Text(
     root,
     height=18,
-    width=80
+    width=85,
+    font=("Consolas", 10)
 )
 
 output_text.pack(
-    padx=10,
+    padx=15,
     pady=10
 )
 
 
+# ============================================================
+# START GUI
+# ============================================================
 
 root.mainloop()
