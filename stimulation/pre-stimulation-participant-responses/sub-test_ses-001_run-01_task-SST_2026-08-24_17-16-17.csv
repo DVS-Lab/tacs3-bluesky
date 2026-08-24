@@ -1,0 +1,4 @@
+subject_id,session_id,run,localizer,trialNumber,stim_onset,stim_onset_lsl_time,stop_onset,stop_onset_lsl_time,response_onset,response_onset_lsl_time,outcome_lsl_time,marker_code,stimulus,stop,response,response_key,rt,ssd,go_correct,go_incorrect,go_miss,stop_success,stop_failure_arrowcorrect,outcome,run_start_lsl_time,run_end_lsl_time,run_start_task_time,run_end_task_time
+sub-test,ses-001,run-01,0,1,1.3319562000106089,331779.7238933,,,,,331781.2239588,135,right,0,False,,,0.25,0,0,1,0,,go_miss,331778.3918798,331797.3467083,0.0,18.955798149108887
+sub-test,ses-001,run-01,0,2,5.7741627000505105,331784.1661078,6.0241627000505105,331784.4177216,,,331785.6661581,131,left,1,False,,,0.25,0,0,0,1,,stop_success,331778.3918798,331797.3467083,0.0,18.955798149108887
+sub-test,ses-001,run-01,0,3,11.168950900027994,331789.560884,,,,,331791.0609309,135,right,0,False,,,0.3,0,0,1,0,,go_miss,331778.3918798,331797.3467083,0.0,18.955798149108887

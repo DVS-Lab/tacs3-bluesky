@@ -1,25 +1,48 @@
 #!/usr/bin/env python3
-"""Stop Signal Task with StarStim/NIC-2 sync support.
+"""
+Stop Signal Task with StarStim/NIC-2 sync support.
 
-Adapted from the Scan-SST task in DVS-Lab/gambling-2025. Task mechanics
-(go/stop-signal trial structure, SSD staircase, timing) are identical
-regardless of stimulation condition. Frequency/condition selection happens
-outside this script (see select_stimulation_frequency.py and
-run_rhythm_estimation.py) and is applied by the operator directly in NIC-2 -
-this script has no concept of "mode" or condition, to avoid leaking
-condition information into its output or behavior.
+Pre-stimulation participant response version.
 
-Run 1:
-    Displays the full task instructions before starting.
+Task mechanics:
+    - Go/stop-signal trial structure
+    - SSD staircase
+    - LSL synchronization
+    - EEG recording
+    - Run labeling
+    - Duration/trial-count stop rules
 
-Run 2:
-    Displays only:
+Operator startup:
+    - Subject Number: typed manually
+    - Run Number: typed manually
+    - Session Number: typed manually
 
-        Press SPACE to begin.
+Run behavior:
+    - Run 1 displays the full task instructions.
+    - Run 2 displays only "Press SPACE to begin."
+    - Both runs start when SPACE is pressed.
+    - The task itself does not reveal stimulation condition/mode.
 
-    Pressing SPACE starts the task.
+Output:
+    Participant response CSV/TSV files are saved to the directory
+    specified by:
 
-The localizer option is retained for the pre-stimulation baseline run.
+        paths.pre_stimulation_responses_dir
+
+    in config.json.
+
+    If that setting is missing, the script falls back to:
+
+        C:\\Users\\Public\\LAB PROJECTS\\Smith-Lab\\
+        tacs3-bluesky\\stimulation\\
+        pre-stimulation-participant-responses
+
+    Output filename:
+
+        sub-{subject}_ses-{session}_{run}_task-SST_{date-time}.csv
+
+The stimulation frequency/condition is selected outside this script
+and applied by the operator directly in NIC-2.
 """
 
 from __future__ import annotations
@@ -31,44 +54,93 @@ import json
 from pathlib import Path
 import queue
 import random
-import re
 import time
 
 import numpy as np
 
-from eeg_lsl_recorder import LSLEEGRecorder, save_recording_summary
-from task_markers import LSLStimulationTrigger, TaskMarkerLogger
+from eeg_lsl_recorder import (
+    LSLEEGRecorder,
+    save_recording_summary,
+)
+
+from task_markers import (
+    LSLStimulationTrigger,
+    TaskMarkerLogger,
+)
+
 
 try:
     from psychopy import core, event, gui, visual
 
     PSYCHOPY_AVAILABLE = True
+
 except ImportError:  # pragma: no cover - operator dependency
+
     core = event = gui = visual = None
+
     PSYCHOPY_AVAILABLE = False
 
 
-def normalize_id(value: str, prefix: str) -> str:
-    """Remove a prefix such as sub- or ses- from an ID."""
-    return str(value).replace(prefix, "").strip()
+# ======================================================================
+# HELPER FUNCTIONS
+# ======================================================================
+
+def normalize_id(
+    value: str,
+    prefix: str,
+) -> str:
+    """
+    Remove a prefix such as sub- or ses- from an ID.
+    """
+
+    return (
+        str(value)
+        .replace(prefix, "")
+        .strip()
+    )
 
 
-def load_config(config_path: str | Path | None = None) -> dict:
+def load_config(
+    config_path: str | Path | None = None,
+) -> dict:
+    """
+    Load the JSON configuration file.
+    """
+
     if config_path is None:
-        config_path = Path(__file__).resolve().parent / "config.json"
 
-    with Path(config_path).open("r", encoding="utf-8") as handle:
+        config_path = (
+            Path(__file__).resolve().parent
+            / "config.json"
+        )
+
+    with Path(config_path).open(
+        "r",
+        encoding="utf-8",
+    ) as handle:
+
         return json.load(handle)
 
 
+# ======================================================================
+# SST TASK
+# ======================================================================
+
 class SSTTask:
+
     def __init__(
         self,
         config: dict,
         cli_args: argparse.Namespace,
     ):
+
         self.config = config
+
         self.cli_args = cli_args
+
+        # --------------------------------------------------------------
+        # TEST MODE
+        # --------------------------------------------------------------
 
         self.test_mode = bool(
             cli_args.test_mode
@@ -79,9 +151,13 @@ class SSTTask:
             or self.test_mode
         )
 
+        # --------------------------------------------------------------
+        # SST CONFIGURATION
+        # --------------------------------------------------------------
+
         sst_cfg = config.get(
             "sst",
-            {}
+            {},
         )
 
         self.stop_probability = float(
@@ -145,10 +221,9 @@ class SSTTask:
             200,
         )
 
-        self.stop_rule = sst_cfg.get(
-            "stop_rule",
-            "duration_or_trials",
-        )
+        # --------------------------------------------------------------
+        # RUN DURATION
+        # --------------------------------------------------------------
 
         duration_minutes = float(
             cli_args.duration_minutes
@@ -165,55 +240,97 @@ class SSTTask:
             duration_minutes * 60.0
         )
 
-        self.marker_codes = config.get(
-            "stimulation",
-            {},
-        ).get(
-            "markers",
-            {},
+        self.stop_rule = sst_cfg.get(
+            "stop_rule",
+            "duration_or_trials",
         )
 
         # --------------------------------------------------------------
-        # Subject / session / run information
+        # MARKER CODES
+        # --------------------------------------------------------------
+
+        self.marker_codes = (
+            config.get(
+                "stimulation",
+                {},
+            ).get(
+                "markers",
+                {},
+            )
+        )
+
+        # --------------------------------------------------------------
+        # SUBJECT / SESSION / RUN
         # --------------------------------------------------------------
 
         self.subject_id: str | None = None
+
         self.session_id: str | None = None
+
         self.run_label: str | None = None
+
         self.date_label: str | None = None
-        self.data_dir: Path | None = None
 
         # --------------------------------------------------------------
-        # Trial information
+        # DIRECTORIES
+        # --------------------------------------------------------------
+
+        self.data_dir: Path | None = None
+
+        self.eeg_dir: Path | None = None
+
+        self.qc_dir: Path | None = None
+
+        self.logs_dir: Path | None = None
+
+        self.pre_stimulation_responses_dir: Path | None = None
+
+        # --------------------------------------------------------------
+        # OUTPUT FILE
+        # --------------------------------------------------------------
+
+        self.pre_stimulation_response_path: (
+            Path | None
+        ) = None
+
+        # --------------------------------------------------------------
+        # TRIAL DATA
         # --------------------------------------------------------------
 
         self.results: list[dict] = []
 
         self.current_trial = 0
+
         self.ssd = self.initial_ssd_sec
+
         self.task_should_stop = False
 
         # --------------------------------------------------------------
-        # Timing
+        # RUN TIMING
         # --------------------------------------------------------------
 
         self.run_start_time: float | None = None
+
         self.run_start_task_time: float | None = None
+
         self.run_start_lsl_time: float | None = None
 
         self.run_end_task_time: float | None = None
+
         self.run_end_lsl_time: float | None = None
 
         # --------------------------------------------------------------
-        # Saving state
+        # SAVING STATE
         # --------------------------------------------------------------
 
         self._saved = False
+
         self._marker_log_saved = False
+
         self.eeg_recording_saved = False
 
         # --------------------------------------------------------------
-        # Marker logging
+        # EVENT LOGGER
         # --------------------------------------------------------------
 
         self.event_logger = TaskMarkerLogger(
@@ -227,23 +344,27 @@ class SSTTask:
         )
 
         # --------------------------------------------------------------
-        # EEG
+        # EEG RECORDER
         # --------------------------------------------------------------
 
         self.eeg_recorder: LSLEEGRecorder | None = None
 
         # --------------------------------------------------------------
-        # LSL trigger
+        # LSL TRIGGER
         # --------------------------------------------------------------
 
-        self.lsl_trigger: LSLStimulationTrigger | None = None
+        self.lsl_trigger: (
+            LSLStimulationTrigger | None
+        ) = None
 
-        lsl_config = config.get(
-            "stimulation",
-            {},
-        ).get(
-            "lsl",
-            {},
+        lsl_config = (
+            config.get(
+                "stimulation",
+                {},
+            ).get(
+                "lsl",
+                {},
+            )
         )
 
         if (
@@ -253,17 +374,21 @@ class SSTTask:
                 True,
             )
         ):
-            self.lsl_trigger = LSLStimulationTrigger(
-                stream_name=lsl_config.get(
-                    "outlet_stream_name"
+
+            self.lsl_trigger = (
+                LSLStimulationTrigger(
+                    stream_name=lsl_config.get(
+                        "outlet_stream_name"
+                    )
                 )
             )
 
             self.lsl_trigger.connect()
+
             self.lsl_trigger.start_listening()
 
         # --------------------------------------------------------------
-        # PsychoPy window
+        # PSYCHOPY WINDOW
         # --------------------------------------------------------------
 
         self.win = None
@@ -273,20 +398,8 @@ class SSTTask:
     # ==================================================================
 
     def _resolve_subject(self) -> None:
-        """Get subject ID, session number, and run number.
-
-        In normal PsychoPy mode, one dialog asks for:
-
-            Subject Number
-            Session Number
-            Run Number
-
-        Run Number must be 1 or 2.
-
-        Session Number is typed manually and can be 1, 2, 3, etc.
-
-        If --subject, --session, or --run are supplied on the command
-        line, those values take precedence over the dialog values.
+        """
+        Ask for Subject, Run, and Session numbers.
         """
 
         # --------------------------------------------------------------
@@ -295,43 +408,24 @@ class SSTTask:
 
         if self.test_mode:
 
-            # Subject
             if self.cli_args.subject:
+
                 self.subject_id = normalize_id(
                     self.cli_args.subject,
                     "sub-",
                 )
+
             else:
+
                 self.subject_id = "999"
-
-            # Session
-            if self.cli_args.session:
-                self.session_id = normalize_id(
-                    self.cli_args.session,
-                    "ses-",
-                )
-            else:
-                self.session_id = "001"
-
-            # Run
-            if self.cli_args.run is None:
-                self.cli_args.run = 1
-
-            if self.cli_args.run not in (1, 2):
-                raise ValueError(
-                    "Run Number must be 1 or 2."
-                )
 
             return
 
         # --------------------------------------------------------------
-        # NORMAL PSYCHOPY MODE
+        # PSYCHOPY MODE
         # --------------------------------------------------------------
 
         if PSYCHOPY_AVAILABLE:
-
-            # If command-line values were supplied, use them as
-            # the starting values in the dialog.
 
             info = {
                 "Subject Number": (
@@ -340,15 +434,15 @@ class SSTTask:
                     else ""
                 ),
 
-                "Session Number": (
-                    self.cli_args.session
-                    if self.cli_args.session
-                    else "001"
-                ),
-
                 "Run Number": (
                     str(self.cli_args.run)
                     if self.cli_args.run is not None
+                    else "1"
+                ),
+
+                "Session Number": (
+                    str(self.cli_args.session)
+                    if self.cli_args.session
                     else "1"
                 ),
             }
@@ -359,73 +453,60 @@ class SSTTask:
             )
 
             if not dlg.OK:
+
                 raise SystemExit(0)
 
             # ----------------------------------------------------------
-            # Subject ID
+            # SUBJECT NUMBER
             # ----------------------------------------------------------
 
-            if self.cli_args.subject:
+            self.subject_id = normalize_id(
+                info["Subject Number"],
+                "sub-",
+            )
 
-                self.subject_id = normalize_id(
-                    self.cli_args.subject,
-                    "sub-",
-                )
+            if not self.subject_id:
 
-            else:
-
-                self.subject_id = normalize_id(
-                    info["Subject Number"],
-                    "sub-",
-                )
-
-            # ----------------------------------------------------------
-            # Session Number
-            # ----------------------------------------------------------
-
-            if self.cli_args.session:
-
-                self.session_id = normalize_id(
-                    self.cli_args.session,
-                    "ses-",
-                )
-
-            else:
-
-                self.session_id = normalize_id(
-                    info["Session Number"],
-                    "ses-",
-                )
-
-            # Make sure something was entered for session.
-            if not self.session_id:
                 raise ValueError(
-                    "Session Number cannot be blank."
+                    "Subject Number cannot be empty."
                 )
 
             # ----------------------------------------------------------
-            # Run Number
+            # RUN NUMBER
             # ----------------------------------------------------------
 
-            if self.cli_args.run is None:
+            try:
 
-                try:
-                    self.cli_args.run = int(
-                        info["Run Number"]
-                    )
+                self.cli_args.run = int(
+                    info["Run Number"]
+                )
 
-                except ValueError:
-                    raise ValueError(
-                        "Run Number must be 1 or 2."
-                    )
+            except ValueError:
+
+                raise ValueError(
+                    "Run Number must be an integer."
+                )
+
+            # ----------------------------------------------------------
+            # SESSION NUMBER
+            # ----------------------------------------------------------
+
+            self.cli_args.session = str(
+                info["Session Number"]
+            ).strip()
+
+            if not self.cli_args.session:
+
+                raise ValueError(
+                    "Session Number cannot be empty."
+                )
 
         # --------------------------------------------------------------
-        # FALLBACK WITHOUT PSYCHOPY
+        # NON-PSYCHOPY MODE
         # --------------------------------------------------------------
 
         else:
 
-            # Subject
             if self.cli_args.subject:
 
                 self.subject_id = normalize_id(
@@ -439,113 +520,56 @@ class SSTTask:
                     "Subject ID: "
                 )
 
-            # Session
-            if self.cli_args.session:
-
-                self.session_id = normalize_id(
-                    self.cli_args.session,
-                    "ses-",
-                )
-
-            else:
-
-                session_input = input(
-                    "Session Number: "
-                )
-
-                self.session_id = normalize_id(
-                    session_input,
-                    "ses-",
-                )
-
-            if not self.session_id:
-                raise ValueError(
-                    "Session Number cannot be blank."
-                )
-
-            # Run
-            if self.cli_args.run is None:
-
-                run_input = input(
-                    "Run Number (1 or 2): "
-                )
-
-                try:
-
-                    self.cli_args.run = int(
-                        run_input
-                    )
-
-                except ValueError:
-
-                    raise ValueError(
-                        "Run Number must be 1 or 2."
-                    )
-
-        # --------------------------------------------------------------
-        # VALIDATE RUN NUMBER
-        # --------------------------------------------------------------
-
-        if self.cli_args.run not in (1, 2):
-
-            raise ValueError(
-                "Run Number must be 1 or 2."
-            )
-
-    def _next_run_number(self) -> int:
-
-        pattern = re.compile(
-            rf"^sub-{re.escape(self.subject_id)}"
-            rf"_ses-{re.escape(self.session_id)}"
-            rf"_run-(\d+)_task-SST_"
-        )
-
-        existing = []
-
-        for path in self.data_dir.glob(
-            f"sub-{self.subject_id}"
-            f"_ses-{self.session_id}"
-            f"_run-*_task-SST_*.csv"
-        ):
-
-            match = pattern.match(
-                path.name
-            )
-
-            if match:
-
-                existing.append(
-                    int(match.group(1))
-                )
-
-        return max(
-            existing,
-            default=0,
-        ) + 1
+    # ==================================================================
+    # SESSION SETUP
+    # ==================================================================
 
     def _setup_session(self) -> None:
+        """
+        Set up session IDs, directories, and output file paths.
 
-        # If _resolve_subject() already obtained the session number
-        # from the PsychoPy dialog, keep it.
-        #
-        # Otherwise, fall back to the command-line/default value.
+        The participant response directory is configurable through:
 
-        if self.session_id is None:
+            paths.pre_stimulation_responses_dir
 
-            self.session_id = normalize_id(
-                self.cli_args.session or "001",
-                "ses-",
-            )
+        in config.json.
+
+        If it is missing, the script uses the requested Windows
+        path as a fallback.
+        """
+
+        # --------------------------------------------------------------
+        # SESSION NUMBER
+        # --------------------------------------------------------------
+
+        self.session_id = normalize_id(
+            self.cli_args.session or "001",
+            "ses-",
+        )
+
+        # --------------------------------------------------------------
+        # DATE / TIME LABEL
+        # --------------------------------------------------------------
 
         self.date_label = datetime.now().strftime(
             "%Y-%m-%d_%H-%M-%S"
         )
 
+        # --------------------------------------------------------------
+        # PATH CONFIGURATION
+        # --------------------------------------------------------------
+
+        paths_cfg = self.config.get(
+            "paths",
+            {},
+        )
+
+        # --------------------------------------------------------------
+        # STANDARD DATA DIRECTORY
+        # --------------------------------------------------------------
+
         data_root = Path(
-            self.config.get(
-                "paths",
-                {},
-            ).get(
+            paths_cfg.get(
                 "data_dir",
                 "../data",
             )
@@ -554,35 +578,86 @@ class SSTTask:
         self.data_dir = (
             Path(__file__).resolve().parent
             / data_root
-        ).resolve() / f"sub-{self.subject_id}"
+        ).resolve() / (
+            f"sub-{self.subject_id}"
+        )
 
         self.data_dir.mkdir(
             parents=True,
             exist_ok=True,
         )
 
+        # --------------------------------------------------------------
+        # EEG DIRECTORY
+        # --------------------------------------------------------------
+
         self.eeg_dir = (
             self.data_dir / "eeg"
         )
 
         self.eeg_dir.mkdir(
-            exist_ok=True
+            parents=True,
+            exist_ok=True,
         )
+
+        # --------------------------------------------------------------
+        # QC DIRECTORY
+        # --------------------------------------------------------------
 
         self.qc_dir = (
             self.data_dir / "qc"
         )
 
         self.qc_dir.mkdir(
-            exist_ok=True
+            parents=True,
+            exist_ok=True,
         )
+
+        # --------------------------------------------------------------
+        # LOG DIRECTORY
+        # --------------------------------------------------------------
 
         self.logs_dir = (
             self.data_dir / "logs"
         )
 
         self.logs_dir.mkdir(
-            exist_ok=True
+            parents=True,
+            exist_ok=True,
+        )
+
+        # --------------------------------------------------------------
+        # PRE-STIMULATION RESPONSE DIRECTORY
+        #
+        # CONFIGURABLE THROUGH config.json
+        #
+        # FALLBACK PATH:
+        # --------------------------------------------------------------
+
+        default_pre_stim_dir = (
+            r"C:\Users\Public\LAB PROJECTS\Smith-Lab"
+            r"\tacs3-bluesky\stimulation"
+            r"\pre-stimulation-participant-responses"
+        )
+
+        pre_stim_dir = paths_cfg.get(
+            "pre_stimulation_responses_dir",
+            default_pre_stim_dir,
+        )
+
+        if not pre_stim_dir:
+
+            pre_stim_dir = (
+                default_pre_stim_dir
+            )
+
+        self.pre_stimulation_responses_dir = (
+            Path(pre_stim_dir)
+        )
+
+        self.pre_stimulation_responses_dir.mkdir(
+            parents=True,
+            exist_ok=True,
         )
 
         # --------------------------------------------------------------
@@ -597,13 +672,38 @@ class SSTTask:
 
         else:
 
-            run_number = (
-                self.cli_args.run
-            )
+            if self.cli_args.run is None:
+
+                self.cli_args.run = 1
 
             self.run_label = (
-                f"run-{int(run_number):02d}"
+                f"run-{int(self.cli_args.run):02d}"
             )
+
+        # --------------------------------------------------------------
+        # PARTICIPANT RESPONSE FILE
+        #
+        # IMPORTANT:
+        # This uses task-SST.
+        #
+        # It does NOT use task-bandit.
+        # --------------------------------------------------------------
+
+        self.pre_stimulation_response_path = (
+            self.pre_stimulation_responses_dir
+            / (
+                f"sub-{self.subject_id}"
+                f"_ses-{self.session_id}"
+                f"_{self.run_label}"
+                f"_task-SST"
+                f"_{self.date_label}"
+                f".csv"
+            )
+        )
+
+        # --------------------------------------------------------------
+        # MARKER LOG
+        # --------------------------------------------------------------
 
         base = (
             f"sub-{self.subject_id}"
@@ -617,12 +717,60 @@ class SSTTask:
             / f"{base}_markers.jsonl"
         )
 
+        # --------------------------------------------------------------
+        # EEG SUMMARY
+        # --------------------------------------------------------------
+
         self.eeg_summary_path = (
             self.logs_dir
             / f"{base}_eeg_summary.json"
         )
 
+        # --------------------------------------------------------------
+        # OPERATOR OUTPUT
+        # --------------------------------------------------------------
+
+        print(
+            "\n=================================================="
+        )
+
+        print(
+            "SST OUTPUT CONFIGURATION"
+        )
+
+        print(
+            "=================================================="
+        )
+
+        print(
+            "Participant response directory:"
+        )
+
+        print(
+            self.pre_stimulation_responses_dir
+        )
+
+        print(
+            "\nParticipant response CSV:"
+        )
+
+        print(
+            self.pre_stimulation_response_path
+        )
+
+        print(
+            "\n=================================================="
+        )
+
+    # ==================================================================
+    # STOP RULE
+    # ==================================================================
+
     def _should_stop_run(self) -> bool:
+
+        if self.run_start_time is None:
+
+            return False
 
         elapsed = (
             time.time()
@@ -677,17 +825,20 @@ class SSTTask:
             "record_lsl_eeg_during_localizer",
             True,
         ):
+
             return
 
-        self.eeg_recorder = LSLEEGRecorder(
-            preferred_stream_type=eeg_config.get(
-                "preferred_stream_type",
-                "EEG",
-            ),
-            preferred_stream_name_contains=eeg_config.get(
-                "preferred_stream_name_contains",
-                "StarStim",
-            ),
+        self.eeg_recorder = (
+            LSLEEGRecorder(
+                preferred_stream_type=eeg_config.get(
+                    "preferred_stream_type",
+                    "EEG",
+                ),
+                preferred_stream_name_contains=eeg_config.get(
+                    "preferred_stream_name_contains",
+                    "StarStim",
+                ),
+            )
         )
 
         if not self.eeg_recorder.start():
@@ -697,12 +848,15 @@ class SSTTask:
                 f"{self.eeg_recorder.status_message}"
             )
 
-    def _stop_eeg_recording(self) -> None:
+    def _stop_eeg_recording(
+        self,
+    ) -> None:
 
         if (
             self.eeg_recording_saved
             or self.eeg_recorder is None
         ):
+
             return
 
         eeg_config = self.config.get(
@@ -748,17 +902,12 @@ class SSTTask:
         self.eeg_recording_saved = True
 
     # ==================================================================
-    # ENTRY POINT
+    # MAIN ENTRY POINT
     # ==================================================================
 
     def run(self) -> None:
 
         try:
-
-            # IMPORTANT:
-            # This happens before the PsychoPy instruction screen
-            # is created, so the selected subject/session/run values
-            # are available when deciding what to display.
 
             self._resolve_subject()
 
@@ -781,6 +930,10 @@ class SSTTask:
         finally:
 
             self.cleanup()
+
+    # ==================================================================
+    # CLEANUP
+    # ==================================================================
 
     def cleanup(self) -> None:
 
@@ -879,10 +1032,35 @@ class SSTTask:
                 )
             )
 
+            rt = max(
+                0.05,
+                rt,
+            )
+
             responded = (
                 not is_stop
                 or rng.random() < 0.5
             )
+
+            response_key = ""
+
+            if responded:
+
+                expected_key = (
+                    "a"
+                    if direction == "left"
+                    else "l"
+                )
+
+                response_key = (
+                    expected_key
+                    if rng.random() < 0.95
+                    else (
+                        "l"
+                        if expected_key == "a"
+                        else "a"
+                    )
+                )
 
             self._record_trial(
                 trial_num,
@@ -891,6 +1069,7 @@ class SSTTask:
                 responded,
                 rt if responded else None,
                 self.ssd,
+                response_key=response_key,
             )
 
             if is_stop:
@@ -932,7 +1111,8 @@ class SSTTask:
 
         print(
             "SST test mode complete: "
-            f"{self.current_trial} simulated trials."
+            f"{self.current_trial} "
+            "simulated trials."
         )
 
     # ==================================================================
@@ -943,22 +1123,6 @@ class SSTTask:
         self,
         msg_stim,
     ) -> bool:
-        """Show the appropriate pre-run screen.
-
-        Run 1:
-            Full instructions.
-
-        Run 2:
-            Only:
-
-                Press SPACE to begin.
-
-        SPACE starts the task for both runs.
-
-        ESC or Z cancels the run.
-
-        An external LSL start trigger can also start the task.
-        """
 
         msg_stim.draw()
 
@@ -969,6 +1133,10 @@ class SSTTask:
             core.wait(0.05)
 
             return True
+
+        # --------------------------------------------------------------
+        # LSL LISTENING
+        # --------------------------------------------------------------
 
         listen_lsl = (
             not self.cli_args.localizer
@@ -987,7 +1155,7 @@ class SSTTask:
             )
 
             # ----------------------------------------------------------
-            # SPACE STARTS THE TASK
+            # SPACE
             # ----------------------------------------------------------
 
             if (
@@ -998,7 +1166,7 @@ class SSTTask:
                 return True
 
             # ----------------------------------------------------------
-            # ESCAPE / Z CANCEL
+            # ESCAPE / Z
             # ----------------------------------------------------------
 
             if (
@@ -1042,7 +1210,7 @@ class SSTTask:
             core.wait(0.01)
 
     # ==================================================================
-    # PSYCHOPY TASK
+    # PSYCHOPY
     # ==================================================================
 
     def _run_psychopy(self) -> None:
@@ -1128,6 +1296,10 @@ class SSTTask:
                 ),
             }
 
+            # ==========================================================
+            # FIXATION
+            # ==========================================================
+
             fixation = visual.TextStim(
                 win,
                 text="+",
@@ -1135,37 +1307,53 @@ class SSTTask:
             )
 
             # ==========================================================
-            # RUN-SPECIFIC INSTRUCTIONS
+            # DETERMINE INSTRUCTION SCREEN
             # ==========================================================
 
-            if self.cli_args.run == 2:
+            current_run_number = (
+                int(self.cli_args.run)
+                if self.cli_args.run is not None
+                else 1
+            )
 
-                wait_text = (
-                    "Press SPACE to begin."
+            # ----------------------------------------------------------
+            # RUN 2
+            # ----------------------------------------------------------
+
+            if current_run_number == 2:
+
+                wait_msg = visual.TextStim(
+                    win,
+                    text="Press SPACE to begin.",
+                    color="white",
+                    height=36,
+                    wrapWidth=900,
                 )
+
+            # ----------------------------------------------------------
+            # RUN 1 / OTHER RUNS
+            # ----------------------------------------------------------
 
             else:
 
-                wait_text = (
-                    f"Stop Signal Task — "
-                    f"{self.run_label}\n\n"
-                    "Please wait for the experimenter "
-                    "to start the task.\n\n"
-                    "Press A when the arrow points LEFT.\n"
-                    "Press L when the arrow points RIGHT.\n"
-                    "Respond as quickly as possible.\n\n"
-                    "If the arrow turns RED, try to stop "
-                    "yourself from pressing anything.\n\n"
-                    "Press SPACE to begin"
+                wait_msg = visual.TextStim(
+                    win,
+                    text=(
+                        f"Stop Signal Task — "
+                        f"{self.run_label}\n\n"
+                        "Please wait for the experimenter "
+                        "to start the task.\n\n"
+                        "Press A when the arrow points LEFT.\n"
+                        "Press L when the arrow points RIGHT.\n"
+                        "Respond as quickly as possible.\n\n"
+                        "If the arrow turns RED, try to stop "
+                        "yourself from pressing anything.\n\n"
+                        "Press SPACE to begin"
+                    ),
+                    color="white",
+                    height=36,
+                    wrapWidth=900,
                 )
-
-            wait_msg = visual.TextStim(
-                win,
-                text=wait_text,
-                color="white",
-                height=36,
-                wrapWidth=900,
-            )
 
             # ==========================================================
             # WAIT FOR START
@@ -1184,7 +1372,7 @@ class SSTTask:
             self._start_eeg_recording_if_requested()
 
             # ==========================================================
-            # START RUN
+            # START RUN CLOCK
             # ==========================================================
 
             self.run_start_time = (
@@ -1292,10 +1480,13 @@ class SSTTask:
                 trial_clock = core.Clock()
 
                 responded = False
+
                 response_key = ""
+
                 response_time = None
 
                 stop_presented = False
+
                 stop_lsl_time = None
 
                 simulated_rt = (
@@ -1350,7 +1541,7 @@ class SSTTask:
                             )
 
                     # --------------------------------------------------
-                    # REAL PARTICIPANT RESPONSE
+                    # REAL RESPONSE
                     # --------------------------------------------------
 
                     else:
@@ -1385,7 +1576,7 @@ class SSTTask:
                                 break
 
                     # --------------------------------------------------
-                    # STOP IF PARTICIPANT RESPONDED
+                    # RESPONSE RECEIVED
                     # --------------------------------------------------
 
                     if (
@@ -1396,7 +1587,7 @@ class SSTTask:
                         break
 
                     # --------------------------------------------------
-                    # PRESENT STOP SIGNAL
+                    # STOP SIGNAL
                     # --------------------------------------------------
 
                     if (
@@ -1435,7 +1626,7 @@ class SSTTask:
                         core.wait(0.01)
 
                 # ------------------------------------------------------
-                # ABORT TASK IF REQUESTED
+                # STOP TASK
                 # ------------------------------------------------------
 
                 if self.task_should_stop:
@@ -1461,7 +1652,7 @@ class SSTTask:
                 )
 
                 # ------------------------------------------------------
-                # SSD STAIRCASE
+                # UPDATE SSD
                 # ------------------------------------------------------
 
                 if is_stop:
@@ -1496,7 +1687,7 @@ class SSTTask:
                 core.wait(iti)
 
             # ==========================================================
-            # RUN COMPLETE
+            # END RUN
             # ==========================================================
 
             self.run_end_task_time = (
@@ -1516,7 +1707,7 @@ class SSTTask:
             )
 
             print(
-                f"\nRun complete. "
+                "\nRun complete. "
                 f"Total trials: "
                 f"{self.current_trial}"
             )
@@ -1574,8 +1765,10 @@ class SSTTask:
 
                 self.win.close()
 
+                self.win = None
+
     # ==================================================================
-    # TRIAL RECORDING
+    # RECORD TRIAL
     # ==================================================================
 
     def _record_trial(
@@ -1594,6 +1787,10 @@ class SSTTask:
         response_key: str = "",
     ) -> None:
 
+        # --------------------------------------------------------------
+        # STOP PRESENTED
+        # --------------------------------------------------------------
+
         stop_presented = (
             is_stop
             if stop_presented is None
@@ -1608,10 +1805,20 @@ class SSTTask:
             else "l"
         )
 
-        now_task = (
-            time.time()
-            - self.run_start_time
-        )
+        # --------------------------------------------------------------
+        # CURRENT TASK TIME
+        # --------------------------------------------------------------
+
+        if self.run_start_time is not None:
+
+            now_task = (
+                time.time()
+                - self.run_start_time
+            )
+
+        else:
+
+            now_task = 0.0
 
         stim_onset_task_time = (
             now_task
@@ -1619,26 +1826,31 @@ class SSTTask:
             else stim_onset_task_time
         )
 
-        stim_onset_lsl_time = (
+        # --------------------------------------------------------------
+        # GO MARKER
+        # --------------------------------------------------------------
 
-            self.event_logger.send(
-                int(
-                    m.get(
-                        "sst_go",
-                        110,
-                    )
-                ),
-                "sst_go",
-                {
-                    "trial_num": trial_num,
-                    "stimulus": direction,
-                },
+        if stim_onset_lsl_time is None:
+
+            stim_onset_lsl_time = (
+                self.event_logger.send(
+                    int(
+                        m.get(
+                            "sst_go",
+                            110,
+                        )
+                    ),
+                    "sst_go",
+                    {
+                        "trial_num": trial_num,
+                        "stimulus": direction,
+                    },
+                )
             )
 
-            if stim_onset_lsl_time is None
-
-            else stim_onset_lsl_time
-        )
+        # --------------------------------------------------------------
+        # STOP ONSET
+        # --------------------------------------------------------------
 
         stop_onset_task_time = (
             stim_onset_task_time + ssd
@@ -1648,22 +1860,27 @@ class SSTTask:
 
         if stop_presented:
 
-            stop_onset_lsl_time = (
-                stop_onset_lsl_time
-                or self.event_logger.send(
-                    int(
-                        m.get(
-                            "sst_stop",
-                            111,
-                        )
-                    ),
-                    "sst_stop",
-                    {
-                        "trial_num": trial_num,
-                        "ssd": ssd,
-                    },
+            if stop_onset_lsl_time is None:
+
+                stop_onset_lsl_time = (
+                    self.event_logger.send(
+                        int(
+                            m.get(
+                                "sst_stop",
+                                111,
+                            )
+                        ),
+                        "sst_stop",
+                        {
+                            "trial_num": trial_num,
+                            "ssd": ssd,
+                        },
+                    )
                 )
-            )
+
+        # --------------------------------------------------------------
+        # RESPONSE
+        # --------------------------------------------------------------
 
         response_onset_task_time = (
             stim_onset_task_time + rt
@@ -1674,7 +1891,10 @@ class SSTTask:
 
         response_onset_lsl_time = None
 
-        if responded and rt is not None:
+        if (
+            responded
+            and rt is not None
+        ):
 
             response_onset_lsl_time = (
                 self.event_logger.send(
@@ -1691,6 +1911,10 @@ class SSTTask:
                     },
                 )
             )
+
+        # --------------------------------------------------------------
+        # GO OUTCOMES
+        # --------------------------------------------------------------
 
         go_correct = int(
             (not is_stop)
@@ -1719,6 +1943,10 @@ class SSTTask:
             and not responded
         )
 
+        # --------------------------------------------------------------
+        # STOP OUTCOMES
+        # --------------------------------------------------------------
+
         stop_success = int(
             is_stop
             and not responded
@@ -1729,6 +1957,10 @@ class SSTTask:
             and responded
         )
 
+        # --------------------------------------------------------------
+        # OUTCOME MARKER
+        # --------------------------------------------------------------
+
         if stop_success:
 
             outcome_marker = int(
@@ -1738,7 +1970,9 @@ class SSTTask:
                 )
             )
 
-            outcome = "stop_success"
+            outcome = (
+                "stop_success"
+            )
 
         elif stop_failure:
 
@@ -1749,7 +1983,9 @@ class SSTTask:
                 )
             )
 
-            outcome = "stop_failure"
+            outcome = (
+                "stop_failure"
+            )
 
         elif go_correct:
 
@@ -1760,7 +1996,9 @@ class SSTTask:
                 )
             )
 
-            outcome = "go_correct"
+            outcome = (
+                "go_correct"
+            )
 
         elif go_incorrect:
 
@@ -1771,7 +2009,9 @@ class SSTTask:
                 )
             )
 
-            outcome = "go_incorrect"
+            outcome = (
+                "go_incorrect"
+            )
 
         else:
 
@@ -1782,7 +2022,13 @@ class SSTTask:
                 )
             )
 
-            outcome = "go_miss"
+            outcome = (
+                "go_miss"
+            )
+
+        # --------------------------------------------------------------
+        # SEND OUTCOME MARKER
+        # --------------------------------------------------------------
 
         outcome_lsl_time = (
             self.event_logger.send(
@@ -1794,86 +2040,121 @@ class SSTTask:
             )
         )
 
+        # --------------------------------------------------------------
+        # SAVE TRIAL
+        # --------------------------------------------------------------
+
         self.results.append(
             {
                 "subject_id": (
                     f"sub-{self.subject_id}"
                 ),
+
                 "session_id": (
                     f"ses-{self.session_id}"
                 ),
-                "run": self.run_label,
+
+                "run": (
+                    self.run_label
+                ),
+
                 "localizer": int(
                     bool(
                         self.cli_args.localizer
                     )
                 ),
-                "trialNumber": trial_num,
+
+                "trialNumber": (
+                    trial_num
+                ),
+
                 "stim_onset": (
                     stim_onset_task_time
                 ),
+
                 "stim_onset_lsl_time": (
                     stim_onset_lsl_time
                 ),
+
                 "stop_onset": (
                     stop_onset_task_time
                     if stop_onset_task_time
                     is not None
                     else ""
                 ),
+
                 "stop_onset_lsl_time": (
                     stop_onset_lsl_time
                     if stop_onset_lsl_time
                     is not None
                     else ""
                 ),
+
                 "response_onset": (
                     response_onset_task_time
                     if response_onset_task_time
                     is not None
                     else ""
                 ),
+
                 "response_onset_lsl_time": (
                     response_onset_lsl_time
                     if response_onset_lsl_time
                     is not None
                     else ""
                 ),
+
                 "outcome_lsl_time": (
                     outcome_lsl_time
                 ),
+
                 "marker_code": (
                     outcome_marker
                 ),
-                "stimulus": direction,
-                "stop": int(is_stop),
+
+                "stimulus": (
+                    direction
+                ),
+
+                "stop": int(
+                    is_stop
+                ),
+
                 "response": bool(
                     responded
                 ),
+
                 "response_key": (
                     response_key
                 ),
+
                 "rt": (
                     rt
                     if rt is not None
                     else ""
                 ),
+
                 "ssd": round(
                     float(ssd),
                     3,
                 ),
+
                 "go_correct": (
                     go_correct
                 ),
+
                 "go_incorrect": (
                     go_incorrect
                 ),
+
                 "go_miss": (
                     go_miss
                 ),
+
                 "stop_success": (
                     stop_success
                 ),
+
                 "stop_failure_arrowcorrect": (
                     bool(
                         response_key
@@ -1885,14 +2166,23 @@ class SSTTask:
                     if stop_failure
                     else ""
                 ),
-                "outcome": outcome,
+
+                "outcome": (
+                    outcome
+                ),
+
                 "run_start_lsl_time": (
                     self.run_start_lsl_time
                 ),
+
                 "run_end_lsl_time": (
                     self.run_end_lsl_time
                 ),
-                "run_start_task_time": 0.0,
+
+                "run_start_task_time": (
+                    0.0
+                ),
+
                 "run_end_task_time": (
                     self.run_end_task_time
                 ),
@@ -1904,12 +2194,43 @@ class SSTTask:
     # ==================================================================
 
     def save_events(self) -> None:
+        """
+        Save participant response data.
+
+        CSV and TSV are saved directly into the configured
+        pre-stimulation participant response directory.
+
+        Filename:
+
+            sub-{subject}_ses-{session}_{run}_task-SST_{date-time}.csv
+        """
+
+        if self._saved:
+
+            return
+
+        if not self.results:
+
+            print(
+                "No participant response trials "
+                "were recorded. No CSV was written."
+            )
+
+            return
 
         if (
-            self._saved
-            or not self.results
+            self.pre_stimulation_responses_dir
+            is None
         ):
-            return
+
+            raise RuntimeError(
+                "Pre-stimulation response directory "
+                "has not been configured."
+            )
+
+        # --------------------------------------------------------------
+        # UPDATE RUN END TIMES
+        # --------------------------------------------------------------
 
         for row in self.results:
 
@@ -1921,55 +2242,117 @@ class SSTTask:
                 "run_end_task_time"
             ] = self.run_end_task_time
 
+        # --------------------------------------------------------------
+        # BASE FILE PATH
+        #
+        # IMPORTANT:
+        # task-SST, NOT task-bandit.
+        # --------------------------------------------------------------
+
         base = (
-            self.data_dir
-            / f"sub-{self.subject_id}"
-            f"_ses-{self.session_id}"
-            f"_{self.run_label}"
-            f"_task-SST"
-            f"_{self.date_label}"
-            f"_events"
+            self.pre_stimulation_responses_dir
+            / (
+                f"sub-{self.subject_id}"
+                f"_ses-{self.session_id}"
+                f"_{self.run_label}"
+                f"_task-SST"
+                f"_{self.date_label}"
+            )
         )
 
         fields = list(
             self.results[0].keys()
         )
 
-        for suffix, delimiter in [
-            (".csv", ","),
-            (".tsv", "\t"),
-        ]:
+        # --------------------------------------------------------------
+        # CSV
+        # --------------------------------------------------------------
 
-            with (
-                base.with_suffix(suffix)
-            ).open(
-                "w",
-                encoding="utf-8",
-                newline="",
-            ) as handle:
+        csv_path = (
+            base.with_suffix(".csv")
+        )
 
-                writer = csv.DictWriter(
-                    handle,
-                    fieldnames=fields,
-                    delimiter=delimiter,
-                )
+        with csv_path.open(
+            "w",
+            encoding="utf-8",
+            newline="",
+        ) as handle:
 
-                writer.writeheader()
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=fields,
+                delimiter=",",
+            )
 
-                writer.writerows(
-                    self.results
-                )
+            writer.writeheader()
+
+            writer.writerows(
+                self.results
+            )
+
+        # --------------------------------------------------------------
+        # TSV
+        # --------------------------------------------------------------
+
+        tsv_path = (
+            base.with_suffix(".tsv")
+        )
+
+        with tsv_path.open(
+            "w",
+            encoding="utf-8",
+            newline="",
+        ) as handle:
+
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=fields,
+                delimiter="\t",
+            )
+
+            writer.writeheader()
+
+            writer.writerows(
+                self.results
+            )
 
         self._saved = True
 
+        # --------------------------------------------------------------
+        # CONFIRM OUTPUT
+        # --------------------------------------------------------------
+
         print(
-            "SST events saved to: "
-            f"{base.with_suffix('.csv')}"
+            "\n=================================================="
+        )
+
+        print(
+            "SST PARTICIPANT RESPONSE DATA SAVED"
+        )
+
+        print(
+            "=================================================="
+        )
+
+        print(
+            f"CSV:\n{csv_path}"
+        )
+
+        print(
+            f"\nTSV:\n{tsv_path}"
+        )
+
+        print(
+            f"\nTrials saved: {len(self.results)}"
+        )
+
+        print(
+            "=================================================="
         )
 
 
 # ======================================================================
-# COMMAND-LINE ARGUMENTS
+# ARGUMENT PARSER
 # ======================================================================
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -1981,6 +2364,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
         )
     )
 
+    # --------------------------------------------------------------
+    # CONFIG
+    # --------------------------------------------------------------
+
     parser.add_argument(
         "--config",
         default=str(
@@ -1989,43 +2376,62 @@ def build_arg_parser() -> argparse.ArgumentParser:
         ),
     )
 
+    # --------------------------------------------------------------
+    # SUBJECT
+    # --------------------------------------------------------------
+
     parser.add_argument(
         "--subject",
         help=(
             "Subject ID, with or without "
-            "the sub- prefix. If omitted, "
-            "PsychoPy will ask for it."
+            "the sub- prefix."
         ),
     )
 
+    # --------------------------------------------------------------
+    # SESSION
+    # --------------------------------------------------------------
+
     parser.add_argument(
         "--session",
+        default="001",
         help=(
-            "Session number, with or without "
-            "the ses- prefix. If omitted, "
-            "PsychoPy will ask for it."
+            "Session ID, with or without "
+            "the ses- prefix."
         ),
     )
+
+    # --------------------------------------------------------------
+    # RUN
+    # --------------------------------------------------------------
 
     parser.add_argument(
         "--run",
         type=int,
-        choices=[1, 2],
         help=(
-            "Run number, either 1 or 2. "
-            "If omitted, PsychoPy will ask "
-            "for the run number."
+            "Run number. If omitted, "
+            "PsychoPy will ask for it."
         ),
     )
+
+    # --------------------------------------------------------------
+    # LOCALIZER
+    # --------------------------------------------------------------
 
     parser.add_argument(
         "--localizer",
         action="store_true",
         help=(
             "Mark this as the pre-stimulation "
-            "baseline run."
+            "baseline run. Labels the file "
+            "run-localizer and skips the "
+            "LSL start trigger."
         ),
     )
+
+    # --------------------------------------------------------------
+    # DURATION
+    # --------------------------------------------------------------
 
     parser.add_argument(
         "--duration-minutes",
@@ -2036,6 +2442,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
         ),
     )
 
+    # --------------------------------------------------------------
+    # TEST MODE
+    # --------------------------------------------------------------
+
     parser.add_argument(
         "--test-mode",
         action="store_true",
@@ -2044,6 +2454,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "or stimulation hardware."
         ),
     )
+
+    # --------------------------------------------------------------
+    # AUTO RESPONSE
+    # --------------------------------------------------------------
 
     parser.add_argument(
         "--auto-respond",
@@ -2054,6 +2468,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
         ),
     )
 
+    # --------------------------------------------------------------
+    # SCREEN
+    # --------------------------------------------------------------
+
     parser.add_argument(
         "--screen",
         type=int,
@@ -2062,6 +2480,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "PsychoPy window."
         ),
     )
+
+    # --------------------------------------------------------------
+    # WINDOWED
+    # --------------------------------------------------------------
 
     parser.add_argument(
         "--windowed",
@@ -2099,6 +2521,10 @@ def main() -> int:
 
     return 0
 
+
+# ======================================================================
+# SCRIPT ENTRY
+# ======================================================================
 
 if __name__ == "__main__":
 
