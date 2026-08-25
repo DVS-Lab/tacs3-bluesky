@@ -4,13 +4,13 @@
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
-   <stepName>Run 1</stepName>
+   <stepName>1800 Theta</stepName>
    <stepConfigurationType>ADVANCED</stepConfigurationType>
    <stepBasicStimChannel>-1</stepBasicStimChannel>
-   <stepType>7</stepType>
-   <stimulationTime>360</stimulationTime>
-   <rampUp>30</rampUp>
-   <rampDown>30</rampDown>
+   <stepType>0</stepType>
+   <stimulationTime>180</stimulationTime>
+   <rampUp>60</rampUp>
+   <rampDown>60</rampDown>
    <rampSham>0</rampSham>
    <stimulationSham>Single</stimulationSham>
    <tRNSLowFreq>0</tRNSLowFreq>
@@ -20,7 +20,7 @@
    <Channel>
     <index>1</index>
     <location>F3</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>1800</atacsValue>
     <ftacsValue>6.00</ftacsValue>
@@ -30,31 +30,31 @@
    <Channel>
     <index>2</index>
     <location>Fp1</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>600</atacsValue>
+    <atacsValue>1800</atacsValue>
     <ftacsValue>6.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>3</index>
     <location>FCz</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>600</atacsValue>
+    <atacsValue>1800</atacsValue>
     <ftacsValue>6.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>4</index>
     <location>FT7</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>600</atacsValue>
+    <atacsValue>1800</atacsValue>
     <ftacsValue>6.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
