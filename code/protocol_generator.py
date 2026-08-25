@@ -14,7 +14,7 @@ TEMPLATE = Path(
 )
 
 DATA_FOLDER = Path(
-    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky\data folder used in protocol_generator.py"
+    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky\stimulation\calculated-theta-beta"
 )
 
 OUTPUT_FOLDER = Path(
@@ -99,37 +99,112 @@ def find_latest_csv(subject_id, visit_number):
 # ============================================================
 # FREQUENCY EXTRACTION
 #
-# TEMPORARY VERSION
+# Reads the already-calculated theta and beta peaks from the
+# theta/beta analysis report.
 #
-# Later this function will:
-#   1. Read the CSV
-#   2. Locate the associated .easy EEG file
-#   3. Calculate theta from outcome phase
-#   4. Calculate beta from decision phase
+# Example:
 #
-# For now, the frequencies are hardcoded.
+#   3003-2_pre-stim_theta-beta.txt
+#
+# The report contains:
+#
+#   Theta stimulation frequency: 7.00 Hz
+#   Beta stimulation frequency: 22.00 Hz
+#
+# The protocol generator uses those values directly.
 # ============================================================
 
 def extract_frequency_values(subject_id, visit_number):
 
-    csv_file = find_latest_csv(
-        subject_id,
-        visit_number
+    # --------------------------------------------------------
+    # Find the calculated theta/beta report
+    #
+    # Example:
+    # subject_id = 3003
+    # visit_number = 2
+    #
+    # Looks for:
+    # 3003-2_pre-stim_theta-beta.txt
+    # --------------------------------------------------------
+
+    txt_file = DATA_FOLDER / (
+        f"{subject_id}-{visit_number}_pre-stim_theta-beta.txt"
     )
 
 
-    # ========================================================
-    # TEMPORARY VALUES
-    #
-    # Replace these later with the EEG analysis.
-    # ========================================================
+    if not txt_file.exists():
 
-    theta_peak = 6.25
-    beta_peak = 18.50
+        raise FileNotFoundError(
+            f"Could not find theta/beta report:\n\n"
+            f"{txt_file}"
+        )
+
+
+    # --------------------------------------------------------
+    # Read report
+    # --------------------------------------------------------
+
+    text = txt_file.read_text(
+        encoding="utf-8"
+    )
+
+
+    # --------------------------------------------------------
+    # Extract theta
+    #
+    # Looks for:
+    #
+    # Theta stimulation frequency: 7.00 Hz
+    # --------------------------------------------------------
+
+    theta_match = re.search(
+        r"Theta stimulation frequency:\s*([0-9]+(?:\.[0-9]+)?)\s*Hz",
+        text
+    )
+
+
+    if theta_match is None:
+
+        raise ValueError(
+            "Could not find the theta stimulation frequency "
+            "in the theta/beta report."
+        )
+
+
+    theta_peak = float(
+        theta_match.group(1)
+    )
+
+
+    # --------------------------------------------------------
+    # Extract beta
+    #
+    # Looks for:
+    #
+    # Beta stimulation frequency: 22.00 Hz
+    # --------------------------------------------------------
+
+    beta_match = re.search(
+        r"Beta stimulation frequency:\s*([0-9]+(?:\.[0-9]+)?)\s*Hz",
+        text
+    )
+
+
+    if beta_match is None:
+
+        raise ValueError(
+            "Could not find the beta stimulation frequency "
+            "in the theta/beta report."
+        )
+
+
+    beta_peak = float(
+        beta_match.group(1)
+    )
 
 
     return (
-        csv_file,
+        txt_file,
         theta_peak,
         beta_peak
     )
@@ -139,27 +214,30 @@ def extract_frequency_values(subject_id, visit_number):
 # REPLACE <ftacsValue>
 # ============================================================
 
-def replace_frequency(file_path, frequency):
+def replace_protocol_info(file_path, frequency, template_name):
 
     text = file_path.read_text(
         encoding="utf-8"
     )
 
 
-    replacement = (
+    # --------------------------------------------------------
+    # Replace frequency
+    # --------------------------------------------------------
+
+    frequency_replacement = (
         f"<ftacsValue>{frequency:.2f}</ftacsValue>"
     )
 
-
-    text, number_replaced = re.subn(
+    text, frequency_replaced = re.subn(
         r"<ftacsValue>.*?</ftacsValue>",
-        replacement,
+        frequency_replacement,
         text,
         flags=re.DOTALL
     )
 
 
-    if number_replaced == 0:
+    if frequency_replaced == 0:
 
         raise ValueError(
             "Could not find <ftacsValue></ftacsValue> "
@@ -167,11 +245,38 @@ def replace_frequency(file_path, frequency):
         )
 
 
+    # --------------------------------------------------------
+    # Replace TemplateName
+    # --------------------------------------------------------
+
+    template_replacement = (
+        f"<TemplateName>{template_name}</TemplateName>"
+    )
+
+    text, template_replaced = re.subn(
+        r"<TemplateName>.*?</TemplateName>",
+        template_replacement,
+        text,
+        flags=re.DOTALL
+    )
+
+
+    if template_replaced == 0:
+
+        raise ValueError(
+            "Could not find <TemplateName></TemplateName> "
+            "in the protocol template."
+        )
+
+
+    # --------------------------------------------------------
+    # Save modified protocol
+    # --------------------------------------------------------
+
     file_path.write_text(
         text,
         encoding="utf-8"
     )
-
 
 # ============================================================
 # CREATE ONE PROTOCOL FOR ONE VISIT
@@ -272,9 +377,49 @@ def create_protocol(
             output_file
         )
 
-        replace_frequency(
+
+        # --------------------------------------------------------
+        # Determine the protocol name from the output filename
+        # --------------------------------------------------------
+
+        if "bandit_run1" in output_file.name:
+            run_name = "Bandit-Run1"
+
+        elif "bandit_run2" in output_file.name:
+            run_name = "Bandit-Run2"
+
+        elif "SST_run1" in output_file.name:
+            run_name = "SST-Run1"
+
+        elif "SST_run2" in output_file.name:
+            run_name = "SST-Run2"
+
+        else:
+            raise ValueError(
+                f"Unrecognized protocol filename: {output_file.name}"
+            )
+
+
+        # --------------------------------------------------------
+        # Create TemplateName
+        #
+        # Example:
+        # TACS3-3003-Visit2-Bandit-Run1
+        # --------------------------------------------------------
+
+        template_name = (
+            f"TACS3-{subject_id}-Visit{visit_number}-{run_name}"
+        )
+
+
+        # --------------------------------------------------------
+        # Insert frequency and TemplateName
+        # --------------------------------------------------------
+
+        replace_protocol_info(
             output_file,
-            frequency
+            frequency,
+            template_name
         )
 
 
