@@ -1,0 +1,4 @@
+subject_id	session_id	run	localizer	trialNumber	stim_onset	stim_onset_lsl_time	stop_onset	stop_onset_lsl_time	response_onset	response_onset_lsl_time	outcome_lsl_time	marker_code	stimulus	stop	response	response_key	rt	ssd	go_correct	go_incorrect	go_miss	stop_success	stop_failure_arrowcorrect	outcome	run_start_lsl_time	run_end_lsl_time	run_start_task_time	run_end_task_time
+sub-test00000	ses-001	run-01	0	1	2.4585956999799237	485221.6871724					485223.1872218	135	left	0	False			0.25	0	0	1	0		go_miss	485219.2285105	485239.0354357	0.0	19.816161394119263
+sub-test00000	ses-001	run-01	0	2	8.778005399974063	485228.0065719	9.028005399974063	485228.2584151			485229.5066432	131	left	1	False			0.25	0	0	0	1		stop_success	485219.2285105	485239.0354357	0.0	19.816161394119263
+sub-test00000	ses-001	run-01	0	3	14.763586899964139	485233.9921541					485235.4922138	135	right	0	False			0.3	0	0	1	0		go_miss	485219.2285105	485239.0354357	0.0	19.816161394119263
