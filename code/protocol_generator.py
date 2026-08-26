@@ -10,300 +10,285 @@ import re
 # ============================================================
 
 TEMPLATE = Path(
-    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky\stimulation\protocols\PROTOCOL_TEMPLATE.neprot"
+    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky"
+    r"\stimulation\protocols\PROTOCOL_TEMPLATE.neprot"
 )
 
 DATA_FOLDER = Path(
-    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky\data folder used in protocol_generator.py"
+    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky"
+    r"\stimulation\calculated-theta-beta"
 )
 
 OUTPUT_FOLDER = Path(
-    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky\stimulation\protocols\generated"
+    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky"
+    r"\stimulation\protocols\generated"
 )
 
 
 # ============================================================
 # DOUBLE-BLIND COUNTERBALANCE
 #
-# IMPORTANT:
-# This table is INTERNAL ONLY.
-#
-# A-F represent the six possible permutations of:
+# A-F correspond to the six possible orders of:
 # theta, beta, sham
 #
-# The GUI NEVER displays this information.
+# This is intentionally NOT displayed by the GUI.
 # ============================================================
 
 COUNTERBALANCE = {
-
     "A": ["sham", "beta", "theta"],
     "B": ["sham", "theta", "beta"],
     "C": ["beta", "theta", "sham"],
     "D": ["beta", "sham", "theta"],
     "E": ["theta", "sham", "beta"],
-    "F": ["theta", "beta", "sham"]
-
+    "F": ["theta", "beta", "sham"],
 }
 
 
 # ============================================================
-# FIND THE DATA FILE FOR THIS SUBJECT + VISIT
-# ============================================================
-
-def find_latest_csv(subject_id, visit_number):
-    """
-    Find the most recently modified CSV for the specified
-    subject and visit.
-
-    Example:
-
-        subject_id = 2002
-        visit_number = 2
-
-    Searches for files containing:
-
-        2002-2
-
-    """
-
-    search_string = f"{subject_id}-{visit_number}"
-
-    matches = []
-
-    for file in DATA_FOLDER.glob("*.csv"):
-
-        if search_string in file.name:
-            matches.append(file)
-
-
-    if not matches:
-
-        raise FileNotFoundError(
-            f"No CSV found for subject {subject_id}, "
-            f"visit {visit_number}.\n\n"
-            f"Expected the filename to contain:\n"
-            f"{search_string}"
-        )
-
-
-    # If multiple files match, use the newest one
-    newest = max(
-        matches,
-        key=lambda x: x.stat().st_mtime
-    )
-
-
-    return newest
-
-
-# ============================================================
-# FREQUENCY EXTRACTION
-#
-# TEMPORARY VERSION
-#
-# Later this function will:
-#   1. Read the CSV
-#   2. Locate the associated .easy EEG file
-#   3. Calculate theta from outcome phase
-#   4. Calculate beta from decision phase
-#
-# For now, the frequencies are hardcoded.
+# READ THETA / BETA FREQUENCIES
 # ============================================================
 
 def extract_frequency_values(subject_id, visit_number):
+    """
+    Read the pre-calculated theta and beta frequencies from:
 
-    csv_file = find_latest_csv(
-        subject_id,
-        visit_number
+        SUBJECT-VISIT_pre-stim_theta-beta.txt
+
+    Example:
+
+        3003-2_pre-stim_theta-beta.txt
+
+    Expected lines:
+
+        Theta stimulation frequency: 7.00 Hz
+        Beta stimulation frequency: 22.00 Hz
+    """
+
+    txt_file = DATA_FOLDER / (
+        f"{subject_id}-{visit_number}_pre-stim_theta-beta.txt"
     )
 
+    if not txt_file.exists():
+        raise FileNotFoundError(
+            f"Could not find theta/beta report:\n\n"
+            f"{txt_file}"
+        )
 
-    # ========================================================
-    # TEMPORARY VALUES
-    #
-    # Replace these later with the EEG analysis.
-    # ========================================================
+    text = txt_file.read_text(encoding="utf-8")
 
-    theta_peak = 6.25
-    beta_peak = 18.50
+    # --------------------------------------------------------
+    # Extract theta
+    # --------------------------------------------------------
 
-
-    return (
-        csv_file,
-        theta_peak,
-        beta_peak
-    )
-
-
-# ============================================================
-# REPLACE <ftacsValue>
-# ============================================================
-
-def replace_frequency(file_path, frequency):
-
-    text = file_path.read_text(
-        encoding="utf-8"
-    )
-
-
-    replacement = (
-        f"<ftacsValue>{frequency:.2f}</ftacsValue>"
-    )
-
-
-    text, number_replaced = re.subn(
-        r"<ftacsValue>.*?</ftacsValue>",
-        replacement,
+    theta_match = re.search(
+        r"Theta stimulation frequency:\s*"
+        r"([0-9]+(?:\.[0-9]+)?)\s*Hz",
         text,
-        flags=re.DOTALL
     )
 
+    if theta_match is None:
+        raise ValueError(
+            "Could not find the theta stimulation frequency "
+            "in the theta/beta report."
+        )
 
-    if number_replaced == 0:
+    theta = float(theta_match.group(1))
 
+    # --------------------------------------------------------
+    # Extract beta
+    # --------------------------------------------------------
+
+    beta_match = re.search(
+        r"Beta stimulation frequency:\s*"
+        r"([0-9]+(?:\.[0-9]+)?)\s*Hz",
+        text,
+    )
+
+    if beta_match is None:
+        raise ValueError(
+            "Could not find the beta stimulation frequency "
+            "in the theta/beta report."
+        )
+
+    beta = float(beta_match.group(1))
+
+    return txt_file, theta, beta
+
+
+# ============================================================
+# MODIFY PROTOCOL
+# ============================================================
+
+def replace_protocol_info(file_path, frequency, template_name):
+    """
+    Replace the frequency and TemplateName in a copied
+    protocol template.
+    """
+
+    text = file_path.read_text(encoding="utf-8")
+
+    # --------------------------------------------------------
+    # Replace stimulation frequency
+    # --------------------------------------------------------
+
+    text, frequency_replaced = re.subn(
+        r"<ftacsValue>.*?</ftacsValue>",
+        f"<ftacsValue>{frequency:.2f}</ftacsValue>",
+        text,
+        flags=re.DOTALL,
+    )
+
+    if frequency_replaced == 0:
         raise ValueError(
             "Could not find <ftacsValue></ftacsValue> "
             "in the protocol template."
         )
 
+    # --------------------------------------------------------
+    # Replace TemplateName
+    # --------------------------------------------------------
 
-    file_path.write_text(
+    text, template_replaced = re.subn(
+        r"<TemplateName>.*?</TemplateName>",
+        f"<TemplateName>{template_name}</TemplateName>",
         text,
-        encoding="utf-8"
+        flags=re.DOTALL,
     )
 
+    if template_replaced == 0:
+        raise ValueError(
+            "Could not find <TemplateName></TemplateName> "
+            "in the protocol template."
+        )
+
+    file_path.write_text(text, encoding="utf-8")
+
 
 # ============================================================
-# CREATE ONE PROTOCOL FOR ONE VISIT
+# CREATE PROTOCOLS
 # ============================================================
 
-def create_protocol(
-    subject_id,
-    visit_number,
-    counterbalance
-):
+def create_protocol(subject_id, visit_number, counterbalance):
+    """
+    Generate the four protocol files for the selected
+    participant and visit.
+    """
 
     # --------------------------------------------------------
-    # Get the behavioral/EEG data associated with this visit
+    # Get theta and beta
     # --------------------------------------------------------
 
-    csv_file, theta, beta = extract_frequency_values(
+    txt_file, theta, beta = extract_frequency_values(
         subject_id,
-        visit_number
+        visit_number,
     )
 
-
     # --------------------------------------------------------
-    # Determine the hidden condition
+    # Determine hidden condition
     #
-    # THIS IS NEVER RETURNED TO THE GUI.
+    # This is intentionally never returned to the GUI.
     # --------------------------------------------------------
 
-    visit_conditions = COUNTERBALANCE[counterbalance]
-
-    hidden_condition = visit_conditions[
-        visit_number - 1
-    ]
-
+    hidden_condition = COUNTERBALANCE[counterbalance][visit_number - 1]
 
     # --------------------------------------------------------
-    # Assign the appropriate frequency
+    # Determine stimulation frequency
     # --------------------------------------------------------
 
     frequencies = {
-
         "theta": theta,
         "beta": beta,
-        "sham": 0.0
-
+        "sham": 0.0,
     }
 
-
-    frequency = frequencies[
-        hidden_condition
-    ]
-
+    frequency = frequencies[hidden_condition]
 
     # --------------------------------------------------------
-    # Make output directory
+    # Create output directory
     # --------------------------------------------------------
 
     OUTPUT_FOLDER.mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
 
-
     # --------------------------------------------------------
-    # Output filenames
-    #
-    # All five files use the frequency assigned to this visit.
+    # Output files
     # --------------------------------------------------------
 
     output_files = [
-
-        OUTPUT_FOLDER / (
-            f"{subject_id}_visit{visit_number}_bandit_run1.neprot"
+        (
+            OUTPUT_FOLDER
+            / f"{subject_id}_visit{visit_number}_bandit_run1.neprot"
         ),
-
-        OUTPUT_FOLDER / (
-            f"{subject_id}_visit{visit_number}_bandit_run2.neprot"
+        (
+            OUTPUT_FOLDER
+            / f"{subject_id}_visit{visit_number}_bandit_run2.neprot"
         ),
-
-        OUTPUT_FOLDER / (
-            f"{subject_id}_visit{visit_number}_SST_run1.neprot"
+        (
+            OUTPUT_FOLDER
+            / f"{subject_id}_visit{visit_number}_SST_run1.neprot"
         ),
-
-        OUTPUT_FOLDER / (
-            f"{subject_id}_visit{visit_number}_SST_run2.neprot"
-        )
-
+        (
+            OUTPUT_FOLDER
+            / f"{subject_id}_visit{visit_number}_SST_run2.neprot"
+        ),
     ]
 
+    # --------------------------------------------------------
+    # Protocol names
+    # --------------------------------------------------------
+
+    protocol_names = [
+        "Bandit-Run1",
+        "Bandit-Run2",
+        "SST-Run1",
+        "SST-Run2",
+    ]
 
     # --------------------------------------------------------
-    # Copy template and insert frequency into each file
+    # Generate each protocol
     # --------------------------------------------------------
 
-    for output_file in output_files:
+    for output_file, run_name in zip(
+        output_files,
+        protocol_names,
+    ):
 
         shutil.copy(
             TEMPLATE,
-            output_file
-        )
-
-        replace_frequency(
             output_file,
-            frequency
         )
 
+        template_name = (
+            f"TACS3-{subject_id}-"
+            f"Visit{visit_number}-"
+            f"{run_name}"
+        )
 
-    # The first file is still the visit-specific protocol.
-    # Keep this as the primary output reported by the GUI.
-    output_file = output_files[0]
-
+        replace_protocol_info(
+            output_file,
+            frequency,
+            template_name,
+        )
 
     # --------------------------------------------------------
-    # IMPORTANT:
+    # Return information for the GUI
     #
-    # Return the frequency, but NOT the condition.
-    #
-    # This means the researcher can see the frequency that
-    # was used, but cannot see whether it was theta, beta,
-    # or sham.
+    # hidden_condition is deliberately NOT returned.
     # --------------------------------------------------------
 
     return {
-        "csv": csv_file,
+        "txt": txt_file,
         "theta": theta,
         "beta": beta,
         "frequency": frequency,
-        "output": output_file
+        "outputs": output_files,
     }
 
 
 # ============================================================
-# GUI
+# GUI: GENERATE BUTTON
 # ============================================================
 
 def generate_clicked():
@@ -314,41 +299,29 @@ def generate_clicked():
 
     subject_text = subject_entry.get().strip()
 
-
     if not subject_text.isdigit():
-
         messagebox.showerror(
             "Invalid Subject ID",
-            "Subject ID must contain only integers."
+            "Subject ID must contain only integers.",
         )
-
         return
-
 
     subject_id = int(subject_text)
 
-
     # --------------------------------------------------------
-    # Visit number
+    # Visit
     # --------------------------------------------------------
 
     visit_text = visit_var.get()
 
-
     if visit_text not in ["1", "2", "3"]:
-
         messagebox.showerror(
             "Invalid Visit",
-            "Select visit 1, 2, or 3."
+            "Select visit 1, 2, or 3.",
         )
-
         return
 
-
-    visit_number = int(
-        visit_text
-    )
-
+    visit_number = int(visit_text)
 
     # --------------------------------------------------------
     # Counterbalance
@@ -356,16 +329,12 @@ def generate_clicked():
 
     counterbalance = counter_var.get()
 
-
     if counterbalance not in COUNTERBALANCE:
-
         messagebox.showerror(
             "Missing Counterbalance",
-            "Select counterbalance A-F."
+            "Select counterbalance A-F.",
         )
-
         return
-
 
     # --------------------------------------------------------
     # Generate
@@ -376,109 +345,71 @@ def generate_clicked():
         result = create_protocol(
             subject_id,
             visit_number,
-            counterbalance
+            counterbalance,
         )
 
-
         # ----------------------------------------------------
-        # Clear output area
+        # Clear output
         # ----------------------------------------------------
 
         output_text.delete(
             "1.0",
-            tk.END
+            tk.END,
         )
 
-
         # ----------------------------------------------------
-        # Display researcher-visible information
+        # Display information
         #
-        # DO NOT DISPLAY hidden_condition.
+        # IMPORTANT:
+        # Do not display hidden_condition.
         # ----------------------------------------------------
 
         output_text.insert(
             tk.END,
             f"Subject ID: {subject_id}\n"
-        )
-
-
-        output_text.insert(
-            tk.END,
             f"Visit: {visit_number}\n\n"
         )
 
-
         output_text.insert(
             tk.END,
-            "Data file used:\n"
+            "Theta/Beta report used:\n"
+            f"{result['txt']}\n\n"
         )
-
-
-        output_text.insert(
-            tk.END,
-            f"{result['csv']}\n\n"
-        )
-
 
         output_text.insert(
             tk.END,
             "Extracted frequency estimates:\n"
-        )
-
-
-        output_text.insert(
-            tk.END,
             f"Theta peak: {result['theta']:.2f} Hz\n"
-        )
-
-
-        output_text.insert(
-            tk.END,
             f"Beta peak:  {result['beta']:.2f} Hz\n\n"
         )
 
 
         output_text.insert(
             tk.END,
-            "Frequency used for this visit:\n"
+            "Generated protocols:\n"
         )
 
+        for output_file in result["outputs"]:
+            output_text.insert(
+                tk.END,
+                f"{output_file}\n"
+            )
 
         output_text.insert(
             tk.END,
-            f"{result['frequency']:.2f} Hz\n\n"
+            "\nProtocol generation complete."
         )
-
-
-        output_text.insert(
-            tk.END,
-            "Generated protocol:\n"
-        )
-
-
-        output_text.insert(
-            tk.END,
-            f"{result['output']}\n\n"
-        )
-
-
-        output_text.insert(
-            tk.END,
-            "Protocol generation complete."
-        )
-
 
         messagebox.showinfo(
             "Complete",
-            "Protocol generated successfully."
+            "Protocols generated successfully.",
         )
-
 
     except Exception as e:
 
         messagebox.showerror(
             "Error",
-            str(e)
+            str(e),
         )
 
 
@@ -504,16 +435,15 @@ root.geometry(
 tk.Label(
     root,
     text="Subject ID:",
-    font=("Arial", 11)
+    font=("Arial", 11),
 ).pack(
     pady=(15, 5)
 )
 
-
 subject_entry = tk.Entry(
     root,
     width=20,
-    font=("Arial", 11)
+    font=("Arial", 11),
 )
 
 subject_entry.pack()
@@ -526,25 +456,19 @@ subject_entry.pack()
 tk.Label(
     root,
     text="Visit:",
-    font=("Arial", 11)
+    font=("Arial", 11),
 ).pack(
     pady=(15, 5)
 )
 
-
 visit_var = tk.StringVar()
-
 
 visit_dropdown = ttk.Combobox(
     root,
     textvariable=visit_var,
-    values=[
-        "1",
-        "2",
-        "3"
-    ],
+    values=["1", "2", "3"],
     state="readonly",
-    width=17
+    width=17,
 )
 
 visit_dropdown.pack()
@@ -557,28 +481,19 @@ visit_dropdown.pack()
 tk.Label(
     root,
     text="Counterbalance Group:",
-    font=("Arial", 11)
+    font=("Arial", 11),
 ).pack(
     pady=(15, 5)
 )
 
-
 counter_var = tk.StringVar()
-
 
 counter_dropdown = ttk.Combobox(
     root,
     textvariable=counter_var,
-    values=[
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F"
-    ],
+    values=["A", "B", "C", "D", "E", "F"],
     state="readonly",
-    width=17
+    width=17,
 )
 
 counter_dropdown.pack()
@@ -593,7 +508,7 @@ tk.Button(
     text="Generate Protocol",
     command=generate_clicked,
     width=25,
-    height=2
+    height=2,
 ).pack(
     pady=20
 )
@@ -607,7 +522,7 @@ output_text = tk.Text(
     root,
     height=18,
     width=85,
-    font=("Consolas", 10)
+    font=("Consolas", 10),
 )
 
 output_text.pack(
