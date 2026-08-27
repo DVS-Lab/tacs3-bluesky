@@ -660,31 +660,45 @@ class BanditTask:
             "Please wait for the experimenter",
             "to start the task, then",
             "",
-            "Press SPACE to begin",
+            "Please wait for the experimenter to begin the task",
             "Press ESC to exit",
         ]
+
         self._instructions_stim.text = "\n".join(lines)
         self._instructions_stim.draw()
         self.win.flip()
+
         if self.auto_respond:
             core.wait(0.05)
             return True
 
         listen_lsl = (not self.cli_args.localizer) and self.lsl_trigger is not None
+
         while True:
-            keys = event.getKeys(keyList=["space", "escape"])
-            if "space" in keys:
-                return True
-            if "escape" in keys:
-                return False
+            # Get whatever key was pressed rather than restricting keyList.
+            keys = event.getKeys()
+
+            for key in keys:
+                print(f"Waiting screen key detected: {repr(key)}")
+
+                if key in ("=", "equal"):
+                    print("= detected. Starting task.")
+                    return True
+
+                if key == "escape":
+                    return False
+
             if listen_lsl:
                 try:
                     marker_code, _ = self.lsl_trigger.marker_queue.get_nowait()
+
                     if marker_code == self.lsl_trigger.TASK_START_MARKER:
                         print(f"LSL: marker {marker_code} received. Starting task.")
                         return True
+
                 except queue.Empty:
                     pass
+
             core.wait(0.01)
 
     def _show_start_buffer(self) -> bool:
@@ -852,7 +866,6 @@ class BanditTask:
             if self.gui_run_number == 1:
                 if not self._show_instructions():
                     return
-                return
             event.clearEvents()
             if not self._show_waiting_screen():
                 return
