@@ -33,11 +33,13 @@ import queue
 import random
 import re
 import time
+import subprocess
+import sys
 
 import numpy as np
 
 from eeg_lsl_recorder import LSLEEGRecorder, save_recording_summary
-from task_markers import LSLStimulationTrigger, TaskMarkerLogger
+from task_markers import TaskMarkerLogger
 
 try:
     from psychopy import core, event, gui, visual
@@ -62,6 +64,45 @@ def load_config(config_path: str | Path | None = None) -> dict:
 
 
 class SSTTask:
+
+    def _start_lsl_marker_detector(self) -> None:
+        """Launch lsl_marker_detector.py as a separate process."""
+
+        if self.test_mode:
+            return
+
+        detector_path = (
+            Path(__file__).resolve().parent
+            / "lsl_marker_detector.py"
+        )
+
+        if not detector_path.exists():
+            print(
+                f"WARNING: LSL marker detector not found: "
+                f"{detector_path}"
+            )
+            return
+
+        try:
+            subprocess.Popen(
+                [
+                    sys.executable,
+                    str(detector_path),
+                ],
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            )
+
+            print(
+                "LSL marker detector started: "
+                f"{detector_path}"
+            )
+
+        except Exception as exc:
+            print(
+                "WARNING: Could not start "
+                f"LSL marker detector: {exc}"
+            )
+
     def __init__(
         self,
         config: dict,
@@ -232,35 +273,6 @@ class SSTTask:
 
         self.eeg_recorder: LSLEEGRecorder | None = None
 
-        # --------------------------------------------------------------
-        # LSL trigger
-        # --------------------------------------------------------------
-
-        self.lsl_trigger: LSLStimulationTrigger | None = None
-
-        lsl_config = config.get(
-            "stimulation",
-            {},
-        ).get(
-            "lsl",
-            {},
-        )
-
-        if (
-            not self.test_mode
-            and lsl_config.get(
-                "enabled",
-                True,
-            )
-        ):
-            self.lsl_trigger = LSLStimulationTrigger(
-                stream_name=lsl_config.get(
-                    "outlet_stream_name"
-                )
-            )
-
-            self.lsl_trigger.connect()
-            self.lsl_trigger.start_listening()
 
         # --------------------------------------------------------------
         # PsychoPy window
@@ -311,7 +323,7 @@ class SSTTask:
                     "ses-",
                 )
             else:
-                self.session_id = "001"
+                self.session_id = "1"
 
             # Run
             if self.cli_args.run is None:
@@ -343,7 +355,7 @@ class SSTTask:
                 "Session Number": (
                     self.cli_args.session
                     if self.cli_args.session
-                    else "001"
+                    else "1"
                 ),
 
                 "Run Number": (
@@ -533,7 +545,7 @@ class SSTTask:
         if self.session_id is None:
 
             self.session_id = normalize_id(
-                self.cli_args.session or "001",
+                self.cli_args.session or "1",
                 "ses-",
             )
 
@@ -764,6 +776,8 @@ class SSTTask:
 
             self._setup_session()
 
+            self._start_lsl_marker_detector()
+
             if self.test_mode:
 
                 self._run_test_mode()
@@ -807,9 +821,6 @@ class SSTTask:
 
         self.save_events()
 
-        if self.lsl_trigger:
-
-            self.lsl_trigger.stop_listening()
 
         self._stop_eeg_recording()
 
@@ -949,15 +960,12 @@ class SSTTask:
             Full instructions.
 
         Run 2:
-            Only:
+           No instructions
 
-                Press SPACE to begin.
-
-        SPACE starts the task for both runs.
+        = starts the task for both runs.
 
         ESC or Z cancels the run.
 
-        An external LSL start trigger can also start the task.
         """
 
         msg_stim.draw()
@@ -970,16 +978,11 @@ class SSTTask:
 
             return True
 
-        listen_lsl = (
-            not self.cli_args.localizer
-            and self.lsl_trigger is not None
-        )
 
         while True:
 
             keys = event.getKeys(
                 keyList=[
-                    "space",
                     "equal",
                     "escape",
                     "z",
@@ -990,11 +993,7 @@ class SSTTask:
             # SPACE STARTS THE TASK
             # ----------------------------------------------------------
 
-            if (
-                "space" in keys
-                or "equal" in keys
-            ):
-
+            if "equal" in keys:
                 return True
 
             # ----------------------------------------------------------
@@ -1007,37 +1006,6 @@ class SSTTask:
             ):
 
                 return False
-
-            # ----------------------------------------------------------
-            # LSL START TRIGGER
-            # ----------------------------------------------------------
-
-            if listen_lsl:
-
-                try:
-
-                    marker_code, _ = (
-                        self.lsl_trigger
-                        .marker_queue
-                        .get_nowait()
-                    )
-
-                    if (
-                        marker_code
-                        == self.lsl_trigger.TASK_START_MARKER
-                    ):
-
-                        print(
-                            "LSL: marker "
-                            f"{marker_code} received. "
-                            "Starting task."
-                        )
-
-                        return True
-
-                except queue.Empty:
-
-                    pass
 
             core.wait(0.01)
 
@@ -1141,7 +1109,7 @@ class SSTTask:
             if self.cli_args.run == 2:
 
                 wait_text = (
-                    "Press SPACE to begin."
+                    "Please wait for the task to begin."
                 )
 
             else:
@@ -1149,14 +1117,13 @@ class SSTTask:
                 wait_text = (
                     f"Stop Signal Task — "
                     f"{self.run_label}\n\n"
-                    "Please wait for the experimenter "
                     "to start the task.\n\n"
                     "Press A when the arrow points LEFT.\n"
                     "Press L when the arrow points RIGHT.\n"
                     "Respond as quickly as possible.\n\n"
                     "If the arrow turns RED, try to stop "
                     "yourself from pressing anything.\n\n"
-                    "Press SPACE to begin"
+                    "Please wait for the experimenter to start the task"
                 )
 
             wait_msg = visual.TextStim(
