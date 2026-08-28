@@ -193,21 +193,38 @@ class BanditTask:
     def _get_contingency_duration(self) -> int:
         return self.min_trials_same_contingency + random.randint(0, self.contingency_jitter)
 
+
     def _resolve_subject(self) -> None:
         if self.cli_args.subject:
             self.subject_id = normalize_id(self.cli_args.subject, "sub-")
             return
+
         if self.test_mode:
             self.subject_id = "999"
             return
+
         if PSYCHOPY_AVAILABLE:
-            info = {"Subject Number": ""}
-            dlg = gui.DlgFromDict(info, title="Two-Armed Bandit Task")
+            info = {
+                "Subject Number": "",
+                "Session": "",
+            }
+
+            dlg = gui.DlgFromDict(
+                info,
+                title="Two-Armed Bandit Task"
+            )
+
             if not dlg.OK:
                 raise SystemExit(0)
+
             self.subject_id = normalize_id(info["Subject Number"], "sub-")
+            self.session_id = normalize_id(info["Session"], "ses-")
+
         else:
             self.subject_id = input("Subject ID: ")
+            self.session_id = input("Session: ")
+
+
 
     def _next_run_number(self) -> int:
         pattern = re.compile(
@@ -220,8 +237,16 @@ class BanditTask:
                 existing.append(int(match.group(1)))
         return max(existing, default=0) + 1
 
+
     def _setup_session(self) -> None:
-        self.session_id = normalize_id(self.cli_args.session or "001", "ses-")
+        # If the session was not entered through the GUI,
+        # use the command-line value.
+        if self.session_id is None:
+            self.session_id = normalize_id(
+                self.cli_args.session or "001",
+                "ses-"
+            )
+
         self.date_label = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Save all participant data to a single directory
@@ -230,8 +255,11 @@ class BanditTask:
         )
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
-        # Always use a single run label
-        self.run_label = "run-01"
+        # Use subject-session format for the filename.
+        # Example: sub-1234-2
+        self.run_label = f"{self.subject_id}-{self.session_id}"
+
+
 
 
     def _select_flowers_for_run(self) -> bool:
@@ -363,7 +391,7 @@ class BanditTask:
             row["run_end_task_time"] = self.run_end_task_time
             row["run_end_lsl_time"] = self.run_end_lsl_time
         df = pd.DataFrame(self.trial_data)
-        filename = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit_{self.date_label}.csv"
+        filename = f"sub-{self.run_label}_task-bandit_{self.date_label}.csv"
         filepath = self.data_dir / filename
         df.to_csv(filepath, index=False)
         self._saved = True
