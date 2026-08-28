@@ -8,7 +8,7 @@
    <stepConfigurationType>ADVANCED</stepConfigurationType>
    <stepBasicStimChannel>-1</stepBasicStimChannel>
    <stepType>0</stepType>
-   <stimulationTime>180</stimulationTime>
+   <stimulationTime>480</stimulationTime>
    <rampUp>60</rampUp>
    <rampDown>60</rampDown>
    <rampSham>0</rampSham>
