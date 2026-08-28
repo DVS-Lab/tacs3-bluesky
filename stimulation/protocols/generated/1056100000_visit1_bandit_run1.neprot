@@ -1,17 +1,17 @@
 <ProtocolTemplates>
  <Template>
-  <TemplateName>TACS3-no-electrode-test-1_750-Beta-Sham</TemplateName>
+  <TemplateName>TACS3-1056100000-Visit1-Bandit-Run1</TemplateName>
   <NumOfChannels>8</NumOfChannels>
   <EOGTrainingTime>0</EOGTrainingTime>
   <Step>
-   <stepName>750 Beta Sham</stepName>
+   <stepName>1800 Theta</stepName>
    <stepConfigurationType>ADVANCED</stepConfigurationType>
    <stepBasicStimChannel>-1</stepBasicStimChannel>
-   <stepType>2</stepType>
+   <stepType>0</stepType>
    <stimulationTime>180</stimulationTime>
    <rampUp>60</rampUp>
    <rampDown>60</rampDown>
-   <rampSham>30</rampSham>
+   <rampSham>0</rampSham>
    <stimulationSham>Single</stimulationSham>
    <tRNSLowFreq>0</tRNSLowFreq>
    <tRNSHighFreq>0</tRNSHighFreq>
@@ -20,41 +20,41 @@
    <Channel>
     <index>1</index>
     <location>F3</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <atacsValue>750</atacsValue>
+    <ftacsValue>15.50</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>2</index>
     <location>Fp1</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <atacsValue>250</atacsValue>
+    <ftacsValue>15.50</ftacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>3</index>
     <location>FCz</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <atacsValue>250</atacsValue>
+    <ftacsValue>15.50</ftacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
     <index>4</index>
     <location>FT7</location>
-    <electrodeType>1</electrodeType>
+    <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
-    <ptacsValue>0</ptacsValue>
+    <atacsValue>250</atacsValue>
+    <ftacsValue>15.50</ftacsValue>
+    <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
    <Channel>
@@ -63,7 +63,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>15.50</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -73,7 +73,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>15.50</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -83,7 +83,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>15.50</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>
@@ -93,7 +93,7 @@
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
-    <ftacsValue>0.00</ftacsValue>
+    <ftacsValue>15.50</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
    </Channel>

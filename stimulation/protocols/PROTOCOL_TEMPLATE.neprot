@@ -22,7 +22,7 @@
     <location>F3</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>1800</atacsValue>
+    <atacsValue>750</atacsValue>
     <ftacsValue>6.00</ftacsValue>
     <ptacsValue>0</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -32,7 +32,7 @@
     <location>Fp1</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>1800</atacsValue>
+    <atacsValue>250</atacsValue>
     <ftacsValue>6.00</ftacsValue>
     <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -42,7 +42,7 @@
     <location>FCz</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>1800</atacsValue>
+    <atacsValue>250</atacsValue>
     <ftacsValue>6.00</ftacsValue>
     <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
@@ -52,7 +52,7 @@
     <location>FT7</location>
     <electrodeType>2</electrodeType>
     <atdcsValue>0</atdcsValue>
-    <atacsValue>1800</atacsValue>
+    <atacsValue>250</atacsValue>
     <ftacsValue>6.00</ftacsValue>
     <ptacsValue>180</ptacsValue>
     <atrnsValue>0</atrnsValue>
