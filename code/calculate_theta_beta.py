@@ -230,6 +230,9 @@ def find_input_files(subject_id, session):
 
     Behavioral:
         sub-1234-2_task-bandit_*.csv
+
+    If the expected EEG file cannot be found, the user is offered
+    the most recently modified .easy file as a fallback.
     """
 
     eeg_pattern = f"*_{subject_id}-{session}*.easy"
@@ -238,20 +241,25 @@ def find_input_files(subject_id, session):
         f"sub-{subject_id}-{session}_task-bandit_*.csv"
     )
 
+    # -------------------------------------------------------------
+    # Find expected EEG files
+    # -------------------------------------------------------------
+
     eeg_matches = sorted(
         STIM_DATA_DIR.glob(eeg_pattern)
     )
+
+    # -------------------------------------------------------------
+    # Find behavioral files
+    # -------------------------------------------------------------
 
     behavior_matches = sorted(
         BEHAVIOR_DATA_DIR.glob(behavior_pattern)
     )
 
-    if not eeg_matches:
-        raise FileNotFoundError(
-            "No EEG .easy file was found.\n\n"
-            f"Directory:\n{STIM_DATA_DIR}\n\n"
-            f"Pattern:\n{eeg_pattern}"
-        )
+    # -------------------------------------------------------------
+    # Behavioral file is still required
+    # -------------------------------------------------------------
 
     if not behavior_matches:
         raise FileNotFoundError(
@@ -260,18 +268,99 @@ def find_input_files(subject_id, session):
             f"Pattern:\n{behavior_pattern}"
         )
 
-    # If multiple files exist, use the most recently modified one.
-    eeg_file = max(
-        eeg_matches,
-        key=lambda p: p.stat().st_mtime,
-    )
-
+    # Use most recently modified behavioral file
     behavior_file = max(
         behavior_matches,
         key=lambda p: p.stat().st_mtime,
     )
 
-    return eeg_file, behavior_file
+    # -------------------------------------------------------------
+    # EEG FOUND
+    # -------------------------------------------------------------
+
+    if eeg_matches:
+
+        # If multiple matching EEG files exist,
+        # use the most recently modified one.
+
+        eeg_file = max(
+            eeg_matches,
+            key=lambda p: p.stat().st_mtime,
+        )
+
+        return eeg_file, behavior_file
+
+    # -------------------------------------------------------------
+    # EEG NOT FOUND
+    # -------------------------------------------------------------
+
+    # Find ALL .easy files in the stimulation-data directory.
+
+    all_easy_files = list(
+        STIM_DATA_DIR.glob("*.easy")
+    )
+
+    # If there aren't any .easy files at all,
+    # give the normal error.
+
+    if not all_easy_files:
+
+        raise FileNotFoundError(
+            "No EEG .easy file could be found.\n\n"
+            f"Directory:\n{STIM_DATA_DIR}\n\n"
+            f"Expected pattern:\n{eeg_pattern}\n\n"
+            "There are also no .easy files in the "
+            "stimulation-data directory."
+        )
+
+    # -------------------------------------------------------------
+    # Find most recently modified .easy file
+    # -------------------------------------------------------------
+
+    most_recent_easy = max(
+        all_easy_files,
+        key=lambda p: p.stat().st_mtime,
+    )
+
+    # -------------------------------------------------------------
+    # Ask user whether to use fallback file
+    # -------------------------------------------------------------
+
+    root = tk.Tk()
+    root.withdraw()
+
+    message = (
+        f"Couldn't locate:\n\n"
+        f"{eeg_pattern}\n\n"
+        f"The most recent .easy file is:\n\n"
+        f"{most_recent_easy.name}\n\n"
+        f"Would you like to use this file to calculate "
+        f"{subject_id}'s session {session} theta and beta?"
+    )
+
+    use_fallback = messagebox.askyesno(
+        "EEG File Not Found",
+        message,
+    )
+
+    root.destroy()
+
+    # -------------------------------------------------------------
+    # User said NO
+    # -------------------------------------------------------------
+
+    if not use_fallback:
+
+        raise FileNotFoundError(
+            "No matching EEG file was found and "
+            "the fallback file was declined."
+        )
+
+    # -------------------------------------------------------------
+    # User said YES
+    # -------------------------------------------------------------
+
+    return most_recent_easy, behavior_file
 
 
 # =====================================================================
