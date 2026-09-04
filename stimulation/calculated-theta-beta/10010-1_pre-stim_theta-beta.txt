@@ -1,0 +1,74 @@
+THETA / BETA FREQUENCY ESTIMATION
+============================================================
+
+Subject ID: 10010
+Session: 1
+
+INPUT FILES
+------------------------------------------------------------
+EEG file: 20260904112036_10010-1_Bandit_pre-stim.easy
+Behavior file: sub-10010-1_task-bandit_2026-09-04_11-17-33.csv
+
+EEG PREPROCESSING
+------------------------------------------------------------
+Sampling rate: 500.000 Hz
+Bandpass: 0.5-45.0 Hz
+Notch: 60.0 Hz, Q=30.0
+Reference: average scalp reference
+Reference channels: 1-7
+EXT / cheek channel excluded
+Artifact threshold: ±200.0 uV
+
+FRONTAL ROI
+------------------------------------------------------------
+Requested: channels 1, 3, 5
+Expected montage: F3, FCz, F4
+Actually used: 1 (F3), 3 (FCz), 5 (F4)
+
+OUTCOME THETA
+------------------------------------------------------------
+Locking event: feedback_onset_unix_time
+Epoch: -1.5 to +2.0 s
+Baseline: -0.8 to -0.1 s
+Analysis window: +0.1 to +1.0 s
+Frequency search: 4-12 Hz
+Morlet cycles: 5
+Feedback events with timestamps: 120
+Feedback epochs retained: 102
+Feedback epochs rejected for artifact: 5
+Feedback epochs rejected for bounds: 13
+
+THETA PEAK: 10.50 Hz
+Peak dB change: 0.845 dB
+Peak at band edge: NO
+
+Feedback artifact breakdown:
+  FT7: 5 rejected epochs
+
+DECISION BETA ERD
+------------------------------------------------------------
+Locking event: choice_onset_unix_time
+Epoch: -1.5 to +0.5 s
+Baseline: -1.5 to -1.0 s
+Analysis window: -1.0 to -0.1 s
+Frequency search: 13-30 Hz
+Morlet cycles: 5
+Decision events with timestamps: 118
+Decision epochs retained: 101
+Decision timestamps missing: 2
+Decision epochs rejected for artifact: 5
+Decision epochs rejected for bounds: 12
+
+BETA ERD PEAK: 30.00 Hz
+Peak dB change: -1.295 dB
+Peak at band edge: YES
+
+Decision artifact breakdown:
+  FT7: 5 rejected epochs
+
+INDIVIDUALIZED FREQUENCIES
+============================================================
+Theta stimulation frequency: 10.50 Hz
+Beta stimulation frequency: 30.00 Hz
+
+END OF REPORT
