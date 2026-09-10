@@ -122,11 +122,17 @@ class BanditTask:
         self.min_trials_same_contingency = int(task_cfg.get("min_trials_same_contingency", 20))
         self.contingency_jitter = int(task_cfg.get("contingency_jitter", 4))
         self.target_trials = task_cfg.get("target_trials")
-        self.stop_rule = task_cfg.get("stop_rule", "duration_or_trials")
+        # The behavioral task is duration-controlled. Do not let a trial target
+        # or a config stop rule terminate the run before the 10-minute duration.
+        self.stop_rule = "duration"
 
         self.timing = dict(config.get("timing", {}))
-        duration_minutes = float(
-            cli_args.duration_minutes or config.get("experiment", {}).get("run_duration_minutes", 10)
+        # Run duration: 10 minutes by default. An explicit CLI value can override it.
+        # This prevents config.json from accidentally shortening the behavioral run.
+        duration_minutes = (
+            float(cli_args.duration_minutes)
+            if cli_args.duration_minutes is not None
+            else 10.0
         )
         self.max_duration_seconds = duration_minutes * 60.0
 
@@ -161,6 +167,7 @@ class BanditTask:
         self.slot2_side: str | None = None
 
         self.run_start_time: float | None = None
+        self.run_start_monotonic: float | None = None
         self.run_start_task_time: float | None = None
         self.run_start_lsl_time: float | None = None
         self.run_end_task_time: float | None = None
@@ -202,6 +209,7 @@ class BanditTask:
             while True:
                 info = {
                     "Subject Number": "",
+                    "Session Number": "",
                     "Run Number": "",
                 }
 
@@ -210,21 +218,38 @@ class BanditTask:
                 if not dlg.OK:
                     raise SystemExit(0)
 
+                session_number = info["Session Number"].strip()
                 run_number = info["Run Number"].strip()
 
-                if run_number.isdigit() and int(run_number) > 0:
+                if (
+                    session_number.isdigit()
+                    and int(session_number) > 0
+                    and run_number.isdigit()
+                    and int(run_number) > 0
+                ):
                     self.subject_id = normalize_id(info["Subject Number"], "sub-")
+                    self.session_id = normalize_id(session_number, "ses-")
                     self.gui_run_number = int(run_number)
                     break
 
                 error_dlg = gui.Dlg(
-                    title="Invalid Run Number",
+                    title="Invalid Session/Run Number",
                     labelButtonOK="OK",
                 )
-                error_dlg.addText("Run Number must be a positive integer.")
+                error_dlg.addText(
+                    "Session Number and Run Number must both be positive integers."
+                )
                 error_dlg.show()
         else:
             self.subject_id = input("Subject ID: ")
+
+            while True:
+                session_number = input("Session Number: ").strip()
+                if session_number.isdigit() and int(session_number) > 0:
+                    self.session_id = normalize_id(session_number, "ses-")
+                    break
+                print("Session Number must be a positive integer.")
+
             while True:
                 run_number = input("Run Number: ").strip()
                 if run_number.isdigit() and int(run_number) > 0:
@@ -244,7 +269,14 @@ class BanditTask:
         return max(existing, default=0) + 1
 
     def _setup_session(self) -> None:
-        self.session_id = normalize_id(self.cli_args.session or "001", "ses-")
+        # PsychoPy collects the session number in the startup dialog.
+        # Command-line/test runs continue to use --session.
+        if self.session_id is None:
+            self.session_id = normalize_id(
+                self.cli_args.session or "001",
+                "ses-",
+            )
+
         self.date_label = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Save all participant data to a single directory
@@ -277,16 +309,13 @@ class BanditTask:
         return (half_sep, 0.0), (-half_sep, 0.0), "right", "left"
 
     def _should_stop_run(self) -> bool:
-        elapsed = time.time() - self.run_start_time
-        duration_reached = elapsed >= self.max_duration_seconds
-        trial_target_reached = self.target_trials is not None and self.current_trial >= self.target_trials
-        if self.stop_rule == "duration":
-            return duration_reached
-        if self.stop_rule == "trials":
-            return trial_target_reached
-        if self.stop_rule == "duration_and_trials":
-            return duration_reached and trial_target_reached
-        return duration_reached or trial_target_reached
+        if self.run_start_monotonic is None:
+            return False
+
+        # Monotonic time cannot jump if the computer's wall clock changes.
+        elapsed = time.monotonic() - self.run_start_monotonic
+        return elapsed >= self.max_duration_seconds
+
 
     def _feedback_marker(self, reward: bool | None) -> tuple[int, str]:
         if reward is None:
@@ -386,7 +415,12 @@ class BanditTask:
             row["run_end_task_time"] = self.run_end_task_time
             row["run_end_lsl_time"] = self.run_end_lsl_time
         df = pd.DataFrame(self.trial_data)
-        filename = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit_{self.date_label}.csv"
+        # Session number is part of the filename, so ses-001 and ses-002
+        # are saved as separate output files.
+        filename = (
+            f"sub-{self.subject_id}_ses-{self.session_id}_"
+            f"{self.run_label}_task-bandit_{self.date_label}.csv"
+        )
         filepath = self.data_dir / filename
         df.to_csv(filepath, index=False)
         self._saved = True
@@ -407,6 +441,7 @@ class BanditTask:
         if not self._select_flowers_for_run():
             return
         self.run_start_time = time.time()
+        self.run_start_monotonic = time.monotonic()
         self.run_start_task_time = 0.0
         self.run_start_lsl_time = self.event_logger.send(100, "run_start", {"run_label": self.run_label})
 
@@ -439,6 +474,7 @@ class BanditTask:
             else:
                 correct = reward = rt_ms = None
                 choice_onset_task_time = choice_onset_lsl_time = choice_marker_send_lsl_time = None
+                choice_onset_unix_time = None
 
             wait_time = random.uniform(self.timing["wait_duration_min"], self.timing["wait_duration_max"])
             feedback_marker, outcome = self._feedback_marker(reward)
@@ -718,8 +754,8 @@ class BanditTask:
         clock = core.Clock()
         event.clearEvents()
         while clock.getTime() < max_time:
-            if self.lsl_trigger and self.lsl_trigger.check_for_stimulation_stop():
-                return "stim_stopped", None
+            # Stimulation ending must not end the behavioral task.
+            # The behavioral task has its own independent 10-minute timer.
             keys = event.getKeys(keyList=["1", "0", "escape"], timeStamped=clock)
             if keys:
                 key, rt = keys[0]
@@ -770,7 +806,7 @@ class BanditTask:
             choice_onset_unix_time = time.time() * 1000.0 if choice is not None else None
 
 
-        if choice in ("escape", "stim_stopped"):
+        if choice == "escape":
             self.task_should_stop = True
             return False
 
@@ -873,11 +909,15 @@ class BanditTask:
                 return
 
             self.run_start_time = time.time()
+            self.run_start_monotonic = time.monotonic()
             self.run_start_task_time = 0.0
             self.run_start_lsl_time = self.event_logger.send(100, "run_start", {"run_label": self.run_label})
 
             print(f"\nStarting {self.run_label}")
-            print(f"Duration: {self.max_duration_seconds / 60.0:.1f} minutes, target trials: {self.target_trials}")
+            print(
+    f"Duration: {self.max_duration_seconds / 60.0:.1f} minutes, "
+    f"stop rule: {self.stop_rule}, target trials: {self.target_trials}"
+)
             print("Press ESC to abort\n")
 
             while self._run_trial():
