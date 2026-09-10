@@ -66,9 +66,11 @@ SPECPARAM_FIT_RANGE = (2.0, 40.0)
 SPECPARAM_FEEDBACK_ANALYSIS = (0.1, 1.5)
 SPECPARAM_WELCH_SECONDS = 0.5
 
-# TFR theta settings.
+# Individualized-frequency settings.
 THETA_SEARCH_BAND = (4.0, 8.0)
+ALPHA_SEARCH_BAND = (8.0, 13.0)
 BETA_SEARCH_BAND = (13.0, 30.0)
+DEFAULT_THETA_HZ = 6.0
 
 FEEDBACK_EPOCH = (-1.5, 2.0)
 FEEDBACK_BASELINE = (-0.8, -0.1)
@@ -97,6 +99,7 @@ DECISION_EVENT_COL = "choice_onset_unix_time"
 
 # Original 1-based channel numbers.
 FRONTAL_CHANNELS = (1, 3, 5)  # F3, FCz, F4
+POSTERIOR_ALPHA_CHANNELS = (6, 7)  # P4, P3
 REF_CHANNELS = (1, 2, 3, 4, 5, 6, 7)  # all scalp channels; excludes EXT
 
 CHANNEL_LABELS = {
@@ -573,6 +576,84 @@ def theta_tfr_analysis(feedback_epochs, feedback_times, srate, frontal_idx):
     )
 
 
+# =====================================================================
+# THETA METHOD 3: IAF - 5
+# =====================================================================
+
+
+def iaf_minus_5_analysis(eeg_clean, srate, posterior_idx):
+    """Estimate theta as IAF - 5 Hz using the lab's posterior-alpha method.
+
+    IAF is estimated from continuous cleaned EEG at P3/P4 using a 2-second
+    Welch PSD. The alpha peak is taken from 8-13 Hz using Specparam when
+    available, with the power-spectrum peak as a fallback. IAF - 5 is then
+    constrained to the 4-8 Hz theta range, matching the lab notebook.
+    """
+    if len(eeg_clean) < 2:
+        return np.nan, np.nan, "unavailable"
+
+    nperseg = min(int(round(2 * srate)), len(eeg_clean))
+    noverlap = min(int(round(srate)), max(0, nperseg - 1))
+
+    freqs, psd = signal.welch(
+        eeg_clean[:, posterior_idx],
+        fs=srate,
+        nperseg=nperseg,
+        noverlap=noverlap,
+        axis=0,
+    )
+    posterior_psd = np.mean(psd, axis=1)
+
+    iaf_specparam = specparam_band_peak(
+        freqs,
+        posterior_psd,
+        band=ALPHA_SEARCH_BAND,
+    )
+
+    alpha_mask = (
+        (freqs >= ALPHA_SEARCH_BAND[0])
+        & (freqs <= ALPHA_SEARCH_BAND[1])
+    )
+    alpha_freqs = freqs[alpha_mask]
+    alpha_db = 10 * np.log10(np.maximum(posterior_psd[alpha_mask], 1e-30))
+
+    iaf_power = np.nan
+    if len(alpha_freqs) > 0:
+        iaf_power, _power, _edge = find_peak(
+            alpha_freqs,
+            alpha_db,
+            mode="max",
+            smooth_sigma=SMOOTH_SIGMA,
+        )
+
+    if (
+        np.isfinite(iaf_specparam)
+        and ALPHA_SEARCH_BAND[0] <= iaf_specparam <= ALPHA_SEARCH_BAND[1]
+    ):
+        iaf = iaf_specparam
+        iaf_source = "Specparam"
+    elif (
+        np.isfinite(iaf_power)
+        and ALPHA_SEARCH_BAND[0] <= iaf_power <= ALPHA_SEARCH_BAND[1]
+    ):
+        iaf = iaf_power
+        iaf_source = "power"
+    else:
+        return np.nan, np.nan, "unavailable"
+
+    theta_iaf_minus_5 = np.clip(
+        iaf - 5.0,
+        THETA_SEARCH_BAND[0],
+        THETA_SEARCH_BAND[1],
+    )
+    return float(theta_iaf_minus_5), float(iaf), iaf_source
+
+
+def valid_frequency(value, band):
+    """Return True when a frequency is finite and inside a requested band."""
+    return bool(np.isfinite(value) and band[0] <= value <= band[1])
+
+
 def beta_analysis(decision_epochs, decision_times, srate, frontal_idx):
     """Estimate the decision-related beta ERD peak frequency."""
     tfr = morlet_tfr(
@@ -652,8 +733,10 @@ def run_analysis(subject_id, session):
 
     eeg_uv, unix_ms = load_easy(eeg_file)
 
-    # Fixed montage: 1=F3, 3=FCz, 5=F4. Reference/artifact checks use scalp channels 1-7.
+    # Fixed montage: frontal ROI = F3/FCz/F4; posterior alpha ROI = P4/P3.
+    # Reference/artifact checks use scalp channels 1-7.
     frontal_idx = [ch - 1 for ch in FRONTAL_CHANNELS]
+    posterior_alpha_idx = [ch - 1 for ch in POSTERIOR_ALPHA_CHANNELS]
     ref_idx = [ch - 1 for ch in REF_CHANNELS]
 
     eeg_clean = preprocess(eeg_uv, SRATE, ref_idx=ref_idx)
@@ -706,6 +789,28 @@ def run_analysis(subject_id, session):
             SRATE,
             frontal_idx,
         )
+
+    # Theta method 3: posterior individual alpha frequency minus 5 Hz.
+    theta_iaf_minus_5_hz, iaf_hz, iaf_source = iaf_minus_5_analysis(
+        eeg_clean,
+        SRATE,
+        posterior_alpha_idx,
+    )
+
+    # Final theta selection hierarchy:
+    # Specparam -> TFR -> IAF-5 -> fixed 6 Hz fallback.
+    if valid_frequency(theta_specparam_hz, THETA_SEARCH_BAND):
+        theta_stimulation_hz = theta_specparam_hz
+        theta_selection_source = "Specparam"
+    elif valid_frequency(theta_tfr_hz, THETA_SEARCH_BAND):
+        theta_stimulation_hz = theta_tfr_hz
+        theta_selection_source = "TFR"
+    elif valid_frequency(theta_iaf_minus_5_hz, THETA_SEARCH_BAND):
+        theta_stimulation_hz = theta_iaf_minus_5_hz
+        theta_selection_source = "IAF-5"
+    else:
+        theta_stimulation_hz = DEFAULT_THETA_HZ
+        theta_selection_source = "fixed 6 Hz fallback"
 
     beta_peak_hz = np.nan
     beta_peak_db = np.nan
@@ -792,6 +897,18 @@ def run_analysis(subject_id, session):
     else:
         lines.append("TFR theta: UNAVAILABLE")
 
+    if np.isfinite(theta_iaf_minus_5_hz):
+        lines.append(
+            f"IAF-5 theta: {theta_iaf_minus_5_hz:.2f} Hz "
+            f"(IAF: {iaf_hz:.2f} Hz via {iaf_source})"
+        )
+    else:
+        lines.append("IAF-5 theta: UNAVAILABLE")
+
+    lines.append(
+        f"Selected theta: {theta_stimulation_hz:.2f} Hz via {theta_selection_source}"
+    )
+
     lines.extend(
         [
             "",
@@ -808,6 +925,21 @@ def run_analysis(subject_id, session):
         )
     else:
         lines.append("TFR beta ERD: UNAVAILABLE")
+
+    # Machine-readable lines for the downstream stimulation script.
+    lines.extend(
+        [
+            "",
+            "STIMULATION FREQUENCIES",
+            "=" * 50,
+            f"Theta stimulation frequency: {theta_stimulation_hz:.2f} Hz",
+            (
+                f"Beta stimulation frequency: {beta_peak_hz:.2f} Hz"
+                if np.isfinite(beta_peak_hz)
+                else "Beta stimulation frequency: UNAVAILABLE"
+            ),
+        ]
+    )
 
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -826,6 +958,16 @@ def run_analysis(subject_id, session):
         f"Outcome theta peak (TFR): {theta_tfr_hz:.2f} Hz"
         if np.isfinite(theta_tfr_hz)
         else "Outcome theta peak (TFR): unavailable"
+    )
+    print(
+        f"Theta IAF-5: {theta_iaf_minus_5_hz:.2f} Hz "
+        f"(IAF {iaf_hz:.2f} Hz via {iaf_source})"
+        if np.isfinite(theta_iaf_minus_5_hz)
+        else "Theta IAF-5: unavailable"
+    )
+    print(
+        f"Selected theta stimulation frequency: {theta_stimulation_hz:.2f} Hz "
+        f"({theta_selection_source})"
     )
     print(
         f"Decision beta ERD peak: {beta_peak_hz:.2f} Hz"
