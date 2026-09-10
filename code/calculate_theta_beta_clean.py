@@ -9,8 +9,11 @@ The script:
 3. Automatically finds the matching EEG .easy file.
 4. Automatically finds the matching behavioral .csv file.
 5. Uses Unix timestamps in the two files to align EEG and behavior.
-6. Estimates outcome theta peak frequency and decision beta ERD peak frequency.
-7. Saves a single text report named SUBJECT-SESSION_pre-stim_theta-beta.txt.
+6. Estimates outcome theta frequency using two methods:
+   - Specparam (periodic peak above the aperiodic background)
+   - Morlet TFR power peak
+7. Estimates decision beta ERD peak frequency using Morlet TFR.
+8. Saves a single text report named SUBJECT-SESSION_pre-stim_theta-beta.txt.
 """
 
 import warnings
@@ -22,6 +25,13 @@ import numpy as np
 import pandas as pd
 from scipy import signal
 from scipy.ndimage import gaussian_filter1d
+
+try:
+    from specparam import SpectralModel
+    SPECPARAM_AVAILABLE = True
+except ImportError:
+    SpectralModel = None
+    SPECPARAM_AVAILABLE = False
 
 
 # =====================================================================
@@ -50,7 +60,14 @@ NOTCH_Q = 30.0
 EPOCH_REJECT_UV = 200.0
 NV_TO_UV = 1e-3
 
-THETA_SEARCH_BAND = (4.0, 12.0)
+# Specparam theta settings copied from the lab pipeline.
+SPECPARAM_THETA_BAND = (4.0, 8.0)
+SPECPARAM_FIT_RANGE = (2.0, 40.0)
+SPECPARAM_FEEDBACK_ANALYSIS = (0.1, 1.5)
+SPECPARAM_WELCH_SECONDS = 0.5
+
+# Existing TFR theta settings.
+THETA_SEARCH_BAND = (4.0, 8.0)
 BETA_SEARCH_BAND = (13.0, 30.0)
 
 FEEDBACK_EPOCH = (-1.5, 2.0)
@@ -390,7 +407,96 @@ def get_event_times(events, column):
 
 
 # =====================================================================
-# TIME-FREQUENCY ANALYSIS
+# THETA METHOD 1: SPECPARAM
+# =====================================================================
+
+
+def specparam_band_peak(
+    freqs,
+    psd,
+    band=SPECPARAM_THETA_BAND,
+    freq_range=SPECPARAM_FIT_RANGE,
+):
+    """Return the strongest Specparam periodic peak inside the requested band."""
+    if not SPECPARAM_AVAILABLE:
+        return np.nan
+
+    model = SpectralModel(
+        peak_width_limits=[1.0, 8.0],
+        max_n_peaks=6,
+        min_peak_height=0.05,
+        aperiodic_mode="fixed",
+    )
+    model.fit(freqs, psd, freq_range=list(freq_range))
+
+    peaks = model.results.params.periodic.params
+    best_cf = np.nan
+    best_power = -np.inf
+
+    if peaks.size > 0 and peaks.ndim == 2:
+        for center_frequency, peak_power, _bandwidth in peaks:
+            if (
+                band[0] <= center_frequency <= band[1]
+                and peak_power > best_power
+            ):
+                best_cf = center_frequency
+                best_power = peak_power
+
+    return float(best_cf) if np.isfinite(best_cf) else np.nan
+
+
+def theta_specparam_analysis(
+    feedback_epochs,
+    feedback_times,
+    srate,
+    frontal_idx,
+):
+    """Estimate theta from a Specparam fit to the feedback-window PSD.
+
+    This is the minimum calculation used in the lab notebook:
+    1. Keep the feedback analysis window.
+    2. Average F3/FCz/F4 within each epoch.
+    3. Compute a Welch PSD for each epoch and average the PSDs.
+    4. Fit Specparam from 2-40 Hz.
+    5. Return the strongest modeled periodic peak from 4-8 Hz.
+    """
+    if not SPECPARAM_AVAILABLE:
+        return np.nan
+
+    win_mask = (
+        (feedback_times >= SPECPARAM_FEEDBACK_ANALYSIS[0])
+        & (feedback_times <= SPECPARAM_FEEDBACK_ANALYSIS[1])
+    )
+    frontal_window = feedback_epochs[:, win_mask][:, :, frontal_idx]
+
+    if frontal_window.shape[1] == 0:
+        return np.nan
+
+    # Average the frontal ROI first, matching the lab code.
+    frontal_mean = np.mean(frontal_window, axis=2)
+
+    nperseg = min(
+        int(round(srate * SPECPARAM_WELCH_SECONDS)),
+        frontal_mean.shape[1],
+    )
+    if nperseg < 2:
+        return np.nan
+
+    freqs, trial_psds = signal.welch(
+        frontal_mean,
+        fs=srate,
+        nperseg=nperseg,
+        noverlap=nperseg // 2,
+        window="hann",
+        axis=1,
+    )
+    avg_psd = np.mean(trial_psds, axis=0)
+
+    return specparam_band_peak(freqs, avg_psd)
+
+
+# =====================================================================
+# THETA METHOD 2: TFR
 # =====================================================================
 
 
@@ -458,8 +564,8 @@ def find_peak(freqs, spectrum, mode="max", smooth_sigma=SMOOTH_SIGMA):
     return float(freqs[idx]), float(smoothed[idx]), bool(edge)
 
 
-def theta_analysis(feedback_epochs, feedback_times, srate, frontal_idx):
-    """Estimate the outcome-related theta peak frequency."""
+def theta_tfr_analysis(feedback_epochs, feedback_times, srate, frontal_idx):
+    """Estimate outcome-related theta as the maximum TFR power peak."""
     tfr = morlet_tfr(
         feedback_epochs,
         srate,
@@ -660,11 +766,22 @@ def run_analysis(subject_id, session):
         reject_ch_idx=reject_idx,
     )
 
-    theta_peak_hz = np.nan
-    theta_peak_db = np.nan
-    theta_edge = False
+    # Theta method 1: Specparam.
+    theta_specparam_hz = np.nan
     if len(ep_fb) > 0:
-        theta_peak_hz, theta_peak_db, theta_edge = theta_analysis(
+        theta_specparam_hz = theta_specparam_analysis(
+            ep_fb,
+            t_fb,
+            srate,
+            usable_frontal,
+        )
+
+    # Theta method 2: existing Morlet TFR peak.
+    theta_tfr_hz = np.nan
+    theta_tfr_db = np.nan
+    theta_tfr_edge = False
+    if len(ep_fb) > 0:
+        theta_tfr_hz, theta_tfr_db, theta_tfr_edge = theta_tfr_analysis(
             ep_fb,
             t_fb,
             srate,
@@ -727,23 +844,46 @@ def run_analysis(subject_id, session):
         "-" * 60,
         f"Locking event: {FEEDBACK_EVENT_COL}",
         f"Epoch: {format_window(FEEDBACK_EPOCH)}",
-        f"Baseline: {format_window(FEEDBACK_BASELINE)}",
-        f"Analysis window: {format_window(FEEDBACK_ANALYSIS)}",
-        f"Frequency search: {format_band(THETA_SEARCH_BAND)}",
-        f"Morlet cycles: {N_CYCLES}",
         f"Feedback events with timestamps: {np.isfinite(feedback_ms).sum()}",
         f"Feedback epochs retained: {len(ep_fb)}",
         f"Feedback epochs rejected for artifact: {rej_fb['artifact']}",
         f"Feedback epochs rejected for bounds: {rej_fb['out_of_bounds']}",
         "",
+        "THETA METHOD 1: SPECPARAM",
+        "-" * 60,
+        f"Analysis window: {format_window(SPECPARAM_FEEDBACK_ANALYSIS)}",
+        f"Welch window: {SPECPARAM_WELCH_SECONDS:g} s Hann, 50% overlap",
+        f"Specparam fit range: {format_band(SPECPARAM_FIT_RANGE)}",
+        f"Theta peak search: {format_band(SPECPARAM_THETA_BAND)}",
+        "Specparam settings: fixed aperiodic; peak width 1-8 Hz; "
+        "max 6 peaks; min peak height 0.05",
     ]
+
+    if not SPECPARAM_AVAILABLE:
+        lines.append("SPECPARAM THETA PEAK: unavailable (specparam not installed)")
+    elif np.isfinite(theta_specparam_hz):
+        lines.append(f"SPECPARAM THETA PEAK: {theta_specparam_hz:.2f} Hz")
+    else:
+        lines.append("SPECPARAM THETA PEAK: no modeled theta peak")
+
+    lines.extend(
+        [
+            "",
+            "THETA METHOD 2: TFR",
+            "-" * 60,
+            f"Baseline: {format_window(FEEDBACK_BASELINE)}",
+            f"Analysis window: {format_window(FEEDBACK_ANALYSIS)}",
+            f"Frequency search: {format_band(THETA_SEARCH_BAND)}",
+            f"Morlet cycles: {N_CYCLES}",
+        ]
+    )
 
     append_peak_result(
         lines,
-        "THETA PEAK",
-        theta_peak_hz,
-        theta_peak_db,
-        theta_edge,
+        "TFR THETA PEAK",
+        theta_tfr_hz,
+        theta_tfr_db,
+        theta_tfr_edge,
     )
     lines.append("")
     append_artifact_breakdown(
@@ -788,9 +928,14 @@ def run_analysis(subject_id, session):
 
     lines.extend(["", "INDIVIDUALIZED FREQUENCIES", "=" * 60])
     lines.append(
-        f"Theta stimulation frequency: {theta_peak_hz:.2f} Hz"
-        if np.isfinite(theta_peak_hz)
-        else "Theta stimulation frequency: UNAVAILABLE"
+        f"Theta (Specparam): {theta_specparam_hz:.2f} Hz"
+        if np.isfinite(theta_specparam_hz)
+        else "Theta (Specparam): UNAVAILABLE"
+    )
+    lines.append(
+        f"Theta (TFR): {theta_tfr_hz:.2f} Hz"
+        if np.isfinite(theta_tfr_hz)
+        else "Theta (TFR): UNAVAILABLE"
     )
     lines.append(
         f"Beta stimulation frequency: {beta_peak_hz:.2f} Hz"
@@ -808,9 +953,14 @@ def run_analysis(subject_id, session):
     print(f"Subject: {subject_id}")
     print(f"Session: {session}")
     print(
-        f"Outcome theta peak: {theta_peak_hz:.2f} Hz"
-        if np.isfinite(theta_peak_hz)
-        else "Outcome theta peak: unavailable"
+        f"Outcome theta peak (Specparam): {theta_specparam_hz:.2f} Hz"
+        if np.isfinite(theta_specparam_hz)
+        else "Outcome theta peak (Specparam): unavailable"
+    )
+    print(
+        f"Outcome theta peak (TFR): {theta_tfr_hz:.2f} Hz"
+        if np.isfinite(theta_tfr_hz)
+        else "Outcome theta peak (TFR): unavailable"
     )
     print(
         f"Decision beta ERD peak: {beta_peak_hz:.2f} Hz"
