@@ -126,7 +126,7 @@ class BanditTask:
 
         self.timing = dict(config.get("timing", {}))
         duration_minutes = float(
-            cli_args.duration_minutes or config.get("experiment", {}).get("run_duration_minutes", 6)
+            cli_args.duration_minutes or config.get("experiment", {}).get("run_duration_minutes", 10)
         )
         self.max_duration_seconds = duration_minutes * 60.0
 

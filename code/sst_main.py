@@ -198,7 +198,7 @@ class SSTTask:
                 {},
             ).get(
                 "run_duration_minutes",
-                6,
+                10,
             )
         )
 
