@@ -186,20 +186,15 @@ class SSTTask:
             200,
         )
 
-        self.stop_rule = sst_cfg.get(
-            "stop_rule",
-            "duration_or_trials",
-        )
+        # The SST run is controlled by elapsed time, not trial count.
+        # This prevents target_trials/stop_rule settings from ending
+        # the task before the requested duration.
+        self.stop_rule = "duration"
 
         duration_minutes = float(
             cli_args.duration_minutes
-            or config.get(
-                "experiment",
-                {},
-            ).get(
-                "run_duration_minutes",
-                10,
-            )
+            if cli_args.duration_minutes is not None
+            else 10.0
         )
 
         self.max_duration_seconds = (
@@ -635,42 +630,17 @@ class SSTTask:
         )
 
     def _should_stop_run(self) -> bool:
+        """Stop only when the requested run duration has elapsed."""
+
+        if self.run_start_time is None:
+            return False
 
         elapsed = (
-            time.time()
+            time.monotonic()
             - self.run_start_time
         )
 
-        duration_reached = (
-            elapsed
-            >= self.max_duration_seconds
-        )
-
-        trial_target_reached = (
-            self.target_trials is not None
-            and self.current_trial
-            >= self.target_trials
-        )
-
-        if self.stop_rule == "duration":
-
-            return duration_reached
-
-        if self.stop_rule == "trials":
-
-            return trial_target_reached
-
-        if self.stop_rule == "duration_and_trials":
-
-            return (
-                duration_reached
-                and trial_target_reached
-            )
-
-        return (
-            duration_reached
-            or trial_target_reached
-        )
+        return elapsed >= self.max_duration_seconds
 
     # ==================================================================
     # EEG RECORDING
@@ -804,7 +774,7 @@ class SSTTask:
         ):
 
             self.run_end_task_time = (
-                time.time()
+                time.monotonic()
                 - self.run_start_time
             )
 
@@ -850,7 +820,7 @@ class SSTTask:
         )
 
         self.run_start_time = (
-            time.time()
+            time.monotonic()
         )
 
         self.run_start_task_time = 0.0
@@ -926,7 +896,7 @@ class SSTTask:
             self.current_trial += 1
 
         self.run_end_task_time = (
-            time.time()
+            time.monotonic()
             - self.run_start_time
         )
 
@@ -1155,7 +1125,7 @@ class SSTTask:
             # ==========================================================
 
             self.run_start_time = (
-                time.time()
+                time.monotonic()
             )
 
             self.run_start_task_time = 0.0
@@ -1484,8 +1454,8 @@ class SSTTask:
 
             print(
                 f"\nRun complete. "
-                f"Total trials: "
-                f"{self.current_trial}"
+                f"Duration: {self.run_end_task_time:.2f} s. "
+                f"Total trials: {self.current_trial}"
             )
 
             # ==========================================================
