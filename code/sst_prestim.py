@@ -1062,6 +1062,18 @@ class SSTTask:
                     )
                 )
 
+            stim_onset_unix_time = time.time() * 1000.0
+            response_onset_unix_time = (
+                stim_onset_unix_time + rt * 1000.0
+                if responded
+                else None
+            )
+            stop_onset_unix_time = (
+                stim_onset_unix_time + self.ssd * 1000.0
+                if is_stop
+                else None
+            )
+
             self._record_trial(
                 trial_num,
                 direction,
@@ -1069,6 +1081,9 @@ class SSTTask:
                 responded,
                 rt if responded else None,
                 self.ssd,
+                stim_onset_unix_time=stim_onset_unix_time,
+                stop_onset_unix_time=stop_onset_unix_time,
+                response_onset_unix_time=response_onset_unix_time,
                 response_key=response_key,
             )
 
@@ -1457,6 +1472,10 @@ class SSTTask:
 
                 win.flip()
 
+                # Capture Unix timestamp at the actual GO stimulus onset,
+                # matching the Bandit pre-stim timing convention.
+                stim_onset_unix_time = time.time() * 1000.0
+
                 stim_onset = (
                     global_clock.getTime()
                 )
@@ -1473,6 +1492,7 @@ class SSTTask:
                         {
                             "trial_num": trial_num,
                             "stimulus": direction,
+                            "stim_onset_unix_time": stim_onset_unix_time,
                         },
                     )
                 )
@@ -1484,8 +1504,10 @@ class SSTTask:
                 response_key = ""
 
                 response_time = None
+                response_onset_unix_time = None
 
                 stop_presented = False
+                stop_onset_unix_time = None
 
                 stop_lsl_time = None
 
@@ -1539,6 +1561,10 @@ class SSTTask:
                             response_time = (
                                 simulated_rt
                             )
+                            response_onset_unix_time = (
+                                stim_onset_unix_time
+                                + simulated_rt * 1000.0
+                            )
 
                     # --------------------------------------------------
                     # REAL RESPONSE
@@ -1572,6 +1598,9 @@ class SSTTask:
                                 response_time = (
                                     float(timestamp)
                                 )
+                                response_onset_unix_time = (
+                                    time.time() * 1000.0
+                                )
 
                                 break
 
@@ -1603,6 +1632,12 @@ class SSTTask:
 
                         win.flip()
 
+                        # Capture Unix timestamp at the actual STOP stimulus
+                        # onset, in milliseconds since the Unix epoch.
+                        stop_onset_unix_time = (
+                            time.time() * 1000.0
+                        )
+
                         stop_lsl_time = (
                             self.event_logger.send(
                                 int(
@@ -1615,6 +1650,7 @@ class SSTTask:
                                 {
                                     "trial_num": trial_num,
                                     "ssd": self.ssd,
+                                    "stop_onset_unix_time": stop_onset_unix_time,
                                 },
                             )
                         )
@@ -1646,8 +1682,11 @@ class SSTTask:
                     self.ssd,
                     stim_onset_task_time=stim_onset,
                     stim_onset_lsl_time=stim_lsl,
+                    stim_onset_unix_time=stim_onset_unix_time,
                     stop_presented=stop_presented,
                     stop_onset_lsl_time=stop_lsl_time,
+                    stop_onset_unix_time=stop_onset_unix_time,
+                    response_onset_unix_time=response_onset_unix_time,
                     response_key=response_key,
                 )
 
@@ -1782,8 +1821,11 @@ class SSTTask:
         *,
         stim_onset_task_time: float | None = None,
         stim_onset_lsl_time: float | None = None,
+        stim_onset_unix_time: float | None = None,
         stop_presented: bool | None = None,
         stop_onset_lsl_time: float | None = None,
+        stop_onset_unix_time: float | None = None,
+        response_onset_unix_time: float | None = None,
         response_key: str = "",
     ) -> None:
 
@@ -1826,6 +1868,12 @@ class SSTTask:
             else stim_onset_task_time
         )
 
+        if stim_onset_unix_time is None and self.run_start_time is not None:
+            stim_onset_unix_time = (
+                self.run_start_time
+                + stim_onset_task_time
+            ) * 1000.0
+
         # --------------------------------------------------------------
         # GO MARKER
         # --------------------------------------------------------------
@@ -1858,6 +1906,16 @@ class SSTTask:
             else None
         )
 
+        if (
+            stop_onset_unix_time is None
+            and stop_presented
+            and stim_onset_unix_time is not None
+        ):
+            stop_onset_unix_time = (
+                stim_onset_unix_time
+                + ssd * 1000.0
+            )
+
         if stop_presented:
 
             if stop_onset_lsl_time is None:
@@ -1889,6 +1947,17 @@ class SSTTask:
             else None
         )
 
+        if (
+            response_onset_unix_time is None
+            and responded
+            and rt is not None
+            and stim_onset_unix_time is not None
+        ):
+            response_onset_unix_time = (
+                stim_onset_unix_time
+                + rt * 1000.0
+            )
+
         response_onset_lsl_time = None
 
         if (
@@ -1908,6 +1977,7 @@ class SSTTask:
                     {
                         "trial_num": trial_num,
                         "rt": rt,
+                        "response_onset_unix_time": response_onset_unix_time,
                     },
                 )
             )
@@ -2076,6 +2146,10 @@ class SSTTask:
                     stim_onset_lsl_time
                 ),
 
+                "stim_onset_unix_time": (
+                    stim_onset_unix_time
+                ),
+
                 "stop_onset": (
                     stop_onset_task_time
                     if stop_onset_task_time
@@ -2090,6 +2164,13 @@ class SSTTask:
                     else ""
                 ),
 
+                "stop_onset_unix_time": (
+                    stop_onset_unix_time
+                    if stop_onset_unix_time
+                    is not None
+                    else ""
+                ),
+
                 "response_onset": (
                     response_onset_task_time
                     if response_onset_task_time
@@ -2100,6 +2181,13 @@ class SSTTask:
                 "response_onset_lsl_time": (
                     response_onset_lsl_time
                     if response_onset_lsl_time
+                    is not None
+                    else ""
+                ),
+
+                "response_onset_unix_time": (
+                    response_onset_unix_time
+                    if response_onset_unix_time
                     is not None
                     else ""
                 ),
