@@ -145,6 +145,7 @@ class BanditTask:
         self.subject_id: str | None = None
         self.session_id: str | None = None
         self.run_label: str | None = None
+        self.visit_phase: str | None = None
         self.date_label: str | None = None
         self.data_dir: Path | None = None
 
@@ -194,24 +195,39 @@ class BanditTask:
         return self.min_trials_same_contingency + random.randint(0, self.contingency_jitter)
 
 
+    @staticmethod
+    def _visit_phase_label(value: str) -> str:
+        normalized = str(value).strip().lower()
+        if normalized == "beginning of visit":
+            return "pre-stim"
+        if normalized == "end of visit":
+            return "post-stim"
+        raise ValueError(
+            'Run must be either "Beginning of visit" or "End of visit".'
+        )
+
     def _resolve_subject(self) -> None:
         if self.cli_args.subject:
             self.subject_id = normalize_id(self.cli_args.subject, "sub-")
+            self.visit_phase = self._visit_phase_label(self.cli_args.run)
             return
 
         if self.test_mode:
             self.subject_id = "999"
+            self.visit_phase = self._visit_phase_label(self.cli_args.run)
             return
 
         if PSYCHOPY_AVAILABLE:
             info = {
                 "Subject Number": "",
                 "Session": "",
+                "Run": ["Beginning of visit", "End of visit"],
             }
 
             dlg = gui.DlgFromDict(
                 info,
-                title="Two-Armed Bandit Task"
+                title="Two-Armed Bandit Task",
+                sortKeys=False,
             )
 
             if not dlg.OK:
@@ -219,10 +235,13 @@ class BanditTask:
 
             self.subject_id = normalize_id(info["Subject Number"], "sub-")
             self.session_id = normalize_id(info["Session"], "ses-")
+            self.visit_phase = self._visit_phase_label(info["Run"])
 
         else:
-            self.subject_id = input("Subject ID: ")
-            self.session_id = input("Session: ")
+            self.subject_id = normalize_id(input("Subject ID: "), "sub-")
+            self.session_id = normalize_id(input("Session: "), "ses-")
+            run_value = input('Run ["Beginning of visit" or "End of visit"]: ')
+            self.visit_phase = self._visit_phase_label(run_value)
 
 
 
@@ -391,7 +410,10 @@ class BanditTask:
             row["run_end_task_time"] = self.run_end_task_time
             row["run_end_lsl_time"] = self.run_end_lsl_time
         df = pd.DataFrame(self.trial_data)
-        filename = f"sub-{self.run_label}_task-bandit_{self.date_label}.csv"
+        filename = (
+            f"sub-{self.subject_id}-{self.session_id}_task-bandit_"
+            f"{self.visit_phase}_{self.date_label}.csv"
+        )
         filepath = self.data_dir / filename
         df.to_csv(filepath, index=False)
         self._saved = True
@@ -917,7 +939,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--config", default=str(Path(__file__).resolve().parent / "config.json"))
     parser.add_argument("--subject", help="Subject ID, with or without the sub- prefix.")
     parser.add_argument("--session", default="001", help="Session ID, with or without the ses- prefix.")
-    parser.add_argument("--run", type=int, help="Explicit run number. Auto-incremented from existing files if omitted.")
+    parser.add_argument(
+        "--run",
+        choices=["Beginning of visit", "End of visit"],
+        default="Beginning of visit",
+        help='Visit timing label used for output naming: "Beginning of visit" -> pre-stim, "End of visit" -> post-stim.',
+    )
     parser.add_argument(
         "--localizer",
         action="store_true",
