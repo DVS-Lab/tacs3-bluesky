@@ -76,6 +76,8 @@ def extract_frequency_values(subject_id, visit_number):
 
     text = txt_file.read_text(encoding="utf-8")
 
+    
+
     # --------------------------------------------------------
     # Extract theta
     # --------------------------------------------------------
