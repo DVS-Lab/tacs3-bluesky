@@ -13,14 +13,14 @@ Task mechanics:
     - Duration/trial-count stop rules
 
 Operator startup:
-    - Subject Number: typed manually
-    - Run Number: typed manually
+    - Subject ID: typed manually
     - Session Number: typed manually
+    - Run: Beginning of visit or End of visit
 
 Run behavior:
-    - Run 1 displays the full task instructions.
-    - Run 2 displays only "Press SPACE to begin."
-    - Both runs start when SPACE is pressed.
+    - Beginning- and end-of-visit runs use identical task behavior and instructions.
+    - The Run selection only changes the participant-response filename
+      (pre-stim vs post-stim).
     - The task itself does not reveal stimulation condition/mode.
 
 Output:
@@ -39,7 +39,7 @@ Output:
 
     Output filename:
 
-        sub-{subject}_ses-{session}_{run}_task-SST_{date-time}.csv
+        sub-{subject}-{session}_task-SST_{pre-stim|post-stim}_{date-time}.csv
 
 The stimulation frequency/condition is selected outside this script
 and applied by the operator directly in NIC-2.
@@ -646,13 +646,9 @@ class SSTTask:
 
         else:
 
-            if self.cli_args.run is None:
-
-                self.cli_args.run = 1
-
-            self.run_label = (
-                f"run-{int(self.cli_args.run):02d}"
-            )
+            # Keep the existing internal run label for compatibility.
+            # Beginning/end of visit only changes the participant-response filename.
+            self.run_label = "run-01"
 
         # --------------------------------------------------------------
         # PARTICIPANT RESPONSE FILE
@@ -1294,53 +1290,27 @@ class SSTTask:
             )
 
             # ==========================================================
-            # DETERMINE INSTRUCTION SCREEN
+            # INSTRUCTION SCREEN
             # ==========================================================
 
-            current_run_number = (
-                int(self.cli_args.run)
-                if self.cli_args.run is not None
-                else 1
+            wait_msg = visual.TextStim(
+                win,
+                text=(
+                    f"Stop Signal Task — "
+                    f"{self.run_label}\n\n"
+                    "Please wait for the experimenter "
+                    "to start the task.\n\n"
+                    "Press 1 when the arrow points LEFT.\n"
+                    "Press 0 when the arrow points RIGHT.\n"
+                    "Respond as quickly as possible.\n\n"
+                    "If the arrow turns RED, try to stop "
+                    "yourself from pressing anything.\n\n"
+                    "Press SPACE to begin"
+                ),
+                color="white",
+                height=36,
+                wrapWidth=900,
             )
-
-            # ----------------------------------------------------------
-            # RUN 2
-            # ----------------------------------------------------------
-
-            if current_run_number == 2:
-
-                wait_msg = visual.TextStim(
-                    win,
-                    text="Press SPACE to begin.",
-                    color="white",
-                    height=36,
-                    wrapWidth=900,
-                )
-
-            # ----------------------------------------------------------
-            # RUN 1 / OTHER RUNS
-            # ----------------------------------------------------------
-
-            else:
-
-                wait_msg = visual.TextStim(
-                    win,
-                    text=(
-                        f"Stop Signal Task — "
-                        f"{self.run_label}\n\n"
-                        "Please wait for the experimenter "
-                        "to start the task.\n\n"
-                        "Press 1 when the arrow points LEFT.\n"
-                        "Press 0 when the arrow points RIGHT.\n"
-                        "Respond as quickly as possible.\n\n"
-                        "If the arrow turns RED, try to stop "
-                        "yourself from pressing anything.\n\n"
-                        "Press SPACE to begin"
-                    ),
-                    color="white",
-                    height=36,
-                    wrapWidth=900,
-                )
 
             # ==========================================================
             # WAIT FOR START
@@ -2426,19 +2396,6 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help=(
             "Session ID, with or without "
             "the ses- prefix."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # RUN
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--run",
-        type=int,
-        help=(
-            "Run number. If omitted, "
-            "PsychoPy will ask for it."
         ),
     )
 
