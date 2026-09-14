@@ -243,23 +243,27 @@ class BanditTask:
 
     def _next_run_number(self) -> int:
         pattern = re.compile(
-            rf"^sub-{re.escape(self.subject_id)}_ses-{re.escape(self.session_id)}_run-(\d+)_task-bandit_"
+            rf"^sub-{re.escape(self.subject_id)}_ses-{re.escape(self.session_id)}_run-(\d+)_task-bandit_.*_events\.tsv$"
         )
         existing = []
-        for path in self.data_dir.glob(f"sub-{self.subject_id}_ses-{self.session_id}_run-*_task-bandit_*.csv"):
+        for path in self.data_dir.glob(f"sub-{self.subject_id}_ses-{self.session_id}_run-*_task-bandit_*_events.tsv"):
             match = pattern.match(path.name)
             if match:
                 existing.append(int(match.group(1)))
         return max(existing, default=0) + 1
 
     def _setup_session(self) -> None:
-        self.session_id = normalize_id(self.cli_args.session or "001", "ses-")
+        self.session_id = normalize_id(self.cli_args.session or "1", "ses-")
         self.date_label = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        # Save all participant data to a single directory
-        self.data_dir = Path(
-            r"C:\Users\Public\LAB PROJECTS\Smith-Lab\tacs3-bluesky\stimulation\pre-stimulation-participant-responses"
+        # Save behavioral data inside the repository, grouped by participant.
+        # Example: .../tacs3-bluesky/behavioral-data/sub-10010/
+        script_path = Path(__file__).resolve()
+        repo_root = next(
+            (parent for parent in (script_path.parent, *script_path.parents) if parent.name == "tacs3-bluesky"),
+            script_path.parent,
         )
+        self.data_dir = repo_root / "behavioral-data" / f"sub-{self.subject_id}"
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
         # Always use a single run label
@@ -399,9 +403,12 @@ class BanditTask:
             row["run_end_lsl_time"] = self.run_end_lsl_time
             row["run_end_unix_time"] = self.run_end_unix_time
         df = pd.DataFrame(self.trial_data)
-        filename = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit_{self.date_label}.csv"
+        filename = (
+            f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}"
+            f"_task-bandit_{self.date_label}_events.tsv"
+        )
         filepath = self.data_dir / filename
-        df.to_csv(filepath, index=False)
+        df.to_csv(filepath, sep="\t", index=False)
         self._saved = True
         print(f"\nData saved to: {filepath}")
 
@@ -988,7 +995,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the two-armed bandit reversal-learning task.")
     parser.add_argument("--config", default=str(Path(__file__).resolve().parent / "config.json"))
     parser.add_argument("--subject", help="Subject ID, with or without the sub- prefix.")
-    parser.add_argument("--session", default="001", help="Session ID, with or without the ses- prefix.")
+    parser.add_argument("--session", default="1", help="Session ID, with or without the ses- prefix.")
     parser.add_argument("--run", type=int, help="Explicit run number. Auto-incremented from existing files if omitted.")
     parser.add_argument(
         "--localizer",
