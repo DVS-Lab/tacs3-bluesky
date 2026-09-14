@@ -167,6 +167,8 @@ class BanditTask:
         self.slot2_side: str | None = None
 
         self.run_start_time: float | None = None
+        self.run_start_unix_time: float | None = None
+        self.run_end_unix_time: float | None = None
         self.run_start_monotonic: float | None = None
         self.run_start_task_time: float | None = None
         self.run_start_lsl_time: float | None = None
@@ -209,7 +211,6 @@ class BanditTask:
             while True:
                 info = {
                     "Subject Number": "",
-                    "Session Number": "",
                     "Run Number": "",
                 }
 
@@ -218,38 +219,21 @@ class BanditTask:
                 if not dlg.OK:
                     raise SystemExit(0)
 
-                session_number = info["Session Number"].strip()
                 run_number = info["Run Number"].strip()
 
-                if (
-                    session_number.isdigit()
-                    and int(session_number) > 0
-                    and run_number.isdigit()
-                    and int(run_number) > 0
-                ):
+                if run_number.isdigit() and int(run_number) > 0:
                     self.subject_id = normalize_id(info["Subject Number"], "sub-")
-                    self.session_id = normalize_id(session_number, "ses-")
                     self.gui_run_number = int(run_number)
                     break
 
                 error_dlg = gui.Dlg(
-                    title="Invalid Session/Run Number",
+                    title="Invalid Run Number",
                     labelButtonOK="OK",
                 )
-                error_dlg.addText(
-                    "Session Number and Run Number must both be positive integers."
-                )
+                error_dlg.addText("Run Number must be a positive integer.")
                 error_dlg.show()
         else:
             self.subject_id = input("Subject ID: ")
-
-            while True:
-                session_number = input("Session Number: ").strip()
-                if session_number.isdigit() and int(session_number) > 0:
-                    self.session_id = normalize_id(session_number, "ses-")
-                    break
-                print("Session Number must be a positive integer.")
-
             while True:
                 run_number = input("Run Number: ").strip()
                 if run_number.isdigit() and int(run_number) > 0:
@@ -269,14 +253,7 @@ class BanditTask:
         return max(existing, default=0) + 1
 
     def _setup_session(self) -> None:
-        # PsychoPy collects the session number in the startup dialog.
-        # Command-line/test runs continue to use --session.
-        if self.session_id is None:
-            self.session_id = normalize_id(
-                self.cli_args.session or "001",
-                "ses-",
-            )
-
+        self.session_id = normalize_id(self.cli_args.session or "001", "ses-")
         self.date_label = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Save all participant data to a single directory
@@ -353,8 +330,10 @@ class BanditTask:
         feedback_marker,
         trial_start_task_time,
         trial_start_lsl_time,
+        trial_start_unix_time,
         choice_window_onset_task_time,
         choice_window_onset_lsl_time,
+        choice_window_onset_unix_time,
         choice_onset_task_time,
         choice_onset_lsl_time,
         choice_onset_unix_time,
@@ -390,8 +369,10 @@ class BanditTask:
             "feedback_marker": feedback_marker,
             "trial_start_task_time": trial_start_task_time,
             "trial_start_lsl_time": trial_start_lsl_time,
+            "trial_start_unix_time": trial_start_unix_time,
             "choice_window_onset_task_time": choice_window_onset_task_time,
             "choice_window_onset_lsl_time": choice_window_onset_lsl_time,
+            "choice_window_onset_unix_time": choice_window_onset_unix_time,
             "choice_onset_task_time": choice_onset_task_time,
             "choice_onset_lsl_time": choice_onset_lsl_time,
             "choice_onset_unix_time": choice_onset_unix_time,
@@ -404,8 +385,10 @@ class BanditTask:
             "iti": self.timing["iti_duration"] * 1000.0,
             "run_start_task_time": 0.0,
             "run_start_lsl_time": self.run_start_lsl_time,
+            "run_start_unix_time": self.run_start_unix_time,
             "run_end_task_time": None,
             "run_end_lsl_time": None,
+            "run_end_unix_time": self.run_end_unix_time,
         }
 
     def save_data(self) -> None:
@@ -414,13 +397,9 @@ class BanditTask:
         for row in self.trial_data:
             row["run_end_task_time"] = self.run_end_task_time
             row["run_end_lsl_time"] = self.run_end_lsl_time
+            row["run_end_unix_time"] = self.run_end_unix_time
         df = pd.DataFrame(self.trial_data)
-        # Session number is part of the filename, so ses-001 and ses-002
-        # are saved as separate output files.
-        filename = (
-            f"sub-{self.subject_id}_ses-{self.session_id}_"
-            f"{self.run_label}_task-bandit_{self.date_label}.csv"
-        )
+        filename = f"sub-{self.subject_id}_ses-{self.session_id}_{self.run_label}_task-bandit_{self.date_label}.csv"
         filepath = self.data_dir / filename
         df.to_csv(filepath, index=False)
         self._saved = True
@@ -429,7 +408,11 @@ class BanditTask:
     def cleanup(self) -> None:
         if self.run_start_time is not None and self.run_end_lsl_time is None:
             self.run_end_task_time = time.time() - self.run_start_time
-            self.run_end_lsl_time = self.event_logger.send(200, "run_end", {"run_label": self.run_label})
+            self.run_end_unix_time = time.time() * 1000.0
+            self.run_end_lsl_time = self.event_logger.send(200, "run_end", {
+                "run_label": self.run_label,
+                "run_end_unix_time": self.run_end_unix_time,
+            })
         self.save_data()
         if self.lsl_trigger:
             self.lsl_trigger.stop_listening()
@@ -441,9 +424,13 @@ class BanditTask:
         if not self._select_flowers_for_run():
             return
         self.run_start_time = time.time()
+        self.run_start_unix_time = self.run_start_time * 1000.0
         self.run_start_monotonic = time.monotonic()
         self.run_start_task_time = 0.0
-        self.run_start_lsl_time = self.event_logger.send(100, "run_start", {"run_label": self.run_label})
+        self.run_start_lsl_time = self.event_logger.send(
+            100, "run_start",
+            {"run_label": self.run_label, "run_start_unix_time": self.run_start_unix_time},
+        )
 
         while not self._should_stop_run():
             trial_num = self.current_trial + 1
@@ -451,10 +438,15 @@ class BanditTask:
             self.slot1_side, self.slot2_side = slot1_side, slot2_side
 
             trial_start_task_time = time.time() - self.run_start_time
+            trial_start_unix_time = time.time() * 1000.0
             trial_start_lsl_time = lsl_clock()
-            self.event_logger.send(10, "trial_start", {"trial_num": trial_num})
+            self.event_logger.send(
+                10, "trial_start",
+                {"trial_num": trial_num, "trial_start_unix_time": trial_start_unix_time},
+            )
 
             choice_window_onset_task_time = time.time() - self.run_start_time
+            choice_window_onset_unix_time = time.time() * 1000.0
             choice_window_onset_lsl_time = lsl_clock()
             responded = random.random() < 0.9
             choice = random.choice([1, 2]) if responded else None
@@ -467,9 +459,10 @@ class BanditTask:
                 reward = random.random() < reward_prob
                 rt_ms = rt * 1000.0
                 choice_onset_task_time = choice_window_onset_task_time + rt
+                choice_onset_unix_time = choice_window_onset_unix_time + (rt * 1000.0)
                 choice_onset_lsl_time = choice_window_onset_lsl_time + rt
                 choice_marker_send_lsl_time = self.event_logger.send(
-                    20, "choice", {"trial_num": trial_num, "choice": choice}
+                    20, "choice", {"trial_num": trial_num, "choice": choice, "choice_onset_unix_time": choice_onset_unix_time}
                 )
             else:
                 correct = reward = rt_ms = None
@@ -478,8 +471,12 @@ class BanditTask:
 
             wait_time = random.uniform(self.timing["wait_duration_min"], self.timing["wait_duration_max"])
             feedback_marker, outcome = self._feedback_marker(reward)
-            feedback_lsl_time = self.event_logger.send(feedback_marker, f"feedback_{outcome}", {"trial_num": trial_num})
-            feedback_task_time = time.time() - self.run_start_time
+            feedback_onset_unix_time = time.time() * 1000.0
+            feedback_lsl_time = self.event_logger.send(
+                feedback_marker, f"feedback_{outcome}",
+                {"trial_num": trial_num, "feedback_onset_unix_time": feedback_onset_unix_time}
+            )
+            feedback_task_time = (feedback_onset_unix_time / 1000.0) - self.run_start_time
 
             row = self._build_trial_row(
                 trial_num=trial_num,
@@ -493,8 +490,10 @@ class BanditTask:
                 feedback_marker=feedback_marker,
                 trial_start_task_time=trial_start_task_time,
                 trial_start_lsl_time=trial_start_lsl_time,
+                trial_start_unix_time=trial_start_unix_time,
                 choice_window_onset_task_time=choice_window_onset_task_time,
                 choice_window_onset_lsl_time=choice_window_onset_lsl_time,
+                choice_window_onset_unix_time=choice_window_onset_unix_time,
                 choice_onset_task_time=choice_onset_task_time,
                 choice_onset_lsl_time=choice_onset_lsl_time,
                 choice_onset_unix_time=choice_onset_unix_time,
@@ -509,7 +508,11 @@ class BanditTask:
             self.current_trial += 1
 
         self.run_end_task_time = time.time() - self.run_start_time
-        self.run_end_lsl_time = self.event_logger.send(200, "run_end", {"run_label": self.run_label})
+        self.run_end_unix_time = time.time() * 1000.0
+        self.run_end_lsl_time = self.event_logger.send(200, "run_end", {
+            "run_label": self.run_label,
+            "run_end_unix_time": self.run_end_unix_time,
+        })
         print(f"Test-mode run complete: {self.current_trial} simulated trials.")
 
     # -- PsychoPy rendering --------------------------------------------------
@@ -777,8 +780,12 @@ class BanditTask:
         self.slot1_side, self.slot2_side = slot1_side, slot2_side
 
         trial_start_task_time = time.time() - self.run_start_time
+        trial_start_unix_time = time.time() * 1000.0
         trial_start_lsl_time = lsl_clock()
-        self.event_logger.send(10, "trial_start", {"trial_num": trial_num})
+        self.event_logger.send(
+            10, "trial_start",
+            {"trial_num": trial_num, "trial_start_unix_time": trial_start_unix_time},
+        )
 
         self.fixation.draw()
         self.win.flip()
@@ -794,16 +801,20 @@ class BanditTask:
         self.win.flip()
 
         choice_window_onset_task_time = time.time() - self.run_start_time
+        choice_window_onset_unix_time = time.time() * 1000.0
         choice_window_onset_lsl_time = lsl_clock()
 
         if self.auto_respond:
             rt = min(self.timing["max_response_time"] - 0.05, 0.5)
             core.wait(rt)
             choice = random.choice([1, 2])
-            choice_onset_unix_time = time.time() * 1000.0
+            choice_onset_unix_time = choice_window_onset_unix_time + (rt * 1000.0)
         else:
             choice, rt = self._get_response(self.timing["max_response_time"])
-            choice_onset_unix_time = time.time() * 1000.0 if choice is not None else None
+            choice_onset_unix_time = (
+                choice_window_onset_unix_time + (rt * 1000.0)
+                if choice is not None else None
+            )
 
 
         if choice == "escape":
@@ -827,11 +838,12 @@ class BanditTask:
             choice_onset_task_time = choice_window_onset_task_time + rt
             choice_onset_lsl_time = choice_window_onset_lsl_time + rt
             choice_marker_send_lsl_time = self.event_logger.send(
-                20, "choice", {"trial_num": trial_num, "choice": choice, "choice_onset_lsl_time": choice_onset_lsl_time}
+                20, "choice", {"trial_num": trial_num, "choice": choice, "choice_onset_lsl_time": choice_onset_lsl_time, "choice_onset_unix_time": choice_onset_unix_time}
             )
         else:
             correct = reward = rt_ms = None
             choice_onset_task_time = choice_onset_lsl_time = choice_marker_send_lsl_time = None
+            choice_onset_unix_time = None
 
         self.win.flip()
         wait_time = random.uniform(self.timing["wait_duration_min"], self.timing["wait_duration_max"])
@@ -839,8 +851,12 @@ class BanditTask:
 
         feedback_marker, outcome = self._feedback_marker(reward)
 
-        # Capture Unix timestamp at feedback onset
+        # Draw feedback, then capture the Unix timestamp immediately after the
+        # screen flip so it represents feedback onset on the behavioral computer.
+        self._feedback_stims[outcome].draw()
+        self.win.flip()
         feedback_onset_unix_time = time.time() * 1000.0
+        feedback_task_time = (feedback_onset_unix_time / 1000.0) - self.run_start_time
 
         feedback_lsl_time = self.event_logger.send(
             feedback_marker,
@@ -851,11 +867,6 @@ class BanditTask:
             }
         )
 
-        feedback_task_time = feedback_onset_unix_time - self.run_start_time
-
-
-        self._feedback_stims[outcome].draw()
-        self.win.flip()
         core.wait(self.timing["outcome_duration"])
 
         self.win.flip()
@@ -873,8 +884,10 @@ class BanditTask:
             feedback_marker=feedback_marker,
             trial_start_task_time=trial_start_task_time,
             trial_start_lsl_time=trial_start_lsl_time,
+            trial_start_unix_time=trial_start_unix_time,
             choice_window_onset_task_time=choice_window_onset_task_time,
             choice_window_onset_lsl_time=choice_window_onset_lsl_time,
+            choice_window_onset_unix_time=choice_window_onset_unix_time,
             choice_onset_task_time=choice_onset_task_time,
             choice_onset_lsl_time=choice_onset_lsl_time,
             choice_onset_unix_time=choice_onset_unix_time,
@@ -909,9 +922,13 @@ class BanditTask:
                 return
 
             self.run_start_time = time.time()
+            self.run_start_unix_time = self.run_start_time * 1000.0
             self.run_start_monotonic = time.monotonic()
             self.run_start_task_time = 0.0
-            self.run_start_lsl_time = self.event_logger.send(100, "run_start", {"run_label": self.run_label})
+            self.run_start_lsl_time = self.event_logger.send(
+            100, "run_start",
+            {"run_label": self.run_label, "run_start_unix_time": self.run_start_unix_time},
+        )
 
             print(f"\nStarting {self.run_label}")
             print(
@@ -926,7 +943,11 @@ class BanditTask:
                     print(f"  Trial {self.current_trial}, Time: {elapsed:.1f}s")
 
             self.run_end_task_time = time.time() - self.run_start_time
-            self.run_end_lsl_time = self.event_logger.send(200, "run_end", {"run_label": self.run_label})
+            self.run_end_unix_time = time.time() * 1000.0
+            self.run_end_lsl_time = self.event_logger.send(200, "run_end", {
+                "run_label": self.run_label,
+                "run_end_unix_time": self.run_end_unix_time,
+            })
             print(f"\nRun complete. Total trials: {self.current_trial}")
             if self.cli_args.localizer:
                 print(

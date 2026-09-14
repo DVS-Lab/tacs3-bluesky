@@ -233,10 +233,17 @@ class SSTTask:
         # Timing
         # --------------------------------------------------------------
 
+        # Monotonic time is used ONLY for duration control because it is
+        # immune to wall-clock changes.
         self.run_start_time: float | None = None
+
+        # Unix epoch time is kept separately in seconds and milliseconds.
+        # Do not use monotonic time for Unix timestamps.
+        self.run_start_unix_time: float | None = None
         self.run_start_task_time: float | None = None
         self.run_start_lsl_time: float | None = None
 
+        self.run_end_unix_time: float | None = None
         self.run_end_task_time: float | None = None
         self.run_end_lsl_time: float | None = None
 
@@ -268,7 +275,6 @@ class SSTTask:
 
         self.eeg_recorder: LSLEEGRecorder | None = None
 
-
         # --------------------------------------------------------------
         # PsychoPy window
         # --------------------------------------------------------------
@@ -296,13 +302,8 @@ class SSTTask:
         line, those values take precedence over the dialog values.
         """
 
-        # --------------------------------------------------------------
-        # TEST MODE
-        # --------------------------------------------------------------
-
         if self.test_mode:
 
-            # Subject
             if self.cli_args.subject:
                 self.subject_id = normalize_id(
                     self.cli_args.subject,
@@ -311,7 +312,6 @@ class SSTTask:
             else:
                 self.subject_id = "999"
 
-            # Session
             if self.cli_args.session:
                 self.session_id = normalize_id(
                     self.cli_args.session,
@@ -320,7 +320,6 @@ class SSTTask:
             else:
                 self.session_id = "1"
 
-            # Run
             if self.cli_args.run is None:
                 self.cli_args.run = 1
 
@@ -331,14 +330,7 @@ class SSTTask:
 
             return
 
-        # --------------------------------------------------------------
-        # NORMAL PSYCHOPY MODE
-        # --------------------------------------------------------------
-
         if PSYCHOPY_AVAILABLE:
-
-            # If command-line values were supplied, use them as
-            # the starting values in the dialog.
 
             info = {
                 "Subject Number": (
@@ -346,13 +338,11 @@ class SSTTask:
                     if self.cli_args.subject
                     else ""
                 ),
-
                 "Session Number": (
                     self.cli_args.session
                     if self.cli_args.session
                     else "1"
                 ),
-
                 "Run Number": (
                     str(self.cli_args.run)
                     if self.cli_args.run is not None
@@ -368,98 +358,64 @@ class SSTTask:
             if not dlg.OK:
                 raise SystemExit(0)
 
-            # ----------------------------------------------------------
-            # Subject ID
-            # ----------------------------------------------------------
-
             if self.cli_args.subject:
-
                 self.subject_id = normalize_id(
                     self.cli_args.subject,
                     "sub-",
                 )
-
             else:
-
                 self.subject_id = normalize_id(
                     info["Subject Number"],
                     "sub-",
                 )
 
-            # ----------------------------------------------------------
-            # Session Number
-            # ----------------------------------------------------------
-
             if self.cli_args.session:
-
                 self.session_id = normalize_id(
                     self.cli_args.session,
                     "ses-",
                 )
-
             else:
-
                 self.session_id = normalize_id(
                     info["Session Number"],
                     "ses-",
                 )
 
-            # Make sure something was entered for session.
             if not self.session_id:
                 raise ValueError(
                     "Session Number cannot be blank."
                 )
 
-            # ----------------------------------------------------------
-            # Run Number
-            # ----------------------------------------------------------
-
             if self.cli_args.run is None:
-
                 try:
                     self.cli_args.run = int(
                         info["Run Number"]
                     )
-
                 except ValueError:
                     raise ValueError(
                         "Run Number must be 1 or 2."
                     )
 
-        # --------------------------------------------------------------
-        # FALLBACK WITHOUT PSYCHOPY
-        # --------------------------------------------------------------
-
         else:
 
-            # Subject
             if self.cli_args.subject:
-
                 self.subject_id = normalize_id(
                     self.cli_args.subject,
                     "sub-",
                 )
-
             else:
-
                 self.subject_id = input(
                     "Subject ID: "
                 )
 
-            # Session
             if self.cli_args.session:
-
                 self.session_id = normalize_id(
                     self.cli_args.session,
                     "ses-",
                 )
-
             else:
-
                 session_input = input(
                     "Session Number: "
                 )
-
                 self.session_id = normalize_id(
                     session_input,
                     "ses-",
@@ -470,31 +426,20 @@ class SSTTask:
                     "Session Number cannot be blank."
                 )
 
-            # Run
             if self.cli_args.run is None:
-
                 run_input = input(
                     "Run Number (1 or 2): "
                 )
-
                 try:
-
                     self.cli_args.run = int(
                         run_input
                     )
-
                 except ValueError:
-
                     raise ValueError(
                         "Run Number must be 1 or 2."
                     )
 
-        # --------------------------------------------------------------
-        # VALIDATE RUN NUMBER
-        # --------------------------------------------------------------
-
         if self.cli_args.run not in (1, 2):
-
             raise ValueError(
                 "Run Number must be 1 or 2."
             )
@@ -520,7 +465,6 @@ class SSTTask:
             )
 
             if match:
-
                 existing.append(
                     int(match.group(1))
                 )
@@ -532,13 +476,7 @@ class SSTTask:
 
     def _setup_session(self) -> None:
 
-        # If _resolve_subject() already obtained the session number
-        # from the PsychoPy dialog, keep it.
-        #
-        # Otherwise, fall back to the command-line/default value.
-
         if self.session_id is None:
-
             self.session_id = normalize_id(
                 self.cli_args.session or "1",
                 "ses-",
@@ -592,22 +530,14 @@ class SSTTask:
             exist_ok=True
         )
 
-        # --------------------------------------------------------------
-        # RUN LABEL
-        # --------------------------------------------------------------
-
         if self.cli_args.localizer:
-
             self.run_label = (
                 "run-localizer"
             )
-
         else:
-
             run_number = (
                 self.cli_args.run
             )
-
             self.run_label = (
                 f"run-{int(run_number):02d}"
             )
@@ -652,7 +582,7 @@ class SSTTask:
 
         eeg_config = self.config.get(
             "eeg_recording",
-            {},
+            {}
         )
 
         if not eeg_config.get(
@@ -673,7 +603,6 @@ class SSTTask:
         )
 
         if not self.eeg_recorder.start():
-
             print(
                 "EEG recording not started: "
                 f"{self.eeg_recorder.status_message}"
@@ -689,7 +618,7 @@ class SSTTask:
 
         eeg_config = self.config.get(
             "eeg_recording",
-            {},
+            {}
         )
 
         basename = (
@@ -736,34 +665,21 @@ class SSTTask:
     def run(self) -> None:
 
         try:
-
-            # IMPORTANT:
-            # This happens before the PsychoPy instruction screen
-            # is created, so the selected subject/session/run values
-            # are available when deciding what to display.
-
             self._resolve_subject()
-
             self._setup_session()
-
             self._start_lsl_marker_detector()
 
             if self.test_mode:
-
                 self._run_test_mode()
-
             else:
-
                 self._run_psychopy()
 
         except KeyboardInterrupt:
-
             print(
                 "\nSession interrupted by user"
             )
 
         finally:
-
             self.cleanup()
 
     def cleanup(self) -> None:
@@ -773,6 +689,7 @@ class SSTTask:
             and self.run_end_lsl_time is None
         ):
 
+            self.run_end_unix_time = time.time()
             self.run_end_task_time = (
                 time.monotonic()
                 - self.run_start_time
@@ -785,13 +702,14 @@ class SSTTask:
                     {
                         "task": "SST",
                         "run": self.run_label,
+                        "run_end_unix_time": (
+                            self.run_end_unix_time * 1000.0
+                        ),
                     },
                 )
             )
 
         self.save_events()
-
-
         self._stop_eeg_recording()
 
         if (
@@ -822,6 +740,9 @@ class SSTTask:
         self.run_start_time = (
             time.monotonic()
         )
+        self.run_start_unix_time = (
+            time.time()
+        )
 
         self.run_start_task_time = 0.0
 
@@ -832,6 +753,9 @@ class SSTTask:
                 {
                     "task": "SST",
                     "run": self.run_label,
+                    "run_start_unix_time": (
+                        self.run_start_unix_time * 1000.0
+                    ),
                 },
             )
         )
@@ -875,17 +799,13 @@ class SSTTask:
             )
 
             if is_stop:
-
                 self.ssd = (
-
                     min(
                         self.max_ssd_sec,
                         self.ssd
                         + self.ssd_step_sec,
                     )
-
                     if not responded
-
                     else max(
                         self.min_ssd_sec,
                         self.ssd
@@ -895,6 +815,7 @@ class SSTTask:
 
             self.current_trial += 1
 
+        self.run_end_unix_time = time.time()
         self.run_end_task_time = (
             time.monotonic()
             - self.run_start_time
@@ -907,6 +828,9 @@ class SSTTask:
                 {
                     "task": "SST",
                     "run": self.run_label,
+                    "run_end_unix_time": (
+                        self.run_end_unix_time * 1000.0
+                    ),
                 },
             )
         )
@@ -924,30 +848,13 @@ class SSTTask:
         self,
         msg_stim,
     ) -> bool:
-        """Show the appropriate pre-run screen.
-
-        Run 1:
-            Full instructions.
-
-        Run 2:
-           No instructions
-
-        = starts the task for both runs.
-
-        ESC or Z cancels the run.
-
-        """
 
         msg_stim.draw()
-
         self.win.flip()
 
         if self.auto_respond:
-
             core.wait(0.05)
-
             return True
-
 
         while True:
 
@@ -959,22 +866,13 @@ class SSTTask:
                 ]
             )
 
-            # ----------------------------------------------------------
-            # SPACE STARTS THE TASK
-            # ----------------------------------------------------------
-
             if "equal" in keys:
                 return True
-
-            # ----------------------------------------------------------
-            # ESCAPE / Z CANCEL
-            # ----------------------------------------------------------
 
             if (
                 "escape" in keys
                 or "z" in keys
             ):
-
                 return False
 
             core.wait(0.01)
@@ -986,7 +884,6 @@ class SSTTask:
     def _run_psychopy(self) -> None:
 
         if not PSYCHOPY_AVAILABLE:
-
             raise RuntimeError(
                 "PsychoPy is not installed. "
                 "Use --test-mode or install "
@@ -1019,12 +916,7 @@ class SSTTask:
 
         try:
 
-            # ==========================================================
-            # IMAGE STIMULI
-            # ==========================================================
-
             image_stimuli = {
-
                 "left": visual.ImageStim(
                     win,
                     image=str(
@@ -1034,7 +926,6 @@ class SSTTask:
                     ),
                     size=(518, 300),
                 ),
-
                 "right": visual.ImageStim(
                     win,
                     image=str(
@@ -1044,7 +935,6 @@ class SSTTask:
                     ),
                     size=(518, 300),
                 ),
-
                 "left_red": visual.ImageStim(
                     win,
                     image=str(
@@ -1054,7 +944,6 @@ class SSTTask:
                     ),
                     size=(518, 300),
                 ),
-
                 "right_red": visual.ImageStim(
                     win,
                     image=str(
@@ -1072,18 +961,11 @@ class SSTTask:
                 height=40,
             )
 
-            # ==========================================================
-            # RUN-SPECIFIC INSTRUCTIONS
-            # ==========================================================
-
             if self.cli_args.run == 2:
-
                 wait_text = (
                     "Please wait for the task to begin."
                 )
-
             else:
-
                 wait_text = (
                     f"Stop Signal Task — "
                     f"{self.run_label}\n\n"
@@ -1104,29 +986,16 @@ class SSTTask:
                 wrapWidth=900,
             )
 
-            # ==========================================================
-            # WAIT FOR START
-            # ==========================================================
-
             if not self._show_waiting_screen(
                 wait_msg
             ):
-
                 return
-
-            # ==========================================================
-            # START EEG RECORDING
-            # ==========================================================
 
             self._start_eeg_recording_if_requested()
 
-            # ==========================================================
-            # START RUN
-            # ==========================================================
-
-            self.run_start_time = (
-                time.monotonic()
-            )
+            # Start both clocks at the same behavioral-task onset.
+            self.run_start_time = time.monotonic()
+            self.run_start_unix_time = time.time()
 
             self.run_start_task_time = 0.0
 
@@ -1137,6 +1006,9 @@ class SSTTask:
                     {
                         "task": "SST",
                         "run": self.run_label,
+                        "run_start_unix_time": (
+                            self.run_start_unix_time * 1000.0
+                        ),
                     },
                 )
             )
@@ -1146,10 +1018,6 @@ class SSTTask:
             )
 
             global_clock = core.Clock()
-
-            # ==========================================================
-            # MAIN TRIAL LOOP
-            # ==========================================================
 
             while (
                 not self._should_stop_run()
@@ -1186,14 +1054,8 @@ class SSTTask:
                     *self.iti_range_sec
                 )
 
-                # ------------------------------------------------------
-                # FIXATION / ISI
-                # ------------------------------------------------------
-
                 fixation.draw()
-
                 win.flip()
-
                 core.wait(isi)
 
                 # ------------------------------------------------------
@@ -1205,6 +1067,11 @@ class SSTTask:
                 ].draw()
 
                 win.flip()
+
+                # Capture Unix time at the actual GO display flip.
+                stim_onset_unix_time = (
+                    time.time()
+                )
 
                 stim_onset = (
                     global_clock.getTime()
@@ -1222,6 +1089,9 @@ class SSTTask:
                         {
                             "trial_num": trial_num,
                             "stimulus": direction,
+                            "stim_onset_unix_time": (
+                                stim_onset_unix_time * 1000.0
+                            ),
                         },
                     )
                 )
@@ -1231,9 +1101,11 @@ class SSTTask:
                 responded = False
                 response_key = ""
                 response_time = None
+                response_onset_unix_time = None
 
                 stop_presented = False
                 stop_lsl_time = None
+                stop_onset_unix_time = None
 
                 simulated_rt = (
                     max(
@@ -1247,18 +1119,10 @@ class SSTTask:
                     else None
                 )
 
-                # ------------------------------------------------------
-                # RESPONSE WINDOW
-                # ------------------------------------------------------
-
                 while (
                     trial_clock.getTime()
                     < self.stimulus_duration_sec
                 ):
-
-                    # --------------------------------------------------
-                    # AUTO RESPONSE
-                    # --------------------------------------------------
 
                     if self.auto_respond:
 
@@ -1286,9 +1150,12 @@ class SSTTask:
                                 simulated_rt
                             )
 
-                    # --------------------------------------------------
-                    # REAL PARTICIPANT RESPONSE
-                    # --------------------------------------------------
+                            # Keep Unix timing aligned with the same
+                            # RT used by the behavioral task.
+                            response_onset_unix_time = (
+                                stim_onset_unix_time
+                                + simulated_rt
+                            )
 
                     else:
 
@@ -1308,33 +1175,26 @@ class SSTTask:
                                 if key == "z":
 
                                     self.task_should_stop = True
-
                                     break
 
                                 responded = True
-
                                 response_key = key
+                                response_time = float(timestamp)
 
-                                response_time = (
-                                    float(timestamp)
+                                # event timestamp is RT from GO onset;
+                                # convert it to an absolute Unix timestamp.
+                                response_onset_unix_time = (
+                                    stim_onset_unix_time
+                                    + response_time
                                 )
 
                                 break
-
-                    # --------------------------------------------------
-                    # STOP IF PARTICIPANT RESPONDED
-                    # --------------------------------------------------
 
                     if (
                         self.task_should_stop
                         or responded
                     ):
-
                         break
-
-                    # --------------------------------------------------
-                    # PRESENT STOP SIGNAL
-                    # --------------------------------------------------
 
                     if (
                         is_stop
@@ -1349,6 +1209,11 @@ class SSTTask:
 
                         win.flip()
 
+                        # Capture Unix time at the actual STOP display flip.
+                        stop_onset_unix_time = (
+                            time.time()
+                        )
+
                         stop_lsl_time = (
                             self.event_logger.send(
                                 int(
@@ -1361,6 +1226,9 @@ class SSTTask:
                                 {
                                     "trial_num": trial_num,
                                     "ssd": self.ssd,
+                                    "stop_onset_unix_time": (
+                                        stop_onset_unix_time * 1000.0
+                                    ),
                                 },
                             )
                         )
@@ -1368,20 +1236,10 @@ class SSTTask:
                         stop_presented = True
 
                     if self.auto_respond:
-
                         core.wait(0.01)
 
-                # ------------------------------------------------------
-                # ABORT TASK IF REQUESTED
-                # ------------------------------------------------------
-
                 if self.task_should_stop:
-
                     break
-
-                # ------------------------------------------------------
-                # RECORD TRIAL
-                # ------------------------------------------------------
 
                 self._record_trial(
                     trial_num,
@@ -1392,27 +1250,32 @@ class SSTTask:
                     self.ssd,
                     stim_onset_task_time=stim_onset,
                     stim_onset_lsl_time=stim_lsl,
+                    stim_onset_unix_time=(
+                        stim_onset_unix_time * 1000.0
+                    ),
                     stop_presented=stop_presented,
                     stop_onset_lsl_time=stop_lsl_time,
+                    stop_onset_unix_time=(
+                        stop_onset_unix_time * 1000.0
+                        if stop_onset_unix_time is not None
+                        else None
+                    ),
                     response_key=response_key,
+                    response_onset_unix_time=(
+                        response_onset_unix_time * 1000.0
+                        if response_onset_unix_time is not None
+                        else None
+                    ),
                 )
 
-                # ------------------------------------------------------
-                # SSD STAIRCASE
-                # ------------------------------------------------------
-
                 if is_stop:
-
                     self.ssd = (
-
                         min(
                             self.max_ssd_sec,
                             self.ssd
                             + self.ssd_step_sec,
                         )
-
                         if not responded
-
                         else max(
                             self.min_ssd_sec,
                             self.ssd
@@ -1422,22 +1285,15 @@ class SSTTask:
 
                 self.current_trial += 1
 
-                # ------------------------------------------------------
-                # ITI
-                # ------------------------------------------------------
-
                 fixation.draw()
-
                 win.flip()
-
                 core.wait(iti)
 
-            # ==========================================================
-            # RUN COMPLETE
-            # ==========================================================
+            # Capture absolute Unix time at run completion.
+            self.run_end_unix_time = time.time()
 
             self.run_end_task_time = (
-                time.time()
+                time.monotonic()
                 - self.run_start_time
             )
 
@@ -1448,6 +1304,9 @@ class SSTTask:
                     {
                         "task": "SST",
                         "run": self.run_label,
+                        "run_end_unix_time": (
+                            self.run_end_unix_time * 1000.0
+                        ),
                     },
                 )
             )
@@ -1458,12 +1317,7 @@ class SSTTask:
                 f"Total trials: {self.current_trial}"
             )
 
-            # ==========================================================
-            # LOCALIZER FOLLOW-UP
-            # ==========================================================
-
             if self.cli_args.localizer:
-
                 print(
                     "Next step: "
                     "python run_rhythm_estimation.py "
@@ -1472,10 +1326,6 @@ class SSTTask:
                     f"--session {self.session_id} "
                     "--auto-find --all-defaults"
                 )
-
-            # ==========================================================
-            # END SCREEN
-            # ==========================================================
 
             end_msg = visual.TextStim(
                 win,
@@ -1488,15 +1338,11 @@ class SSTTask:
             )
 
             end_msg.draw()
-
             win.flip()
 
             if self.auto_respond:
-
                 core.wait(0.05)
-
             else:
-
                 event.waitKeys(
                     keyList=[
                         "space",
@@ -1508,7 +1354,6 @@ class SSTTask:
         finally:
 
             if self.win is not None:
-
                 self.win.close()
 
     # ==================================================================
@@ -1526,9 +1371,12 @@ class SSTTask:
         *,
         stim_onset_task_time: float | None = None,
         stim_onset_lsl_time: float | None = None,
+        stim_onset_unix_time: float | None = None,
         stop_presented: bool | None = None,
         stop_onset_lsl_time: float | None = None,
+        stop_onset_unix_time: float | None = None,
         response_key: str = "",
+        response_onset_unix_time: float | None = None,
     ) -> None:
 
         stop_presented = (
@@ -1546,7 +1394,7 @@ class SSTTask:
         )
 
         now_task = (
-            time.time()
+            time.monotonic()
             - self.run_start_time
         )
 
@@ -1556,8 +1404,19 @@ class SSTTask:
             else stim_onset_task_time
         )
 
-        stim_onset_lsl_time = (
+        # Fallback Unix onset if _record_trial is called without one.
+        if stim_onset_unix_time is None:
+            stim_onset_unix_time = (
+                (
+                    self.run_start_unix_time
+                    + stim_onset_task_time
+                )
+                * 1000.0
+                if self.run_start_unix_time is not None
+                else None
+            )
 
+        stim_onset_lsl_time = (
             self.event_logger.send(
                 int(
                     m.get(
@@ -1569,11 +1428,12 @@ class SSTTask:
                 {
                     "trial_num": trial_num,
                     "stimulus": direction,
+                    "stim_onset_unix_time": (
+                        stim_onset_unix_time
+                    ),
                 },
             )
-
             if stim_onset_lsl_time is None
-
             else stim_onset_lsl_time
         )
 
@@ -1584,6 +1444,16 @@ class SSTTask:
         )
 
         if stop_presented:
+
+            # If the actual display timestamp was not supplied,
+            # estimate it from GO Unix time + SSD.
+            if stop_onset_unix_time is None:
+                stop_onset_unix_time = (
+                    stim_onset_unix_time
+                    + ssd * 1000.0
+                    if stim_onset_unix_time is not None
+                    else None
+                )
 
             stop_onset_lsl_time = (
                 stop_onset_lsl_time
@@ -1598,6 +1468,9 @@ class SSTTask:
                     {
                         "trial_num": trial_num,
                         "ssd": ssd,
+                        "stop_onset_unix_time": (
+                            stop_onset_unix_time
+                        ),
                     },
                 )
             )
@@ -1608,6 +1481,17 @@ class SSTTask:
             and rt is not None
             else None
         )
+
+        if (
+            responded
+            and rt is not None
+            and response_onset_unix_time is None
+            and stim_onset_unix_time is not None
+        ):
+            response_onset_unix_time = (
+                stim_onset_unix_time
+                + rt * 1000.0
+            )
 
         response_onset_lsl_time = None
 
@@ -1625,6 +1509,9 @@ class SSTTask:
                     {
                         "trial_num": trial_num,
                         "rt": rt,
+                        "response_onset_unix_time": (
+                            response_onset_unix_time
+                        ),
                     },
                 )
             )
@@ -1746,6 +1633,8 @@ class SSTTask:
                     )
                 ),
                 "trialNumber": trial_num,
+
+                # Relative task times, in seconds.
                 "stim_onset": (
                     stim_onset_task_time
                 ),
@@ -1776,6 +1665,34 @@ class SSTTask:
                     is not None
                     else ""
                 ),
+
+                # Absolute Unix epoch timestamps, in milliseconds.
+                "run_start_unix_time": (
+                    self.run_start_unix_time * 1000.0
+                    if self.run_start_unix_time is not None
+                    else ""
+                ),
+                "stim_onset_unix_time": (
+                    stim_onset_unix_time
+                    if stim_onset_unix_time is not None
+                    else ""
+                ),
+                "stop_onset_unix_time": (
+                    stop_onset_unix_time
+                    if stop_onset_unix_time is not None
+                    else ""
+                ),
+                "response_onset_unix_time": (
+                    response_onset_unix_time
+                    if response_onset_unix_time is not None
+                    else ""
+                ),
+                "run_end_unix_time": (
+                    self.run_end_unix_time * 1000.0
+                    if self.run_end_unix_time is not None
+                    else ""
+                ),
+
                 "outcome_lsl_time": (
                     outcome_lsl_time
                 ),
@@ -1857,6 +1774,14 @@ class SSTTask:
             row[
                 "run_end_task_time"
             ] = self.run_end_task_time
+
+            row[
+                "run_end_unix_time"
+            ] = (
+                self.run_end_unix_time * 1000.0
+                if self.run_end_unix_time is not None
+                else ""
+            )
 
         base = (
             self.data_dir
