@@ -269,6 +269,8 @@ class SSTTask:
 
         self.run_label: str | None = None
 
+        self.visit_phase: str = "pre-stim"
+
         self.date_label: str | None = None
 
         # --------------------------------------------------------------
@@ -428,68 +430,34 @@ class SSTTask:
         if PSYCHOPY_AVAILABLE:
 
             info = {
-                "Subject Number": (
-                    self.cli_args.subject
-                    if self.cli_args.subject
-                    else ""
-                ),
-
-                "Run Number": (
-                    str(self.cli_args.run)
-                    if self.cli_args.run is not None
-                    else "1"
-                ),
-
-                "Session Number": (
-                    str(self.cli_args.session)
-                    if self.cli_args.session
-                    else "1"
-                ),
+                "Subject ID": "",
+                "Session Number": "",
+                "Run": [
+                    "Beginning of visit",
+                    "End of visit",
+                ],
             }
 
             dlg = gui.DlgFromDict(
                 info,
                 title="Stop Signal Task",
+                sortKeys=False,
             )
 
             if not dlg.OK:
 
                 raise SystemExit(0)
 
-            # ----------------------------------------------------------
-            # SUBJECT NUMBER
-            # ----------------------------------------------------------
-
             self.subject_id = normalize_id(
-                info["Subject Number"],
+                info["Subject ID"],
                 "sub-",
             )
 
             if not self.subject_id:
 
                 raise ValueError(
-                    "Subject Number cannot be empty."
+                    "Subject ID cannot be empty."
                 )
-
-            # ----------------------------------------------------------
-            # RUN NUMBER
-            # ----------------------------------------------------------
-
-            try:
-
-                self.cli_args.run = int(
-                    info["Run Number"]
-                )
-
-            except ValueError:
-
-                raise ValueError(
-                    "Run Number must be an integer."
-                )
-
-            # ----------------------------------------------------------
-            # SESSION NUMBER
-            # ----------------------------------------------------------
 
             self.cli_args.session = str(
                 info["Session Number"]
@@ -500,6 +468,12 @@ class SSTTask:
                 raise ValueError(
                     "Session Number cannot be empty."
                 )
+
+            self.visit_phase = (
+                "pre-stim"
+                if info["Run"] == "Beginning of visit"
+                else "post-stim"
+            )
 
         # --------------------------------------------------------------
         # NON-PSYCHOPY MODE
@@ -692,10 +666,8 @@ class SSTTask:
         self.pre_stimulation_response_path = (
             self.pre_stimulation_responses_dir
             / (
-                f"sub-{self.subject_id}"
-                f"_ses-{self.session_id}"
-                f"_{self.run_label}"
-                f"_task-SST"
+                f"sub-{self.subject_id}-{self.session_id}"
+                f"_task-SST_{self.visit_phase}"
                 f"_{self.date_label}"
                 f".csv"
             )
@@ -2340,10 +2312,8 @@ class SSTTask:
         base = (
             self.pre_stimulation_responses_dir
             / (
-                f"sub-{self.subject_id}"
-                f"_ses-{self.session_id}"
-                f"_{self.run_label}"
-                f"_task-SST"
+                f"sub-{self.subject_id}-{self.session_id}"
+                f"_task-SST_{self.visit_phase}"
                 f"_{self.date_label}"
             )
         )
