@@ -1316,6 +1316,7 @@ def run_analysis(
 
     events = pd.read_csv(
         behavior_file
+
     )
 
     # -------------------------------------------------------------
@@ -1411,6 +1412,41 @@ def run_analysis(
         errors="coerce",
     ).to_numpy(float)
 
+    print()
+    print("=" * 70)
+    print("DEBUG TIMESTAMP RANGES")
+    print("=" * 70)
+
+    print(
+        f"EEG start:    {unix_ms[0]}"
+    )
+
+    print(
+        f"EEG end:      {unix_ms[-1]}"
+    )
+
+    print(
+        f"Feedback min: {np.nanmin(feedback_ms)}"
+    )
+
+    print(
+        f"Feedback max: {np.nanmax(feedback_ms)}"
+    )
+
+    print(
+        f"Decision min: {np.nanmin(decision_ms)}"
+    )
+
+    print(
+        f"Decision max: {np.nanmax(decision_ms)}"
+    )
+
+    print(
+        f"EEG duration: "
+        f"{(unix_ms[-1] - unix_ms[0]) / 1000:.3f} seconds"
+    )
+
+
     # -------------------------------------------------------------
     # Decision epochs
     # -------------------------------------------------------------
@@ -1427,6 +1463,7 @@ def run_analysis(
             reject_ch_idx=reject_idx,
         )
     )
+
 
     # -------------------------------------------------------------
     # Theta

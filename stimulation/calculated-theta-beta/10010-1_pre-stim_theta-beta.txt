@@ -6,14 +6,14 @@ Session: 1
 
 INPUT FILES
 ------------------------------------------------------------
-EEG file: 20260904112036_10010-1_Bandit_pre-stim.easy
+EEG file: 20260904114750_10010-1_SST_pre-stim.easy
 Behavior file: sub-10010-1_task-bandit_2026-09-04_11-17-33.csv
 
 EEG PREPROCESSING
 ------------------------------------------------------------
 Sampling rate: 500.000 Hz
-Bandpass: 0.5-45.0 Hz
-Notch: 60.0 Hz, Q=30.0
+Bandpass: 0.5-45 Hz
+Notch: 60 Hz, Q=30
 Reference: average scalp reference
 Reference channels: 1-7
 EXT / cheek channel excluded
@@ -29,21 +29,30 @@ OUTCOME THETA
 ------------------------------------------------------------
 Locking event: feedback_onset_unix_time
 Epoch: -1.5 to +2.0 s
+Feedback events with timestamps: 120
+Feedback epochs retained: 0
+Feedback epochs rejected for artifact: 0
+Feedback epochs rejected for bounds: 120
+
+THETA METHOD 1: SPECPARAM
+------------------------------------------------------------
+Analysis window: +0.1 to +1.5 s
+Welch window: 0.5 s Hann, 50% overlap
+Specparam fit range: 2-40 Hz
+Theta peak search: 4-8 Hz
+Specparam settings: fixed aperiodic; peak width 1-8 Hz; max 6 peaks; min peak height 0.05
+SPECPARAM THETA PEAK: no modeled theta peak
+
+THETA METHOD 2: TFR
+------------------------------------------------------------
 Baseline: -0.8 to -0.1 s
 Analysis window: +0.1 to +1.0 s
-Frequency search: 4-12 Hz
+Frequency search: 4-8 Hz
 Morlet cycles: 5
-Feedback events with timestamps: 120
-Feedback epochs retained: 102
-Feedback epochs rejected for artifact: 5
-Feedback epochs rejected for bounds: 13
-
-THETA PEAK: 10.50 Hz
-Peak dB change: 0.845 dB
-Peak at band edge: NO
+TFR THETA PEAK: unavailable
 
 Feedback artifact breakdown:
-  FT7: 5 rejected epochs
+  None
 
 DECISION BETA ERD
 ------------------------------------------------------------
@@ -54,21 +63,20 @@ Analysis window: -1.0 to -0.1 s
 Frequency search: 13-30 Hz
 Morlet cycles: 5
 Decision events with timestamps: 118
-Decision epochs retained: 101
+Decision epochs retained: 0
 Decision timestamps missing: 2
-Decision epochs rejected for artifact: 5
-Decision epochs rejected for bounds: 12
+Decision epochs rejected for artifact: 0
+Decision epochs rejected for bounds: 118
 
-BETA ERD PEAK: 30.00 Hz
-Peak dB change: -1.295 dB
-Peak at band edge: YES
+BETA ERD PEAK: unavailable
 
 Decision artifact breakdown:
-  FT7: 5 rejected epochs
+  None
 
 INDIVIDUALIZED FREQUENCIES
 ============================================================
-Theta stimulation frequency: 10.50 Hz
-Beta stimulation frequency: 30.00 Hz
+Theta (Specparam): UNAVAILABLE
+Theta (TFR): UNAVAILABLE
+Beta stimulation frequency: UNAVAILABLE
 
 END OF REPORT
