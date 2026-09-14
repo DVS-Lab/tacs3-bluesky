@@ -24,7 +24,7 @@ Run behavior:
     - The task itself does not reveal stimulation condition/mode.
 
 Output:
-    Participant response CSV/TSV files are saved to the directory
+    Participant response CSV files are saved to the directory
     specified by:
 
         paths.pre_stimulation_responses_dir
@@ -1019,18 +1019,18 @@ class SSTTask:
             if responded:
 
                 expected_key = (
-                    "a"
+                    "1"
                     if direction == "left"
-                    else "l"
+                    else "0"
                 )
 
                 response_key = (
                     expected_key
                     if rng.random() < 0.95
                     else (
-                        "l"
-                        if expected_key == "a"
-                        else "a"
+                        "0"
+                        if expected_key == "1"
+                        else "1"
                     )
                 )
 
@@ -1330,8 +1330,8 @@ class SSTTask:
                         f"{self.run_label}\n\n"
                         "Please wait for the experimenter "
                         "to start the task.\n\n"
-                        "Press A when the arrow points LEFT.\n"
-                        "Press L when the arrow points RIGHT.\n"
+                        "Press 1 when the arrow points LEFT.\n"
+                        "Press 0 when the arrow points RIGHT.\n"
                         "Respond as quickly as possible.\n\n"
                         "If the arrow turns RED, try to stop "
                         "yourself from pressing anything.\n\n"
@@ -1411,9 +1411,9 @@ class SSTTask:
                 )
 
                 expected_key = (
-                    "a"
+                    "1"
                     if direction == "left"
-                    else "l"
+                    else "0"
                 )
 
                 isi = random.uniform(
@@ -1524,9 +1524,9 @@ class SSTTask:
                                 if random.random()
                                 < 0.95
                                 else (
-                                    "l"
-                                    if expected_key == "a"
-                                    else "a"
+                                    "0"
+                                    if expected_key == "1"
+                                    else "1"
                                 )
                             )
 
@@ -1546,8 +1546,8 @@ class SSTTask:
 
                         keys = event.getKeys(
                             keyList=[
-                                "a",
-                                "l",
+                                "1",
+                                "0",
                                 "z",
                             ],
                             timeStamped=trial_clock,
@@ -1814,9 +1814,9 @@ class SSTTask:
         m = self.marker_codes
 
         expected_key = (
-            "a"
+            "1"
             if direction == "left"
-            else "l"
+            else "0"
         )
 
         # --------------------------------------------------------------
@@ -2257,7 +2257,7 @@ class SSTTask:
         """
         Save participant response data.
 
-        CSV and TSV are saved directly into the configured
+        CSV files are saved directly into the configured
         pre-stimulation participant response directory.
 
         Filename:
@@ -2348,32 +2348,6 @@ class SSTTask:
                 self.results
             )
 
-        # --------------------------------------------------------------
-        # TSV
-        # --------------------------------------------------------------
-
-        tsv_path = (
-            base.with_suffix(".tsv")
-        )
-
-        with tsv_path.open(
-            "w",
-            encoding="utf-8",
-            newline="",
-        ) as handle:
-
-            writer = csv.DictWriter(
-                handle,
-                fieldnames=fields,
-                delimiter="\t",
-            )
-
-            writer.writeheader()
-
-            writer.writerows(
-                self.results
-            )
-
         self._saved = True
 
         # --------------------------------------------------------------
@@ -2394,10 +2368,6 @@ class SSTTask:
 
         print(
             f"CSV:\n{csv_path}"
-        )
-
-        print(
-            f"\nTSV:\n{tsv_path}"
         )
 
         print(
