@@ -1,0 +1,16 @@
+{
+  "created_at": "2026-08-04T19:57:13Z",
+  "status": "no_samples",
+  "stream_name": null,
+  "stream_type": null,
+  "sampling_rate_hz": null,
+  "channel_names": [],
+  "n_samples": 0,
+  "start_lsl_time": null,
+  "end_lsl_time": 231768.280759,
+  "message": "No matching EEG stream was found for type='EEG' and name containing 'StarStim'.",
+  "subject_id": "sub-99999",
+  "session_id": "ses-001",
+  "task": "SST",
+  "run_label": "run-01"
+}
