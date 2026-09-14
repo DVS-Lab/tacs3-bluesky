@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Lab-style individualized theta / beta frequency estimation.
+"""Lab-style individualized theta / beta frequency estimation.
 
 GUI version.
 
@@ -9,28 +8,29 @@ The script:
 2. Asks for Session number (1-3).
 3. Automatically finds the matching EEG .easy file.
 4. Automatically finds the matching behavioral .csv file.
-5. Uses the exact Unix timestamps in the two files to align EEG and behavior.
-6. Estimates:
-   - Outcome theta peak frequency
-   - Decision beta ERD peak frequency
-7. Saves a single text report:
-
-       SUBJECT-SESSION_theta-beta.txt
-
-Example:
-       1234-2_theta-beta.txt
+5. Uses Unix timestamps in the two files to align EEG and behavior.
+6. Estimates outcome theta frequency using two methods:
+   - Specparam (periodic peak above the aperiodic background)
+   - Morlet TFR power peak
+7. Estimates decision beta ERD peak frequency using Morlet TFR.
+8. Saves a single text report named SUBJECT-SESSION_pre-stim_theta-beta.txt.
 """
 
-import argparse
-import warnings
 from pathlib import Path
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox, ttk
 
 import numpy as np
 import pandas as pd
 from scipy import signal
 from scipy.ndimage import gaussian_filter1d
+
+try:
+    from specparam import SpectralModel
+    SPECPARAM_AVAILABLE = True
+except ImportError:
+    SpectralModel = None
+    SPECPARAM_AVAILABLE = False
 
 
 # =====================================================================
@@ -52,40 +52,55 @@ OUTPUT_DIR = Path(
     r"\stimulation\calculated-theta-beta"
 )
 
-
-# =====================================================================
-# LAB DEFAULTS
-# =====================================================================
-
 HIGHPASS = 0.5
 LOWPASS = 45.0
 NOTCH = 60.0
 NOTCH_Q = 30.0
-
 EPOCH_REJECT_UV = 200.0
+NV_TO_UV = 1e-3
+SRATE = 500.0
 
-THETA_SEARCH_BAND = (4.0, 12.0)
-BETA_BAND = (13.0, 30.0)
+# Specparam theta settings copied from the lab pipeline.
+SPECPARAM_THETA_BAND = (4.0, 8.0)
+SPECPARAM_FIT_RANGE = (2.0, 40.0)
+SPECPARAM_FEEDBACK_ANALYSIS = (0.1, 1.5)
+SPECPARAM_WELCH_SECONDS = 0.5
+
+# Individualized-frequency settings.
+THETA_SEARCH_BAND = (4.0, 8.0)
+ALPHA_SEARCH_BAND = (8.0, 13.0)
+BETA_SEARCH_BAND = (13.0, 30.0)
+DEFAULT_THETA_HZ = 6.0
 
 FEEDBACK_EPOCH = (-1.5, 2.0)
 FEEDBACK_BASELINE = (-0.8, -0.1)
+FEEDBACK_ANALYSIS = (0.1, 1.5)
 
 DECISION_EPOCH = (-1.5, 0.5)
 DECISION_BASELINE = (-1.5, -1.0)
 DECISION_ANALYSIS = (-1.0, -0.1)
 
-THETA_FREQS = np.arange(2.0, 15.25, 0.25)
-DECISION_FREQS = np.arange(8.0, 35.25, 0.5)
+THETA_FREQS = np.arange(
+    THETA_SEARCH_BAND[0],
+    THETA_SEARCH_BAND[1] + 0.25,
+    0.25,
+)
+DECISION_FREQS = np.arange(
+    BETA_SEARCH_BAND[0],
+    BETA_SEARCH_BAND[1] + 0.5,
+    0.5,
+)
 
 N_CYCLES = 5
 SMOOTH_SIGMA = 1.0
 
-NV_TO_UV = 1e-3
+FEEDBACK_EVENT_COL = "feedback_onset_unix_time"
+DECISION_EVENT_COL = "choice_onset_unix_time"
 
-
-# =====================================================================
-# CHANNEL LABELS
-# =====================================================================
+# Original 1-based channel numbers.
+FRONTAL_CHANNELS = (1, 3, 5)  # F3, FCz, F4
+POSTERIOR_ALPHA_CHANNELS = (6, 7)  # P4, P3
+REF_CHANNELS = (1, 2, 3, 4, 5, 6, 7)  # all scalp channels; excludes EXT
 
 CHANNEL_LABELS = {
     1: "F3",
@@ -103,15 +118,10 @@ CHANNEL_LABELS = {
 # GUI
 # =====================================================================
 
-def get_subject_and_session():
-    """
-    Open GUI asking for subject ID and session number.
-    """
 
-    result = {
-        "subject_id": None,
-        "session": None,
-    }
+def get_subject_and_session():
+    """Open a GUI asking for subject ID and session number."""
+    result = {"subject_id": None, "session": None}
 
     root = tk.Tk()
     root.title("Theta / Beta Frequency Estimation")
@@ -121,40 +131,16 @@ def get_subject_and_session():
     frame = ttk.Frame(root, padding=20)
     frame.pack(fill="both", expand=True)
 
-    ttk.Label(
-        frame,
-        text="Subject ID:",
-        font=("Arial", 11),
-    ).grid(
-        row=0,
-        column=0,
-        sticky="w",
-        pady=(0, 10),
+    ttk.Label(frame, text="Subject ID:", font=("Arial", 11)).grid(
+        row=0, column=0, sticky="w", pady=(0, 10)
     )
+    subject_entry = ttk.Entry(frame, width=30)
+    subject_entry.grid(row=0, column=1, pady=(0, 10))
 
-    subject_entry = ttk.Entry(
-        frame,
-        width=30,
+    ttk.Label(frame, text="Session:", font=("Arial", 11)).grid(
+        row=1, column=0, sticky="w", pady=(0, 10)
     )
-    subject_entry.grid(
-        row=0,
-        column=1,
-        pady=(0, 10),
-    )
-
-    ttk.Label(
-        frame,
-        text="Session:",
-        font=("Arial", 11),
-    ).grid(
-        row=1,
-        column=0,
-        sticky="w",
-        pady=(0, 10),
-    )
-
     session_var = tk.StringVar(value="1")
-
     session_dropdown = ttk.Combobox(
         frame,
         textvariable=session_var,
@@ -162,22 +148,14 @@ def get_subject_and_session():
         state="readonly",
         width=27,
     )
-
-    session_dropdown.grid(
-        row=1,
-        column=1,
-        pady=(0, 10),
-    )
+    session_dropdown.grid(row=1, column=1, pady=(0, 10))
 
     def submit():
         subject = subject_entry.get().strip()
         session = session_var.get()
 
         if not subject:
-            messagebox.showerror(
-                "Missing Subject ID",
-                "Please enter a subject ID.",
-            )
+            messagebox.showerror("Missing Subject ID", "Please enter a subject ID.")
             return
 
         if not subject.isdigit():
@@ -189,29 +167,14 @@ def get_subject_and_session():
 
         result["subject_id"] = subject
         result["session"] = session
-
         root.destroy()
 
-    button = ttk.Button(
-        frame,
-        text="Run Analysis",
-        command=submit,
-    )
-
-    button.grid(
-        row=2,
-        column=0,
-        columnspan=2,
-        pady=(20, 0),
+    ttk.Button(frame, text="Run Analysis", command=submit).grid(
+        row=2, column=0, columnspan=2, pady=(20, 0)
     )
 
     subject_entry.focus()
-
-    root.bind(
-        "<Return>",
-        lambda event: submit(),
-    )
-
+    root.bind("<Return>", lambda _event: submit())
     root.mainloop()
 
     return result["subject_id"], result["session"]
@@ -221,45 +184,19 @@ def get_subject_and_session():
 # FILE FINDING
 # =====================================================================
 
+
+def newest_file(matches):
+    """Return the most recently modified path from an iterable of paths."""
+    return max(matches, key=lambda p: p.stat().st_mtime)
+
+
 def find_input_files(subject_id, session):
-    """
-    Find the EEG and behavioral files.
-
-    EEG:
-        *_1234-2*.easy
-
-    Behavioral:
-        sub-1234-2_task-bandit_*.csv
-
-    If the expected EEG file cannot be found, the user is offered
-    the most recently modified .easy file as a fallback.
-    """
-
+    """Find the EEG and behavioral files for a subject/session."""
     eeg_pattern = f"*_{subject_id}-{session}*.easy"
+    behavior_pattern = f"sub-{subject_id}-{session}_task-bandit_*.csv"
 
-    behavior_pattern = (
-        f"sub-{subject_id}-{session}_task-bandit_*.csv"
-    )
-
-    # -------------------------------------------------------------
-    # Find expected EEG files
-    # -------------------------------------------------------------
-
-    eeg_matches = sorted(
-        STIM_DATA_DIR.glob(eeg_pattern)
-    )
-
-    # -------------------------------------------------------------
-    # Find behavioral files
-    # -------------------------------------------------------------
-
-    behavior_matches = sorted(
-        BEHAVIOR_DATA_DIR.glob(behavior_pattern)
-    )
-
-    # -------------------------------------------------------------
-    # Behavioral file is still required
-    # -------------------------------------------------------------
+    eeg_matches = list(STIM_DATA_DIR.glob(eeg_pattern))
+    behavior_matches = list(BEHAVIOR_DATA_DIR.glob(behavior_pattern))
 
     if not behavior_matches:
         raise FileNotFoundError(
@@ -268,331 +205,111 @@ def find_input_files(subject_id, session):
             f"Pattern:\n{behavior_pattern}"
         )
 
-    # Use most recently modified behavioral file
-    behavior_file = max(
-        behavior_matches,
-        key=lambda p: p.stat().st_mtime,
-    )
-
-    # -------------------------------------------------------------
-    # EEG FOUND
-    # -------------------------------------------------------------
+    behavior_file = newest_file(behavior_matches)
 
     if eeg_matches:
+        return newest_file(eeg_matches), behavior_file
 
-        # If multiple matching EEG files exist,
-        # use the most recently modified one.
-
-        eeg_file = max(
-            eeg_matches,
-            key=lambda p: p.stat().st_mtime,
-        )
-
-        return eeg_file, behavior_file
-
-    # -------------------------------------------------------------
-    # EEG NOT FOUND
-    # -------------------------------------------------------------
-
-    # Find ALL .easy files in the stimulation-data directory.
-
-    all_easy_files = list(
-        STIM_DATA_DIR.glob("*.easy")
-    )
-
-    # If there aren't any .easy files at all,
-    # give the normal error.
-
+    all_easy_files = list(STIM_DATA_DIR.glob("*.easy"))
     if not all_easy_files:
-
         raise FileNotFoundError(
             "No EEG .easy file could be found.\n\n"
             f"Directory:\n{STIM_DATA_DIR}\n\n"
             f"Expected pattern:\n{eeg_pattern}\n\n"
-            "There are also no .easy files in the "
-            "stimulation-data directory."
+            "There are also no .easy files in the stimulation-data directory."
         )
 
-    # -------------------------------------------------------------
-    # Find most recently modified .easy file
-    # -------------------------------------------------------------
-
-    most_recent_easy = max(
-        all_easy_files,
-        key=lambda p: p.stat().st_mtime,
-    )
-
-    # -------------------------------------------------------------
-    # Ask user whether to use fallback file
-    # -------------------------------------------------------------
+    most_recent_easy = newest_file(all_easy_files)
 
     root = tk.Tk()
     root.withdraw()
-
-    message = (
-        f"Couldn't locate:\n\n"
-        f"{eeg_pattern}\n\n"
-        f"The most recent .easy file is:\n\n"
-        f"{most_recent_easy.name}\n\n"
-        f"Would you like to use this file to calculate "
-        f"{subject_id}'s session {session} theta and beta?"
-    )
-
     use_fallback = messagebox.askyesno(
         "EEG File Not Found",
-        message,
+        (
+            f"Couldn't locate:\n\n{eeg_pattern}\n\n"
+            f"The most recent .easy file is:\n\n{most_recent_easy.name}\n\n"
+            f"Would you like to use this file to calculate "
+            f"{subject_id}'s session {session} theta and beta?"
+        ),
     )
-
     root.destroy()
 
-    # -------------------------------------------------------------
-    # User said NO
-    # -------------------------------------------------------------
-
     if not use_fallback:
-
         raise FileNotFoundError(
-            "No matching EEG file was found and "
-            "the fallback file was declined."
+            "No matching EEG file was found and the fallback file was declined."
         )
-
-    # -------------------------------------------------------------
-    # User said YES
-    # -------------------------------------------------------------
 
     return most_recent_easy, behavior_file
 
 
 # =====================================================================
-# CHANNEL PARSING
+# EEG LOADING / PREPROCESSING
 # =====================================================================
 
-def parse_channels(text):
-    """
-    Convert comma-separated 1-based channel numbers
-    to 0-based indices.
-    """
-
-    vals = []
-
-    for item in text.split(","):
-        item = item.strip()
-
-        if not item:
-            continue
-
-        ch = int(item)
-
-        if ch < 1:
-            raise ValueError(
-                "Channel numbers must be 1-based positive integers."
-            )
-
-        vals.append(ch - 1)
-
-    if not vals:
-        raise ValueError(
-            "At least one frontal channel is required."
-        )
-
-    return vals
-
-
-# =====================================================================
-# LOAD EEG
-# =====================================================================
 
 def load_easy(path):
-
+    """Load EEG channels and Unix timestamps from a Neuroelectrics .easy file."""
     raw = np.loadtxt(path)
 
     if raw.ndim != 2 or raw.shape[1] < 6:
-        raise ValueError(
-            f"Unexpected .easy shape: {raw.shape}"
-        )
+        raise ValueError(f"Unexpected .easy shape: {raw.shape}")
 
-    # .easy layout:
-    #
-    # EEG channels
-    # + 3 accelerometer columns
-    # + trigger
-    # + Unix timestamp
-    #
-    # Therefore last 5 columns are not EEG.
-
+    # Layout: EEG channels + 3 accelerometer columns + trigger + Unix timestamp.
     n_eeg = raw.shape[1] - 5
-
-    eeg_nv = raw[:, :n_eeg].astype(float)
-
+    eeg_uv = raw[:, :n_eeg].astype(float) * NV_TO_UV
     unix_ms = raw[:, -1].astype(float)
 
-    dt_ms = np.median(np.diff(unix_ms))
-
-    srate = 1000.0 / dt_ms
-
-    # Neuroelectrics may write -1 for unavailable channels.
-
-    unavailable = (
-        np.mean(eeg_nv == -1, axis=0) >= 0.50
-    )
-
-    available = ~unavailable
-
-    if not np.any(available):
-        raise RuntimeError(
-            "No available EEG channels detected."
+    if n_eeg < max(REF_CHANNELS):
+        raise ValueError(
+            f"Expected at least {max(REF_CHANNELS)} EEG channels, found {n_eeg}."
         )
 
-    original_indices = np.flatnonzero(
-        available
-    )
-
-    eeg_nv = eeg_nv[:, available]
-
-    # Rare isolated -1 values are treated as missing.
-
-    eeg_nv[eeg_nv == -1] = np.nan
-
-    eeg_df = pd.DataFrame(
-        eeg_nv
-    ).interpolate(
-        axis=0,
-        limit_direction="both",
-    )
-
-    if eeg_df.isna().any().any():
-        raise RuntimeError(
-            "Missing EEG samples remained after interpolation."
-        )
-
-    # Neuroelectrics values are in nV.
-    # Convert to uV.
-
-    eeg_uv = (
-        eeg_df.to_numpy() * NV_TO_UV
-    )
-
-    return (
-        eeg_uv,
-        unix_ms,
-        srate,
-        original_indices,
-        unavailable,
-    )
+    return eeg_uv, unix_ms
 
 
-# =====================================================================
-# PREPROCESSING
-# =====================================================================
-
-def preprocess(
-    eeg_uv,
-    srate,
-    ref_idx=None,
-):
-    """
-    Bandpass, notch, average reference.
-    """
-
+def preprocess(eeg_uv, srate, ref_idx=None):
+    """Bandpass, notch, and average-reference EEG data."""
     out = eeg_uv.copy()
-
     nyq = srate / 2.0
-
-    # -------------------------------------------------------------
-    # 0.5-45 Hz Butterworth bandpass
-    # -------------------------------------------------------------
 
     b, a = signal.butter(
         4,
-        [
-            HIGHPASS / nyq,
-            LOWPASS / nyq,
-        ],
+        [HIGHPASS / nyq, LOWPASS / nyq],
         btype="band",
     )
+    out = signal.filtfilt(b, a, out, axis=0)
 
-    out = signal.filtfilt(
-        b,
-        a,
-        out,
-        axis=0,
-    )
-
-    # -------------------------------------------------------------
-    # 60 Hz notch
-    # -------------------------------------------------------------
-
+    # Retained from the original pipeline for methodological consistency.
     if 0 < NOTCH < nyq:
-
-        bn, an = signal.iirnotch(
-            NOTCH / nyq,
-            Q=NOTCH_Q,
-        )
-
-        out = signal.filtfilt(
-            bn,
-            an,
-            out,
-            axis=0,
-        )
-
-    # -------------------------------------------------------------
-    # Average reference
-    # -------------------------------------------------------------
+        bn, an = signal.iirnotch(NOTCH / nyq, Q=NOTCH_Q)
+        out = signal.filtfilt(bn, an, out, axis=0)
 
     if ref_idx is None:
-        ref_idx = list(
-            range(out.shape[1])
-        )
+        ref_idx = list(range(out.shape[1]))
 
-    out -= np.mean(
-        out[:, ref_idx],
-        axis=1,
-        keepdims=True,
-    )
-
+    out -= np.mean(out[:, ref_idx], axis=1, keepdims=True)
     return out
 
 
 # =====================================================================
-# UNIX TIMESTAMP -> EEG SAMPLE
+# EVENT ALIGNMENT / EPOCHING
 # =====================================================================
 
-def nearest_sample_index(
-    unix_ms,
-    event_ms,
-):
-    """
-    Find EEG sample nearest to an event Unix timestamp.
-    """
 
-    idx = int(
-        np.searchsorted(
-            unix_ms,
-            event_ms,
-        )
-    )
+def nearest_sample_index(unix_ms, event_ms):
+    """Find the EEG sample nearest to an event Unix timestamp."""
+    idx = int(np.searchsorted(unix_ms, event_ms))
 
     if idx <= 0:
         return 0
-
     if idx >= len(unix_ms):
         return len(unix_ms) - 1
 
     before = idx - 1
-
-    if (
-        abs(unix_ms[before] - event_ms)
-        <= abs(unix_ms[idx] - event_ms)
-    ):
+    if abs(unix_ms[before] - event_ms) <= abs(unix_ms[idx] - event_ms):
         return before
-
     return idx
 
-
-# =====================================================================
-# EPOCHING
-# =====================================================================
 
 def epoch_from_unix(
     eeg,
@@ -601,395 +318,241 @@ def epoch_from_unix(
     event_times_ms,
     tmin,
     tmax,
-    reject_uv=200.0,
+    reject_uv=EPOCH_REJECT_UV,
     reject_ch_idx=None,
 ):
-
-    n_pre = int(
-        round(abs(tmin) * srate)
-    )
-
-    n_post = int(
-        round(tmax * srate)
-    )
-
+    """Create event-locked epochs and reject epochs exceeding the UV threshold."""
+    n_pre = int(round(abs(tmin) * srate))
+    n_post = int(round(tmax * srate))
     n_epoch = n_pre + n_post
-
-    times = (
-        np.arange(n_epoch) / srate
-        + tmin
-    )
+    times = np.arange(n_epoch) / srate + tmin
 
     epochs = []
-    kept = []
-
     rejected_artifact = 0
     rejected_bounds = 0
     skipped_missing = 0
-
     artifact_by_channel = {}
 
-    artifact_details = []
-
     if reject_ch_idx is None:
-        reject_ch_idx = list(
-            range(eeg.shape[1])
-        )
+        reject_ch_idx = list(range(eeg.shape[1]))
 
-    for i, event_ms in enumerate(
-        event_times_ms
-    ):
-
+    for event_ms in event_times_ms:
         if not np.isfinite(event_ms):
-
             skipped_missing += 1
             continue
 
-        center = nearest_sample_index(
-            unix_ms,
-            event_ms,
-        )
-
+        center = nearest_sample_index(unix_ms, event_ms)
         s0 = center - n_pre
         s1 = center + n_post
 
         if s0 < 0 or s1 > len(eeg):
-
             rejected_bounds += 1
             continue
 
-        ep = eeg[
-            s0:s1
-        ].copy()
-
+        ep = eeg[s0:s1].copy()
         if ep.shape[0] != n_epoch:
-
             rejected_bounds += 1
             continue
-
-        # ---------------------------------------------------------
-        # Artifact rejection
-        # ---------------------------------------------------------
 
         if reject_uv is not None:
-
-            channel_max = np.max(
-                np.abs(
-                    ep[:, reject_ch_idx]
-                ),
-                axis=0,
-            )
-
-            bad_mask = (
-                channel_max > reject_uv
-            )
+            channel_max = np.max(np.abs(ep[:, reject_ch_idx]), axis=0)
+            bad_mask = channel_max > reject_uv
 
             if np.any(bad_mask):
-
                 rejected_artifact += 1
-
-                bad_positions = np.where(
-                    bad_mask
-                )[0]
-
-                for pos in bad_positions:
-
-                    reduced_idx = (
-                        reject_ch_idx[pos]
+                for pos in np.where(bad_mask)[0]:
+                    reduced_idx = reject_ch_idx[pos]
+                    artifact_by_channel[reduced_idx] = (
+                        artifact_by_channel.get(reduced_idx, 0) + 1
                     )
-
-                    max_uv = float(
-                        channel_max[pos]
-                    )
-
-                    artifact_by_channel[
-                        reduced_idx
-                    ] = (
-                        artifact_by_channel.get(
-                            reduced_idx,
-                            0,
-                        )
-                        + 1
-                    )
-
-                    artifact_details.append({
-                        "event_index": int(i),
-                        "event_unix_ms": float(
-                            event_ms
-                        ),
-                        "reduced_channel_index": int(
-                            reduced_idx
-                        ),
-                        "max_abs_uv": max_uv,
-                    })
-
                 continue
 
-        # ---------------------------------------------------------
-        # Linear detrending
-        # ---------------------------------------------------------
-
-        for ci in range(
-            ep.shape[1]
-        ):
-
-            ep[:, ci] = signal.detrend(
-                ep[:, ci],
-                type="linear",
-            )
-
+        ep = signal.detrend(ep, axis=0, type="linear")
         epochs.append(ep)
-        kept.append(i)
 
     if epochs:
-
-        epochs = np.stack(
-            epochs
-        )
-
+        epochs = np.stack(epochs)
     else:
-
-        epochs = np.empty(
-            (
-                0,
-                n_epoch,
-                eeg.shape[1],
-            )
-        )
+        epochs = np.empty((0, n_epoch, eeg.shape[1]))
 
     reject_reason = {
         "missing_timestamp": skipped_missing,
         "out_of_bounds": rejected_bounds,
         "artifact": rejected_artifact,
         "artifact_by_channel": artifact_by_channel,
-        "artifact_details": artifact_details,
     }
 
-    return (
-        epochs,
-        times,
-        kept,
-        reject_reason,
-    )
+    return epochs, times, reject_reason
+
+
+def get_event_times(events, column):
+    """Validate an event column and convert it to a float NumPy array."""
+    if column not in events.columns:
+        raise KeyError(f"CSV is missing {column}")
+
+    return pd.to_numeric(events[column], errors="coerce").to_numpy(float)
 
 
 # =====================================================================
-# MORLET TFR
+# THETA METHOD 1: SPECPARAM
 # =====================================================================
 
-def morlet_tfr(
-    epochs,
-    srate,
+
+def specparam_band_peak(
     freqs,
-    n_cycles=5,
-    ch_idx=None,
+    psd,
+    band=SPECPARAM_THETA_BAND,
+    freq_range=SPECPARAM_FIT_RANGE,
 ):
+    """Return the strongest Specparam periodic peak inside the requested band."""
+    if not SPECPARAM_AVAILABLE:
+        return np.nan
 
-    if len(epochs) == 0:
-        raise ValueError(
-            "Cannot compute TFR with zero epochs."
-        )
-
-    n_ep, n_times, n_ch = epochs.shape
-
-    if ch_idx is None:
-        ch_idx = list(
-            range(n_ch)
-        )
-
-    if len(ch_idx) == 0:
-        raise ValueError(
-            "No usable frontal channels were selected."
-        )
-
-    power = np.zeros(
-        (
-            len(freqs),
-            n_times,
-        ),
-        dtype=float,
+    model = SpectralModel(
+        peak_width_limits=[1.0, 8.0],
+        max_n_peaks=6,
+        min_peak_height=0.05,
+        aperiodic_mode="fixed",
     )
+    model.fit(freqs, psd, freq_range=list(freq_range))
 
-    for fi, f in enumerate(freqs):
+    peaks = model.results.params.periodic.params
+    best_cf = np.nan
+    best_power = -np.inf
 
-        sigma_t = (
-            n_cycles
-            / (2 * np.pi * f)
-        )
+    if peaks.size > 0 and peaks.ndim == 2:
+        for center_frequency, peak_power, _bandwidth in peaks:
+            if (
+                band[0] <= center_frequency <= band[1]
+                and peak_power > best_power
+            ):
+                best_cf = center_frequency
+                best_power = peak_power
 
-        hw = int(
-            np.ceil(
-                3.5
-                * sigma_t
-                * srate
-            )
-        )
-
-        t_wav = (
-            np.arange(
-                -hw,
-                hw + 1,
-            )
-            / srate
-        )
-
-        wav = (
-            np.exp(
-                2j
-                * np.pi
-                * f
-                * t_wav
-            )
-            * np.exp(
-                -(t_wav ** 2)
-                / (
-                    2
-                    * sigma_t ** 2
-                )
-            )
-        )
-
-        wav /= np.sqrt(
-            np.sum(
-                np.abs(wav) ** 2
-            )
-        )
-
-        for ci in ch_idx:
-
-            for ei in range(n_ep):
-
-                conv = signal.fftconvolve(
-                    epochs[
-                        ei,
-                        :,
-                        ci
-                    ],
-                    wav,
-                    mode="same",
-                )
-
-                power[fi] += (
-                    np.abs(conv) ** 2
-                )
-
-        power[fi] /= (
-            n_ep
-            * len(ch_idx)
-        )
-
-    return power
+    return float(best_cf) if np.isfinite(best_cf) else np.nan
 
 
-# =====================================================================
-# PEAK FINDING
-# =====================================================================
-
-def find_peak(
-    freqs,
-    spectrum,
-    band,
-    mode="max",
-    smooth_sigma=1.0,
-):
-
-    mask = (
-        (freqs >= band[0])
-        & (freqs <= band[1])
-    )
-
-    bf = freqs[mask]
-    bs = spectrum[mask]
-
-    if len(bf) == 0:
-        return (
-            np.nan,
-            np.nan,
-            False,
-        )
-
-    smoothed = gaussian_filter1d(
-        bs,
-        sigma=smooth_sigma,
-    )
-
-    if mode == "max":
-
-        idx = int(
-            np.argmax(smoothed)
-        )
-
-    elif mode == "min":
-
-        idx = int(
-            np.argmin(smoothed)
-        )
-
-    else:
-
-        raise ValueError(
-            "mode must be 'max' or 'min'"
-        )
-
-    edge = (
-        idx == 0
-        or idx == len(bf) - 1
-    )
-
-    return (
-        float(bf[idx]),
-        float(smoothed[idx]),
-        bool(edge),
-    )
-
-
-# =====================================================================
-# ROI MAPPING
-# =====================================================================
-
-def map_requested_roi(
-    requested_original_idx,
-    available_original_idx,
-):
-
-    available_lookup = {
-        original_idx: reduced_idx
-        for reduced_idx, original_idx
-        in enumerate(
-            available_original_idx
-        )
-    }
-
-    usable = []
-    missing = []
-
-    for orig in requested_original_idx:
-
-        if orig in available_lookup:
-
-            usable.append(
-                available_lookup[orig]
-            )
-
-        else:
-
-            missing.append(orig)
-
-    return usable, missing
-
-
-# =====================================================================
-# THETA ANALYSIS
-# =====================================================================
-
-def theta_analysis(
+def theta_specparam_analysis(
     feedback_epochs,
     feedback_times,
     srate,
     frontal_idx,
-    outcome_end,
 ):
+    """Estimate theta from a Specparam fit to the feedback-window PSD.
 
+    This is the minimum calculation used in the lab notebook:
+    1. Keep the feedback analysis window.
+    2. Average F3/FCz/F4 within each epoch.
+    3. Compute a Welch PSD for each epoch and average the PSDs.
+    4. Fit Specparam from 2-40 Hz.
+    5. Return the strongest modeled periodic peak from 4-8 Hz.
+    """
+    if not SPECPARAM_AVAILABLE:
+        return np.nan
+
+    win_mask = (
+        (feedback_times >= SPECPARAM_FEEDBACK_ANALYSIS[0])
+        & (feedback_times <= SPECPARAM_FEEDBACK_ANALYSIS[1])
+    )
+    frontal_window = feedback_epochs[:, win_mask][:, :, frontal_idx]
+
+    if frontal_window.shape[1] == 0:
+        return np.nan
+
+    # Average the frontal ROI first, matching the lab code.
+    frontal_mean = np.mean(frontal_window, axis=2)
+
+    nperseg = min(
+        int(round(srate * SPECPARAM_WELCH_SECONDS)),
+        frontal_mean.shape[1],
+    )
+    if nperseg < 2:
+        return np.nan
+
+    freqs, trial_psds = signal.welch(
+        frontal_mean,
+        fs=srate,
+        nperseg=nperseg,
+        noverlap=nperseg // 2,
+        window="hann",
+        axis=1,
+    )
+    avg_psd = np.mean(trial_psds, axis=0)
+
+    return specparam_band_peak(freqs, avg_psd)
+
+
+# =====================================================================
+# THETA METHOD 2: TFR
+# =====================================================================
+
+
+def morlet_tfr(epochs, srate, freqs, n_cycles=N_CYCLES, ch_idx=None):
+    """Compute mean Morlet-wavelet power across epochs and selected channels."""
+    if len(epochs) == 0:
+        raise ValueError("Cannot compute TFR with zero epochs.")
+
+    n_ep, n_times, n_ch = epochs.shape
+
+    if ch_idx is None:
+        ch_idx = list(range(n_ch))
+    if len(ch_idx) == 0:
+        raise ValueError("No usable frontal channels were selected.")
+
+    power = np.zeros((len(freqs), n_times), dtype=float)
+
+    for fi, f in enumerate(freqs):
+        sigma_t = n_cycles / (2 * np.pi * f)
+        hw = int(np.ceil(3.5 * sigma_t * srate))
+        t_wav = np.arange(-hw, hw + 1) / srate
+
+        wav = np.exp(2j * np.pi * f * t_wav) * np.exp(
+            -(t_wav**2) / (2 * sigma_t**2)
+        )
+        wav /= np.sqrt(np.sum(np.abs(wav) ** 2))
+
+        for ci in ch_idx:
+            for ei in range(n_ep):
+                conv = signal.fftconvolve(epochs[ei, :, ci], wav, mode="same")
+                power[fi] += np.abs(conv) ** 2
+
+        power[fi] /= n_ep * len(ch_idx)
+
+    return power
+
+
+def baseline_correct_db(tfr, times, baseline_window):
+    """Convert TFR power to dB relative to a baseline window."""
+    baseline_mask = (
+        (times >= baseline_window[0]) & (times <= baseline_window[1])
+    )
+    baseline_power = np.maximum(
+        np.mean(tfr[:, baseline_mask], axis=1, keepdims=True),
+        1e-30,
+    )
+    return 10 * np.log10(np.maximum(tfr, 1e-30) / baseline_power)
+
+
+def find_peak(freqs, spectrum, mode="max", smooth_sigma=SMOOTH_SIGMA):
+    """Find a smoothed spectral maximum or minimum and flag band-edge peaks."""
+    if len(freqs) == 0:
+        return np.nan, np.nan, False
+
+    smoothed = gaussian_filter1d(spectrum, sigma=smooth_sigma)
+
+    if mode == "max":
+        idx = int(np.argmax(smoothed))
+    elif mode == "min":
+        idx = int(np.argmin(smoothed))
+    else:
+        raise ValueError("mode must be 'max' or 'min'")
+
+    edge = idx == 0 or idx == len(freqs) - 1
+    return float(freqs[idx]), float(smoothed[idx]), bool(edge)
+
+
+def theta_tfr_analysis(feedback_epochs, feedback_times, srate, frontal_idx):
+    """Estimate outcome-related theta as the maximum TFR power peak."""
     tfr = morlet_tfr(
         feedback_epochs,
         srate,
@@ -997,86 +560,102 @@ def theta_analysis(
         n_cycles=N_CYCLES,
         ch_idx=frontal_idx,
     )
-
-    baseline_mask = (
-        (feedback_times >= FEEDBACK_BASELINE[0])
-        & (feedback_times <= FEEDBACK_BASELINE[1])
-    )
-
-    baseline_power = np.maximum(
-        np.mean(
-            tfr[:, baseline_mask],
-            axis=1,
-            keepdims=True,
-        ),
-        1e-30,
-    )
-
-    tfr_db = (
-        10
-        * np.log10(
-            np.maximum(
-                tfr,
-                1e-30,
-            )
-            / baseline_power
-        )
-    )
+    tfr_db = baseline_correct_db(tfr, feedback_times, FEEDBACK_BASELINE)
 
     outcome_mask = (
-        (feedback_times >= 0.1)
-        & (feedback_times <= outcome_end)
+        (feedback_times >= FEEDBACK_ANALYSIS[0])
+        & (feedback_times <= FEEDBACK_ANALYSIS[1])
     )
+    theta_spectrum = np.mean(tfr_db[:, outcome_mask], axis=1)
 
-    theta_mask = (
-        (THETA_FREQS >= THETA_SEARCH_BAND[0])
-        & (THETA_FREQS <= THETA_SEARCH_BAND[1])
-    )
-
-    theta_freqs = THETA_FREQS[
-        theta_mask
-    ]
-
-    theta_spectrum = np.mean(
-        tfr_db[
-            theta_mask
-        ][:, outcome_mask],
-        axis=1,
-    )
-
-    peak_hz, peak_db, edge = find_peak(
-        theta_freqs,
+    return find_peak(
+        THETA_FREQS,
         theta_spectrum,
-        THETA_SEARCH_BAND,
         mode="max",
         smooth_sigma=SMOOTH_SIGMA,
     )
 
-    spectrum_df = pd.DataFrame({
-        "metric": "outcome_theta",
-        "frequency_hz": theta_freqs,
-        "db_change": theta_spectrum,
-    })
 
-    return (
-        peak_hz,
-        peak_db,
-        edge,
-        spectrum_df,
+# =====================================================================
+# THETA METHOD 3: IAF - 5
+# =====================================================================
+
+
+def iaf_minus_5_analysis(eeg_clean, srate, posterior_idx):
+    """Estimate theta as IAF - 5 Hz using the lab's posterior-alpha method.
+
+    IAF is estimated from continuous cleaned EEG at P3/P4 using a 2-second
+    Welch PSD. The alpha peak is taken from 8-13 Hz using Specparam when
+    available, with the power-spectrum peak as a fallback. IAF - 5 is then
+    constrained to the 4-8 Hz theta range, matching the lab notebook.
+    """
+    if len(eeg_clean) < 2:
+        return np.nan, np.nan, "unavailable"
+
+    nperseg = min(int(round(2 * srate)), len(eeg_clean))
+    noverlap = min(int(round(srate)), max(0, nperseg - 1))
+
+    freqs, psd = signal.welch(
+        eeg_clean[:, posterior_idx],
+        fs=srate,
+        nperseg=nperseg,
+        noverlap=noverlap,
+        axis=0,
+    )
+    posterior_psd = np.mean(psd, axis=1)
+
+    iaf_specparam = specparam_band_peak(
+        freqs,
+        posterior_psd,
+        band=ALPHA_SEARCH_BAND,
     )
 
+    alpha_mask = (
+        (freqs >= ALPHA_SEARCH_BAND[0])
+        & (freqs <= ALPHA_SEARCH_BAND[1])
+    )
+    alpha_freqs = freqs[alpha_mask]
+    alpha_db = 10 * np.log10(np.maximum(posterior_psd[alpha_mask], 1e-30))
 
-# =====================================================================
-# BETA ANALYSIS
-# =====================================================================
+    iaf_power = np.nan
+    if len(alpha_freqs) > 0:
+        iaf_power, _power, _edge = find_peak(
+            alpha_freqs,
+            alpha_db,
+            mode="max",
+            smooth_sigma=SMOOTH_SIGMA,
+        )
 
-def beta_analysis(
-    decision_epochs,
-    decision_times,
-    srate,
-    frontal_idx,
-):
+    if (
+        np.isfinite(iaf_specparam)
+        and ALPHA_SEARCH_BAND[0] <= iaf_specparam <= ALPHA_SEARCH_BAND[1]
+    ):
+        iaf = iaf_specparam
+        iaf_source = "Specparam"
+    elif (
+        np.isfinite(iaf_power)
+        and ALPHA_SEARCH_BAND[0] <= iaf_power <= ALPHA_SEARCH_BAND[1]
+    ):
+        iaf = iaf_power
+        iaf_source = "power"
+    else:
+        return np.nan, np.nan, "unavailable"
 
+    theta_iaf_minus_5 = np.clip(
+        iaf - 5.0,
+        THETA_SEARCH_BAND[0],
+        THETA_SEARCH_BAND[1],
+    )
+    return float(theta_iaf_minus_5), float(iaf), iaf_source
+
+
+def valid_frequency(value, band):
+    """Return True when a frequency is finite and inside a requested band."""
+    return bool(np.isfinite(value) and band[0] <= value <= band[1])
+
+
+def beta_analysis(decision_epochs, decision_times, srate, frontal_idx):
+    """Estimate the decision-related beta ERD peak frequency."""
     tfr = morlet_tfr(
         decision_epochs,
         srate,
@@ -1084,74 +663,20 @@ def beta_analysis(
         n_cycles=N_CYCLES,
         ch_idx=frontal_idx,
     )
-
-    baseline_mask = (
-        (decision_times >= DECISION_BASELINE[0])
-        & (decision_times <= DECISION_BASELINE[1])
-    )
-
-    baseline_power = np.maximum(
-        np.mean(
-            tfr[:, baseline_mask],
-            axis=1,
-            keepdims=True,
-        ),
-        1e-30,
-    )
-
-    tfr_db = (
-        10
-        * np.log10(
-            np.maximum(
-                tfr,
-                1e-30,
-            )
-            / baseline_power
-        )
-    )
+    tfr_db = baseline_correct_db(tfr, decision_times, DECISION_BASELINE)
 
     decision_mask = (
         (decision_times >= DECISION_ANALYSIS[0])
         & (decision_times <= DECISION_ANALYSIS[1])
     )
-
-    beta_mask = (
-        (DECISION_FREQS >= BETA_BAND[0])
-        & (DECISION_FREQS <= BETA_BAND[1])
-    )
-
-    beta_freqs = DECISION_FREQS[
-        beta_mask
-    ]
-
-    beta_spectrum = np.mean(
-        tfr_db[
-            beta_mask
-        ][:, decision_mask],
-        axis=1,
-    )
+    beta_spectrum = np.mean(tfr_db[:, decision_mask], axis=1)
 
     # Strongest ERD = most negative dB.
-
-    peak_hz, peak_db, edge = find_peak(
-        beta_freqs,
+    return find_peak(
+        DECISION_FREQS,
         beta_spectrum,
-        BETA_BAND,
         mode="min",
         smooth_sigma=SMOOTH_SIGMA,
-    )
-
-    spectrum_df = pd.DataFrame({
-        "metric": "decision_beta_erd",
-        "frequency_hz": beta_freqs,
-        "db_change": beta_spectrum,
-    })
-
-    return (
-        peak_hz,
-        peak_db,
-        edge,
-        spectrum_df,
     )
 
 
@@ -1159,897 +684,331 @@ def beta_analysis(
 # ARTIFACT REPORTING
 # =====================================================================
 
-def get_artifact_counts(
-    reject_info,
-    available_original_idx,
-):
 
+def get_artifact_counts(reject_info):
+    """Convert 0-based channel artifact counts to channel names."""
     counts = {}
 
-    for reduced_idx, count in (
-        reject_info
-        .get(
-            "artifact_by_channel",
-            {},
-        )
-        .items()
-    ):
-
-        original_ch = (
-            int(
-                available_original_idx[
-                    reduced_idx
-                ]
-            )
-            + 1
-        )
-
-        channel_name = CHANNEL_LABELS.get(
-            original_ch,
-            f"Ch{original_ch}",
-        )
-
-        counts[
-            channel_name
-        ] = count
+    for channel_idx, count in reject_info.get("artifact_by_channel", {}).items():
+        channel_number = int(channel_idx) + 1
+        channel_name = CHANNEL_LABELS.get(channel_number, f"Ch{channel_number}")
+        counts[channel_name] = count
 
     return counts
+
+
+# =====================================================================
+# REPORT HELPERS
+# =====================================================================
+
+
+def format_window(window):
+    """Format a time window with explicit signs, e.g. -1.5 to +2.0 s."""
+    return f"{window[0]:+.1f} to {window[1]:+.1f} s"
+
+
+def format_band(band):
+    """Format a frequency band compactly."""
+    return f"{band[0]:g}-{band[1]:g} Hz"
+
+
 
 
 # =====================================================================
 # MAIN ANALYSIS
 # =====================================================================
 
-def run_analysis(
-    subject_id,
-    session,
-):
 
-    # -------------------------------------------------------------
-    # Find files
-    # -------------------------------------------------------------
-
-    eeg_file, behavior_file = (
-        find_input_files(
-            subject_id,
-            session,
-        )
-    )
+def run_analysis(subject_id, session):
+    eeg_file, behavior_file = find_input_files(subject_id, session)
 
     print()
     print("=" * 70)
     print("THETA / BETA FREQUENCY ESTIMATION")
     print("=" * 70)
+    print(f"Subject: {subject_id}")
+    print(f"Session: {session}")
+    print(f"\nEEG file:\n{eeg_file}")
+    print(f"\nBehavior file:\n{behavior_file}")
 
-    print(
-        f"Subject: {subject_id}"
-    )
+    eeg_uv, unix_ms = load_easy(eeg_file)
 
-    print(
-        f"Session: {session}"
-    )
+    # Fixed montage: frontal ROI = F3/FCz/F4; posterior alpha ROI = P4/P3.
+    # Reference/artifact checks use scalp channels 1-7.
+    frontal_idx = [ch - 1 for ch in FRONTAL_CHANNELS]
+    posterior_alpha_idx = [ch - 1 for ch in POSTERIOR_ALPHA_CHANNELS]
+    ref_idx = [ch - 1 for ch in REF_CHANNELS]
 
-    print(
-        f"\nEEG file:\n{eeg_file}"
-    )
-
-    print(
-        f"\nBehavior file:\n{behavior_file}"
-    )
-
-    # -------------------------------------------------------------
-    # Load EEG
-    # -------------------------------------------------------------
-
-    (
-        eeg_uv,
-        unix_ms,
-        srate,
-        available_original_idx,
-        unavailable,
-    ) = load_easy(
-        eeg_file
-    )
-
-    # -------------------------------------------------------------
-    # Frontal channels
-    #
-    # Default:
-    # 1 = F3
-    # 3 = FCz
-    # 5 = F4
-    # -------------------------------------------------------------
-
-    requested_frontal = parse_channels(
-        "1,3,5"
-    )
-
-    # -------------------------------------------------------------
-    # Average reference
-    #
-    # 1=F3
-    # 2=Fp1
-    # 3=FCz
-    # 4=FT7
-    # 5=F4
-    # 6=P4
-    # 7=P3
-    #
-    # 8=EXT is excluded.
-    # -------------------------------------------------------------
-
-    REF_CHANNELS = [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-    ]
-
-    ref_idx = [
-        reduced_idx
-        for reduced_idx, original_idx
-        in enumerate(
-            available_original_idx
-        )
-        if (
-            original_idx + 1
-        ) in REF_CHANNELS
-    ]
-
-    eeg_clean = preprocess(
-        eeg_uv,
-        srate,
-        ref_idx=ref_idx,
-    )
-
-    # Artifact rejection also uses
-    # scalp channels only.
-
+    eeg_clean = preprocess(eeg_uv, SRATE, ref_idx=ref_idx)
     reject_idx = ref_idx
 
-    # -------------------------------------------------------------
-    # Load behavioral data
-    # -------------------------------------------------------------
+    events = pd.read_csv(behavior_file)
 
-    events = pd.read_csv(
-        behavior_file
-
+    feedback_ms = get_event_times(events, FEEDBACK_EVENT_COL)
+    ep_fb, t_fb, rej_fb = epoch_from_unix(
+        eeg_clean,
+        unix_ms,
+        SRATE,
+        feedback_ms,
+        FEEDBACK_EPOCH[0],
+        FEEDBACK_EPOCH[1],
+        reject_uv=EPOCH_REJECT_UV,
+        reject_ch_idx=reject_idx,
     )
 
-    # -------------------------------------------------------------
-    # Determine usable frontal channels
-    # -------------------------------------------------------------
-
-    usable_frontal, missing_frontal = (
-        map_requested_roi(
-            requested_frontal,
-            available_original_idx,
-        )
+    decision_ms = get_event_times(events, DECISION_EVENT_COL)
+    ep_dec, t_dec, rej_dec = epoch_from_unix(
+        eeg_clean,
+        unix_ms,
+        SRATE,
+        decision_ms,
+        DECISION_EPOCH[0],
+        DECISION_EPOCH[1],
+        reject_uv=EPOCH_REJECT_UV,
+        reject_ch_idx=reject_idx,
     )
 
-    if missing_frontal:
-
-        warnings.warn(
-            "These requested frontal channels "
-            "are unavailable: "
-            + ", ".join(
-                str(i + 1)
-                for i in missing_frontal
-            )
-        )
-
-    if not usable_frontal:
-
-        raise RuntimeError(
-            "None of the requested frontal "
-            "channels are recording EEG."
-        )
-
-    used_original = [
-        available_original_idx[i]
-        for i in usable_frontal
-    ]
-
-    # -------------------------------------------------------------
-    # Feedback / outcome timestamps
-    # -------------------------------------------------------------
-
-    if (
-        "feedback_onset_unix_time"
-        not in events.columns
-    ):
-
-        raise KeyError(
-            "CSV is missing "
-            "feedback_onset_unix_time"
-        )
-
-    feedback_ms = pd.to_numeric(
-        events[
-            "feedback_onset_unix_time"
-        ],
-        errors="coerce",
-    ).to_numpy(float)
-
-    # -------------------------------------------------------------
-    # Feedback epochs
-    # -------------------------------------------------------------
-
-    ep_fb, t_fb, kept_fb, rej_fb = (
-        epoch_from_unix(
-            eeg_clean,
-            unix_ms,
-            srate,
-            feedback_ms,
-            FEEDBACK_EPOCH[0],
-            FEEDBACK_EPOCH[1],
-            reject_uv=EPOCH_REJECT_UV,
-            reject_ch_idx=reject_idx,
-        )
-    )
-
-    # -------------------------------------------------------------
-    # Decision timestamps
-    # -------------------------------------------------------------
-
-    if (
-        "choice_onset_unix_time"
-        not in events.columns
-    ):
-
-        raise KeyError(
-            "CSV is missing "
-            "choice_onset_unix_time"
-        )
-
-    decision_ms = pd.to_numeric(
-        events[
-            "choice_onset_unix_time"
-        ],
-        errors="coerce",
-    ).to_numpy(float)
-
-    print()
-    print("=" * 70)
-    print("DEBUG TIMESTAMP RANGES")
-    print("=" * 70)
-
-    print(
-        f"EEG start:    {unix_ms[0]}"
-    )
-
-    print(
-        f"EEG end:      {unix_ms[-1]}"
-    )
-
-    print(
-        f"Feedback min: {np.nanmin(feedback_ms)}"
-    )
-
-    print(
-        f"Feedback max: {np.nanmax(feedback_ms)}"
-    )
-
-    print(
-        f"Decision min: {np.nanmin(decision_ms)}"
-    )
-
-    print(
-        f"Decision max: {np.nanmax(decision_ms)}"
-    )
-
-    print(
-        f"EEG duration: "
-        f"{(unix_ms[-1] - unix_ms[0]) / 1000:.3f} seconds"
-    )
-
-
-    # -------------------------------------------------------------
-    # Decision epochs
-    # -------------------------------------------------------------
-
-    ep_dec, t_dec, kept_dec, rej_dec = (
-        epoch_from_unix(
-            eeg_clean,
-            unix_ms,
-            srate,
-            decision_ms,
-            DECISION_EPOCH[0],
-            DECISION_EPOCH[1],
-            reject_uv=EPOCH_REJECT_UV,
-            reject_ch_idx=reject_idx,
-        )
-    )
-
-
-    # -------------------------------------------------------------
-    # Theta
-    # -------------------------------------------------------------
-
-    theta_peak_hz = np.nan
-    theta_peak_db = np.nan
-    theta_edge = False
-
+    # Theta method 1: Specparam.
+    theta_specparam_hz = np.nan
     if len(ep_fb) > 0:
-
-        (
-            theta_peak_hz,
-            theta_peak_db,
-            theta_edge,
-            theta_spec_df,
-        ) = theta_analysis(
+        theta_specparam_hz = theta_specparam_analysis(
             ep_fb,
             t_fb,
-            srate,
-            usable_frontal,
-            1.0,
+            SRATE,
+            frontal_idx,
         )
 
-    # -------------------------------------------------------------
-    # Beta
-    # -------------------------------------------------------------
+    # Theta method 2: existing Morlet TFR peak.
+    theta_tfr_hz = np.nan
+    theta_tfr_db = np.nan
+    theta_tfr_edge = False
+    if len(ep_fb) > 0:
+        theta_tfr_hz, theta_tfr_db, theta_tfr_edge = theta_tfr_analysis(
+            ep_fb,
+            t_fb,
+            SRATE,
+            frontal_idx,
+        )
+
+    # Theta method 3: posterior individual alpha frequency minus 5 Hz.
+    theta_iaf_minus_5_hz, iaf_hz, iaf_source = iaf_minus_5_analysis(
+        eeg_clean,
+        SRATE,
+        posterior_alpha_idx,
+    )
+
+    # Final theta selection hierarchy:
+    # Specparam -> TFR -> IAF-5 -> fixed 6 Hz fallback.
+    if valid_frequency(theta_specparam_hz, THETA_SEARCH_BAND):
+        theta_stimulation_hz = theta_specparam_hz
+        theta_selection_source = "Specparam"
+    elif valid_frequency(theta_tfr_hz, THETA_SEARCH_BAND):
+        theta_stimulation_hz = theta_tfr_hz
+        theta_selection_source = "TFR"
+    elif valid_frequency(theta_iaf_minus_5_hz, THETA_SEARCH_BAND):
+        theta_stimulation_hz = theta_iaf_minus_5_hz
+        theta_selection_source = "IAF-5"
+    else:
+        theta_stimulation_hz = DEFAULT_THETA_HZ
+        theta_selection_source = "fixed 6 Hz fallback"
 
     beta_peak_hz = np.nan
     beta_peak_db = np.nan
     beta_edge = False
-
     if len(ep_dec) > 0:
-
-        (
-            beta_peak_hz,
-            beta_peak_db,
-            beta_edge,
-            beta_spec_df,
-        ) = beta_analysis(
+        beta_peak_hz, beta_peak_db, beta_edge = beta_analysis(
             ep_dec,
             t_dec,
-            srate,
-            usable_frontal,
+            SRATE,
+            frontal_idx,
         )
 
-    # -------------------------------------------------------------
-    # Artifact information
-    # -------------------------------------------------------------
+    feedback_artifacts = get_artifact_counts(rej_fb)
+    decision_artifacts = get_artifact_counts(rej_dec)
 
-    feedback_artifacts = (
-        get_artifact_counts(
-            rej_fb,
-            available_original_idx,
-        )
-    )
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    output_path = OUTPUT_DIR / f"{subject_id}-{session}_pre-stim_theta-beta.txt"
 
-    decision_artifacts = (
-        get_artifact_counts(
-            rej_dec,
-            available_original_idx,
-        )
-    )
+    roi_text = ", ".join(CHANNEL_LABELS[ch] for ch in FRONTAL_CHANNELS)
 
-    # -------------------------------------------------------------
-    # Output filename
-    # -------------------------------------------------------------
-
-    output_filename = (
-        f"{subject_id}-{session}_pre-stim_theta-beta.txt"
-    )
-
-    output_path = (
-        OUTPUT_DIR
-        / output_filename
-    )
-
-    OUTPUT_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    # -------------------------------------------------------------
-    # Create text report
-    # -------------------------------------------------------------
-
-    lines = []
-
-    lines.append(
-        "THETA / BETA FREQUENCY ESTIMATION"
-    )
-
-    lines.append(
-        "=" * 60
-    )
-
-    lines.append("")
-
-    lines.append(
-        f"Subject ID: {subject_id}"
-    )
-
-    lines.append(
-        f"Session: {session}"
-    )
-
-    lines.append("")
-
-    lines.append(
-        "INPUT FILES"
-    )
-
-    lines.append(
-        "-" * 60
-    )
-
-    lines.append(
-        f"EEG file: {eeg_file.name}"
-    )
-
-    lines.append(
-        f"Behavior file: {behavior_file.name}"
-    )
-
-    lines.append("")
-
-    lines.append(
-        "EEG PREPROCESSING"
-    )
-
-    lines.append(
-        "-" * 60
-    )
-
-    lines.append(
-        f"Sampling rate: {srate:.3f} Hz"
-    )
-
-    lines.append(
-        f"Bandpass: {HIGHPASS}-{LOWPASS} Hz"
-    )
-
-    lines.append(
-        f"Notch: {NOTCH} Hz, Q={NOTCH_Q}"
-    )
-
-    lines.append(
-        "Reference: average scalp reference"
-    )
-
-    lines.append(
-        "Reference channels: 1-7"
-    )
-
-    lines.append(
-        "EXT / cheek channel excluded"
-    )
-
-    lines.append(
-        f"Artifact threshold: ±{EPOCH_REJECT_UV:.1f} uV"
-    )
-
-    lines.append("")
-
-    lines.append(
-        "FRONTAL ROI"
-    )
-
-    lines.append(
-        "-" * 60
-    )
-
-    lines.append(
-        "Requested: channels 1, 3, 5"
-    )
-
-    lines.append(
-        "Expected montage: F3, FCz, F4"
-    )
-
-    lines.append(
-        "Actually used: "
-        + ", ".join(
-            f"{i + 1} ({CHANNEL_LABELS.get(i + 1, f'Ch{i + 1}')})"
-            for i in used_original
-        )
-    )
-
-    lines.append("")
-
-    # -------------------------------------------------------------
-    # Theta results
-    # -------------------------------------------------------------
-
-    lines.append(
-        "OUTCOME THETA"
-    )
-
-    lines.append(
-        "-" * 60
-    )
-
-    lines.append(
-        "Locking event: feedback_onset_unix_time"
-    )
-
-    lines.append(
-        "Epoch: -1.5 to +2.0 s"
-    )
-
-    lines.append(
-        "Baseline: -0.8 to -0.1 s"
-    )
-
-    lines.append(
-        "Analysis window: +0.1 to +1.0 s"
-    )
-
-    lines.append(
-        "Frequency search: 4-12 Hz"
-    )
-
-    lines.append(
-        "Morlet cycles: 5"
-    )
-
-    lines.append(
-        f"Feedback events with timestamps: "
-        f"{np.isfinite(feedback_ms).sum()}"
-    )
-
-    lines.append(
-        f"Feedback epochs retained: "
-        f"{len(ep_fb)}"
-    )
-
-    lines.append(
-        f"Feedback epochs rejected for artifact: "
-        f"{rej_fb['artifact']}"
-    )
-
-    lines.append(
-        f"Feedback epochs rejected for bounds: "
-        f"{rej_fb['out_of_bounds']}"
-    )
-
-    lines.append("")
-
-    if np.isfinite(theta_peak_hz):
-
-        lines.append(
-            f"THETA PEAK: {theta_peak_hz:.2f} Hz"
-        )
-
-        lines.append(
-            f"Peak dB change: {theta_peak_db:.3f} dB"
-        )
-
-        lines.append(
-            "Peak at band edge: "
-            + (
-                "YES"
-                if theta_edge
-                else "NO"
-            )
-        )
-
-    else:
-
-        lines.append(
-            "THETA PEAK: unavailable"
-        )
-
-    lines.append("")
-
-    lines.append(
-        "Feedback artifact breakdown:"
-    )
+    lines = [
+        "THETA / BETA RESULTS",
+        "=" * 50,
+        f"Subject: {subject_id} | Session: {session}",
+        f"EEG: {eeg_file.name}",
+        f"Behavior: {behavior_file.name}",
+        "",
+        "QC / TROUBLESHOOTING",
+        "-" * 50,
+        f"Sampling rate: {SRATE:g} Hz (hard-coded)",
+        f"Frontal ROI: {roi_text}",
+        f"Artifact threshold: ±{EPOCH_REJECT_UV:g} uV",
+        (
+            "Feedback: "
+            f"{np.isfinite(feedback_ms).sum()} valid events | "
+            f"{len(ep_fb)} retained | "
+            f"{rej_fb['artifact']} artifact | "
+            f"{rej_fb['out_of_bounds']} bounds | "
+            f"{rej_fb['missing_timestamp']} missing timestamp"
+        ),
+        (
+            "Decision: "
+            f"{np.isfinite(decision_ms).sum()} valid events | "
+            f"{len(ep_dec)} retained | "
+            f"{rej_dec['artifact']} artifact | "
+            f"{rej_dec['out_of_bounds']} bounds | "
+            f"{rej_dec['missing_timestamp']} missing timestamp"
+        ),
+    ]
 
     if feedback_artifacts:
-
-        for channel, count in sorted(
-            feedback_artifacts.items()
-        ):
-
-            lines.append(
-                f"  {channel}: "
-                f"{count} rejected epochs"
-            )
-
-    else:
-
-        lines.append(
-            "  None"
+        fb_breakdown = ", ".join(
+            f"{channel}={count}" for channel, count in sorted(feedback_artifacts.items())
         )
-
-    lines.append("")
-
-    # -------------------------------------------------------------
-    # Beta results
-    # -------------------------------------------------------------
-
-    lines.append(
-        "DECISION BETA ERD"
-    )
-
-    lines.append(
-        "-" * 60
-    )
-
-    lines.append(
-        "Locking event: choice_onset_unix_time"
-    )
-
-    lines.append(
-        "Epoch: -1.5 to +0.5 s"
-    )
-
-    lines.append(
-        "Baseline: -1.5 to -1.0 s"
-    )
-
-    lines.append(
-        "Analysis window: -1.0 to -0.1 s"
-    )
-
-    lines.append(
-        "Frequency search: 13-30 Hz"
-    )
-
-    lines.append(
-        "Morlet cycles: 5"
-    )
-
-    lines.append(
-        f"Decision events with timestamps: "
-        f"{np.isfinite(decision_ms).sum()}"
-    )
-
-    lines.append(
-        f"Decision epochs retained: "
-        f"{len(ep_dec)}"
-    )
-
-    lines.append(
-        f"Decision timestamps missing: "
-        f"{rej_dec['missing_timestamp']}"
-    )
-
-    lines.append(
-        f"Decision epochs rejected for artifact: "
-        f"{rej_dec['artifact']}"
-    )
-
-    lines.append(
-        f"Decision epochs rejected for bounds: "
-        f"{rej_dec['out_of_bounds']}"
-    )
-
-    lines.append("")
-
-    if np.isfinite(beta_peak_hz):
-
-        lines.append(
-            f"BETA ERD PEAK: "
-            f"{beta_peak_hz:.2f} Hz"
-        )
-
-        lines.append(
-            f"Peak dB change: "
-            f"{beta_peak_db:.3f} dB"
-        )
-
-        lines.append(
-            "Peak at band edge: "
-            + (
-                "YES"
-                if beta_edge
-                else "NO"
-            )
-        )
-
-    else:
-
-        lines.append(
-            "BETA ERD PEAK: unavailable"
-        )
-
-    lines.append("")
-
-    lines.append(
-        "Decision artifact breakdown:"
-    )
+        lines.append(f"Feedback artifact channels: {fb_breakdown}")
 
     if decision_artifacts:
-
-        for channel, count in sorted(
-            decision_artifacts.items()
-        ):
-
-            lines.append(
-                f"  {channel}: "
-                f"{count} rejected epochs"
-            )
-
-    else:
-
-        lines.append(
-            "  None"
+        dec_breakdown = ", ".join(
+            f"{channel}={count}" for channel, count in sorted(decision_artifacts.items())
         )
+        lines.append(f"Decision artifact channels: {dec_breakdown}")
 
-    lines.append("")
-
-    # -------------------------------------------------------------
-    # Final recommended frequencies
-    # -------------------------------------------------------------
-
-    lines.append(
-        "INDIVIDUALIZED FREQUENCIES"
+    lines.extend(
+        [
+            "",
+            "THETA",
+            "=" * 50,
+            f"Band: {format_band(THETA_SEARCH_BAND)} | Feedback window: {format_window(FEEDBACK_ANALYSIS)}",
+        ]
     )
 
+    if not SPECPARAM_AVAILABLE:
+        lines.append("Specparam: UNAVAILABLE (specparam not installed)")
+    elif np.isfinite(theta_specparam_hz):
+        lines.append(f"Specparam theta: {theta_specparam_hz:.2f} Hz")
+    else:
+        lines.append("Specparam theta: NO MODELED PEAK")
+
+    if np.isfinite(theta_tfr_hz):
+        edge_text = " | BAND EDGE" if theta_tfr_edge else ""
+        lines.append(
+            f"TFR theta: {theta_tfr_hz:.2f} Hz | {theta_tfr_db:.3f} dB{edge_text}"
+        )
+    else:
+        lines.append("TFR theta: UNAVAILABLE")
+
+    if np.isfinite(theta_iaf_minus_5_hz):
+        lines.append(
+            f"IAF-5 theta: {theta_iaf_minus_5_hz:.2f} Hz "
+            f"(IAF: {iaf_hz:.2f} Hz via {iaf_source})"
+        )
+    else:
+        lines.append("IAF-5 theta: UNAVAILABLE")
+
     lines.append(
-        "=" * 60
+        f"Selected theta: {theta_stimulation_hz:.2f} Hz via {theta_selection_source}"
     )
 
-    if np.isfinite(theta_peak_hz):
-
-        lines.append(
-            f"Theta stimulation frequency: "
-            f"{theta_peak_hz:.2f} Hz"
-        )
-
-    else:
-
-        lines.append(
-            "Theta stimulation frequency: "
-            "UNAVAILABLE"
-        )
+    lines.extend(
+        [
+            "",
+            "BETA",
+            "=" * 50,
+            f"Band: {format_band(BETA_SEARCH_BAND)} | Decision window: {format_window(DECISION_ANALYSIS)}",
+        ]
+    )
 
     if np.isfinite(beta_peak_hz):
-
+        edge_text = " | BAND EDGE" if beta_edge else ""
         lines.append(
-            f"Beta stimulation frequency: "
-            f"{beta_peak_hz:.2f} Hz"
+            f"TFR beta ERD: {beta_peak_hz:.2f} Hz | {beta_peak_db:.3f} dB{edge_text}"
         )
-
     else:
+        lines.append("TFR beta ERD: UNAVAILABLE")
 
-        lines.append(
-            "Beta stimulation frequency: "
-            "UNAVAILABLE"
-        )
-
-    lines.append("")
-
-    lines.append(
-        "END OF REPORT"
+    # Machine-readable lines for the downstream stimulation script.
+    lines.extend(
+        [
+            "",
+            "STIMULATION FREQUENCIES",
+            "=" * 50,
+            f"Theta stimulation frequency: {theta_stimulation_hz:.2f} Hz",
+            (
+                f"Beta stimulation frequency: {beta_peak_hz:.2f} Hz"
+                if np.isfinite(beta_peak_hz)
+                else "Beta stimulation frequency: UNAVAILABLE"
+            ),
+        ]
     )
 
-    # -------------------------------------------------------------
-    # Write file
-    # -------------------------------------------------------------
-
-    with open(
-        output_path,
-        "w",
-        encoding="utf-8",
-    ) as f:
-
-        f.write(
-            "\n".join(lines)
-        )
-
-    # -------------------------------------------------------------
-    # Console output
-    # -------------------------------------------------------------
+    output_path.write_text("\n".join(lines), encoding="utf-8")
 
     print()
     print("=" * 70)
     print("RESULTS")
     print("=" * 70)
-
+    print(f"Subject: {subject_id}")
+    print(f"Session: {session}")
     print(
-        f"Subject: {subject_id}"
+        f"Outcome theta peak (Specparam): {theta_specparam_hz:.2f} Hz"
+        if np.isfinite(theta_specparam_hz)
+        else "Outcome theta peak (Specparam): unavailable"
     )
-
     print(
-        f"Session: {session}"
+        f"Outcome theta peak (TFR): {theta_tfr_hz:.2f} Hz"
+        if np.isfinite(theta_tfr_hz)
+        else "Outcome theta peak (TFR): unavailable"
     )
-
-    if np.isfinite(theta_peak_hz):
-
-        print(
-            f"Outcome theta peak: "
-            f"{theta_peak_hz:.2f} Hz"
-        )
-
-    else:
-
-        print(
-            "Outcome theta peak: unavailable"
-        )
-
-    if np.isfinite(beta_peak_hz):
-
-        print(
-            f"Decision beta ERD peak: "
-            f"{beta_peak_hz:.2f} Hz"
-        )
-
-    else:
-
-        print(
-            "Decision beta ERD peak: unavailable"
-        )
-
+    print(
+        f"Theta IAF-5: {theta_iaf_minus_5_hz:.2f} Hz "
+        f"(IAF {iaf_hz:.2f} Hz via {iaf_source})"
+        if np.isfinite(theta_iaf_minus_5_hz)
+        else "Theta IAF-5: unavailable"
+    )
+    print(
+        f"Selected theta stimulation frequency: {theta_stimulation_hz:.2f} Hz "
+        f"({theta_selection_source})"
+    )
+    print(
+        f"Decision beta ERD peak: {beta_peak_hz:.2f} Hz"
+        if np.isfinite(beta_peak_hz)
+        else "Decision beta ERD peak: unavailable"
+    )
     print()
-    print(
-        f"Saved: {output_path}"
-    )
+    print(f"Saved: {output_path}")
 
     return output_path
 
 
 # =====================================================================
-# GUI ERROR/SUCCESS WRAPPER
+# GUI ERROR / SUCCESS WRAPPER
 # =====================================================================
 
+
 def main():
-
-    # -------------------------------------------------------------
-    # Ask for subject/session
-    # -------------------------------------------------------------
-
-    subject_id, session = (
-        get_subject_and_session()
-    )
+    subject_id, session = get_subject_and_session()
 
     if subject_id is None:
-        print(
-            "Analysis cancelled."
-        )
+        print("Analysis cancelled.")
         return
 
     try:
-
-        output_path = run_analysis(
-            subject_id,
-            session,
-        )
-
-    except Exception as e:
-
-        # Show the error in a GUI dialog.
-
+        output_path = run_analysis(subject_id, session)
+    except Exception as exc:
         root = tk.Tk()
         root.withdraw()
-
-        messagebox.showerror(
-            "Analysis Error",
-            str(e),
-        )
-
+        messagebox.showerror("Analysis Error", str(exc))
         root.destroy()
-
         raise
-
-    # -------------------------------------------------------------
-    # Success dialog
-    # -------------------------------------------------------------
 
     root = tk.Tk()
     root.withdraw()
-
     messagebox.showinfo(
         "Analysis Complete",
-        "Theta/beta analysis completed.\n\n"
-        f"Output:\n{output_path}",
+        f"Theta/beta analysis completed.\n\nOutput:\n{output_path}",
     )
-
     root.destroy()
 
-
-# =====================================================================
-# RUN
-# =====================================================================
 
 if __name__ == "__main__":
     main()
