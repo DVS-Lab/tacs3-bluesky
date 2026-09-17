@@ -89,7 +89,7 @@
    </Channel>
    <Channel>
     <index>8</index>
-    <location>EOG1</location>
+    <location>EXT</location>
     <electrodeType>1</electrodeType>
     <atdcsValue>0</atdcsValue>
     <atacsValue>0</atacsValue>
