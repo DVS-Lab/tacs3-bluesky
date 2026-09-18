@@ -1,0 +1,33 @@
+THETA / BETA RESULTS
+==================================================
+Subject: 10052 | Session: 1
+EEG: 20260917145125_10052-1_Bandit_pre-stim.easy
+Behavior: sub-10052-1_task-bandit_pre-stim_2026-09-17_14-49-57.csv
+
+QC / TROUBLESHOOTING
+--------------------------------------------------
+Sampling rate: 500 Hz (hard-coded)
+Frontal ROI: F3, FCz, F4
+Artifact threshold: ±200 uV
+Feedback: 120 valid events | 101 retained | 9 artifact | 10 bounds | 0 missing timestamp
+Decision: 119 valid events | 104 retained | 6 artifact | 9 bounds | 1 missing timestamp
+Feedback artifact channels: Fp1=9
+Decision artifact channels: Fp1=6
+
+THETA
+==================================================
+Band: 4-8 Hz | Feedback window: +0.1 to +1.5 s
+Specparam theta: NO MODELED PEAK
+TFR theta: 4.00 Hz | 0.053 dB | BAND EDGE
+IAF-5 theta: 4.00 Hz (IAF: 8.00 Hz via power)
+Selected theta: 4.00 Hz via TFR
+
+BETA
+==================================================
+Band: 13-30 Hz | Decision window: -1.0 to -0.1 s
+TFR beta ERD: 24.50 Hz | -0.754 dB
+
+STIMULATION FREQUENCIES
+==================================================
+Theta stimulation frequency: 4.00 Hz
+Beta stimulation frequency: 24.50 Hz
