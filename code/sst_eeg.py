@@ -1290,37 +1290,57 @@ class SSTTask:
             )
 
             # ==========================================================
-            # INSTRUCTION SCREEN
+            # ==========================================================
+            # INSTRUCTION SCREENS
             # ==========================================================
 
-            wait_msg = visual.TextStim(
-                win,
-                text=(
-                    f"Stop Signal Task — "
-                    f"{self.run_label}\n\n"
-                    "Please wait for the experimenter "
-                    "to start the task.\n\n"
-                    "Press 1 when the arrow points LEFT.\n"
-                    "Press 0 when the arrow points RIGHT.\n"
-                    "Respond as quickly as possible.\n\n"
-                    "If the arrow turns RED, try to stop "
-                    "yourself from pressing anything.\n\n"
-                    "Press SPACE to begin"
+            instruction_pages = [
+                (
+                    "Stop Signal Task\n\n"
+                    "Welcome to the Stop-Signal Task!\n\n"
+                    "Press SPACE to continue."
                 ),
-                color="white",
-                height=36,
-                wrapWidth=900,
-            )
+                (
+                    "Your task is to respond to the black arrows "
+                    "that appear on the screen.\n\n"
+                    "When you see a LEFT ARROW, press 1 with your "
+                    "index finger.\n\n"
+                    "When you see a RIGHT ARROW, press 2 with your "
+                    "middle finger.\n\n"
+                    "Press SPACE to continue."
+                ),
+                (
+                    "On some trials, a RED ARROW will appear shortly "
+                    "after the black arrow.\n\n"
+                    "When this happens, you should refrain from responding.\n\n"
+                    "Press SPACE to continue."
+                ),
+                (
+                    "On some trials where you see a RED ARROW, it will "
+                    "appear very quickly.\n\n"
+                    "On other trials, it will take longer to appear, "
+                    "and it will be difficult to refrain from responding.\n\n"
+                    "Press SPACE to continue."
+                ),
+                (
+                    "Try to respond as soon as you see the black arrow.\n\n"
+                    "Press SPACE to begin."
+                ),
+            ]
 
-            # ==========================================================
-            # WAIT FOR START
-            # ==========================================================
+            for page_text in instruction_pages:
 
-            if not self._show_waiting_screen(
-                wait_msg
-            ):
+                instruction_stim = visual.TextStim(
+                    win,
+                    text=page_text,
+                    color="white",
+                    height=36,
+                    wrapWidth=900,
+                    alignText="center",
+                )
 
-                return
+                if not self._show_waiting_screen(instruction_stim):
+                    return
 
             # ==========================================================
             # START EEG RECORDING
