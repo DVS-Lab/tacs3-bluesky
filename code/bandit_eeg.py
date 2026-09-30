@@ -644,6 +644,7 @@ class BanditTask:
             [
                  f"Two-Armed Bandit Task — {self.run_label}",
             "",
+            "This run will last 5 minutes"
             "Please wait for the experimenter",
             "to start the task, then",
             "",
