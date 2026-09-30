@@ -10,12 +10,16 @@ useDualScreen = 1
 DEBUG = False
 
 #  SETUP
-info = {'Subject Number': ''}
+info = {'Subject Number': '',
+        'Session': '',
+        'Run': ''}
 dlg = gui.DlgFromDict(info, title="Stop Signal Task with Gambling")
 if not dlg.OK:
     core.quit()
 
 sub_number = info['Subject Number']
+ses_number = info['Session']
+run_number = info['Run']
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 #  WINDOW AND STIMULI
@@ -63,7 +67,7 @@ for run_number in range(1, 4):
         'go_correct', 'go_incorrect', 'go_miss', 'stop_success',
         'stop_failure_arrowcorrect'
     ]
-    base = os.path.join(log_dir, f"sub-{sub_number}_task-SST_run-{run_number}_events")
+    base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_task-SST_run-{run_number}_events")
     tsv_filename = base + ".tsv"
     csv_filename = base + ".csv"
 
@@ -83,7 +87,7 @@ for run_number in range(1, 4):
     #  INSTRUCTIONS (run 1 only)
     if run_number == 1:
         instruction_texts = [
-            "Welcome to the Stop-Signal Task!\n\nPress the Space.",
+            "Welcome to the Stop-Signal Task!\n\nPress Space to continue.",
             
             "Your task is to respond to the black arrows that appear on the screen.",
             
