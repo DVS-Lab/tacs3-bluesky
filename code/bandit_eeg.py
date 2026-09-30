@@ -584,7 +584,7 @@ class BanditTask:
             )
         return self._flower_stim_cache[flower_id]
 
-        def _show_instructions(self) -> bool:
+    def _show_instructions(self) -> bool:
         full_instruction_pages = [
             [
                 "Welcome to the Two-Armed Bandit task!",
@@ -722,6 +722,7 @@ class BanditTask:
                 core.wait(0.01)
 
         return True
+
 
 
     def _show_waiting_screen(self) -> bool:
