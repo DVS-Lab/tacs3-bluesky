@@ -83,11 +83,11 @@ for run_number in range(1, 4):
     #  INSTRUCTIONS (run 1 only)
     if run_number == 1:
         instruction_texts = [
-            "Welcome to the Stop-Signal Task!\n\nPress the blue button with your index finger to continue.",
+            "Welcome to the Stop-Signal Task!\n\nPress the Space.",
             
             "Your task is to respond to the black arrows that appear on the screen.",
             
-            "Press the blue button with your index finger when you see a LEFT ARROW.\n\nPress the yellow button with your middle finger when you see a RIGHT ARROW.",
+            "Press 1 when you see a LEFT ARROW.\n\nPress 0 when you see a RIGHT ARROW.",
             
             "Respond as QUICKLY and ACCURATELY as possible when you see the black arrow.",
             
@@ -97,11 +97,11 @@ for run_number in range(1, 4):
             
             "Do not wait for the red arrow to appear.\n\nAlways respond as quickly as possible to the black arrow.\n\nThe red arrow is unpredictable.",
             
-            "At the beginning of each round, you will be given the option to bet a portion of your $20 endowment.",
+            "At the beginning of each round, you will be given the option to bet a portion of your $10 endowment.",
             
             "To be eligible for the bonus that round, you must:\n\n- Respond correctly on at least 90% of black arrow trials\n\n- Successfully stop on at least 50% of red arrow trials\n\n- Keep your average response time under 500ms on black arrow trials\n\nIf you meet all criteria, your bet will be doubled.",
             
-            "If you don't bet your entire $20 endowment, the remaining amount will automatically be added to your bonus payment.",
+            "If you don't bet your entire $10 endowment, the remaining amount will automatically be added to your bonus payment.",
             
             "On the next screen, you will be asked how much you would like to bet.\n\nDo you have any questions?"
         ]
@@ -112,7 +112,7 @@ for run_number in range(1, 4):
             event.clearEvents()
             while True:
                 keys = event.getKeys()
-                if '1' in keys:
+                if 'space' in keys:
                     break
                 elif 'z' in keys:
                     save_and_quit()
@@ -125,7 +125,7 @@ for run_number in range(1, 4):
             "• Successfully stop on at least 50% of red arrow (stop) trials\n\n"
             "• Keep your average response time under 500 ms on go trials\n\n"
             "If you meet all criteria, your bet will be doubled.\n\n"
-            "Press the blue button to continue."
+            "Press the space button to continue."
         )
         reminder = visual.TextStim(win, text=reminder_text, color='white', height=32, wrapWidth=700)
         reminder.draw()
@@ -142,12 +142,12 @@ for run_number in range(1, 4):
     title = visual.TextStim(win, text="How much would you like to bet for this round?",
                             color='white', height=36, pos=(0, 120))
     opt0  = visual.TextStim(win, text="$0",  color='white', height=48, pos=(-220, 40))
-    opt10 = visual.TextStim(win, text="$10", color='white', height=48, pos=(0, 40))
-    opt20 = visual.TextStim(win, text="$20", color='white', height=48, pos=(220, 40))
+    opt10 = visual.TextStim(win, text="$5", color='white', height=48, pos=(0, 40))
+    opt20 = visual.TextStim(win, text="$10", color='white', height=48, pos=(220, 40))
     prompt = visual.TextStim(win, text="Press:", color='white', height=28, pos=(0, -40))
-    lab_pointer = visual.TextStim(win, text="Pointer (Blue)",  color='blue', height=28, pos=(0, -90))
-    lab_middle  = visual.TextStim(win, text="Middle (Yellow)", color='yellow', height=28, pos=(0, -130))
-    lab_ring    = visual.TextStim(win, text="Ring (Green)",    color='green', height=28, pos=(0, -170))
+    lab_pointer = visual.TextStim(win, text="1",  color='blue', height=28, pos=(0, -90))
+    lab_middle  = visual.TextStim(win, text="2", color='yellow', height=28, pos=(0, -130))
+    lab_ring    = visual.TextStim(win, text="3",    color='green', height=28, pos=(0, -170))
 
     for stim in (title, opt0, opt10, opt20, prompt, lab_pointer, lab_middle, lab_ring):
         stim.draw()
@@ -182,7 +182,7 @@ for run_number in range(1, 4):
     # PARAMETERS
     n_trials = 74
     stop_prob = 0.30
-    response_keys = ['1', '2']
+    response_keys = ['1', '0']
     exit_key = 'z'
     ssd = 0.25
     ssd_step = 0.05
@@ -230,7 +230,7 @@ for run_number in range(1, 4):
 
     # WAIT FOR START
     start_msg = visual.TextStim(win,
-        text="Please wait for this round of the game to begin.\n\n Remember to keep your head still, and respond as soon as you see the black arrow.\n\nDo not wait for the red arrow to appear.",
+        text="Please wait for the experimenter. When they are ready, press the = sign to start the task.\n\n Remember to respond as soon as you see the black arrow.\n\nDo not wait for the red arrow to appear.",
         color='white', height=36)
     start_msg.draw()
     win.flip()
@@ -319,7 +319,7 @@ for run_number in range(1, 4):
         iti_offset = global_clock.getTime()
 
         # Outcomes
-        expected_key = '1' if direction == 'left' else '2'
+        expected_key = '1' if direction == 'left' else '0'
         go_correct = 0
         go_incorrect = 0
         go_miss = 0
