@@ -642,47 +642,14 @@ class BanditTask:
 
         short_instruction_pages = [
             [
-                "Welcome back to the Two-Armed Bandit task!",
-                "",
-                "You will see two flowers on the screen.",
-                "",
-                "Each round, choose one of the two flowers.",
-                "",
-                "Use 1 to choose the flower on the left.",
-                "Use 0 to choose the flower on the right.",
-                "",
-                "You will only have a few seconds to make your decision.",
-                "Try to respond as quickly as possible.",
-                "",
-                "Press SPACE to continue.",
-            ],
-            [
-                "After making your choice, you will receive feedback.",
-                "",
-                "You can either receive a prize or receive nothing.",
-                "",
-                "One flower is more likely to give you a prize,",
-                "and this may occasionally change during the game.",
-                "",
-                "Your goal is to earn as many prizes as you can.",
-                "",
-                "Press SPACE to continue.",
-            ],
-            [
-                "When you receive a prize, you will see:",
-                "",
-            ],
-            [
-                "When you receive nothing, you will see:",
-                "",
-            ],
-            [
-                "You will see the same two flowers for this run.",
-                "",
-                "Do you have any questions?",
-                "",
-                "Press SPACE to continue.",
-            ],
+                 f"Two-Armed Bandit Task — {self.run_label}",
+            "",
+            "Please wait for the experimenter",
+            "to start the task, then",
+            "",
+            "Please wait for the experimenter to begin the task",
+            "Press ESC to exit",
+        ]
         ]
 
         if self.visit_phase == "pre-stim":
