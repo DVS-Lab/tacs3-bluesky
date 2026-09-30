@@ -584,141 +584,216 @@ class BanditTask:
             )
         return self._flower_stim_cache[flower_id]
 
-    def _show_instructions(self) -> bool:
-         full_instruction_pages = [
-        [
-            "Welcome to the Two-Armed Bandit task!",
-            "",
-            "In this game, you will see two flowers on the screen.",
-            "",
-            "Each round, you will choose one of the two flowers",
-            "and then receive feedback about your choice.",
-            "",
-            "Use 1 to choose the flower on the left.",
-            "Use 0 to choose the flower on the right.",
-            "",
-            "You will only have a few seconds to make your decision.",
-            "Try to respond as quickly as possible.",
-            "",
-            "Press SPACE to continue.",
-        ],
-        [
-            "After making your choice, you will receive feedback",
-            "based on your decision.",
-            "",
-            "You can either receive a prize or receive nothing.",
-            "",
-            "Press SPACE to continue.",
-        ],
-        [
-            "When you receive a prize, you will see:",
-            "",
-        ],
-        [
-            "When you receive nothing, you will see:",
-            "",
-        ],
-        [
-            "One of these flowers is more likely to give you a prize,",
-            "and this flower may occasionally change during the game.",
-            "",
-            "Your goal is to earn as many prizes as you can.",
-            "",
-            "Press SPACE to continue.",
-        ],
-        [
-            "At the end of the study, the number of prizes you earn",
-            "will be used to calculate your bonus payment.",
-            "",
-            "This run of the game will last about 10 minutes.",
-            "",
-            "You will see the same two flowers for this run.",
-            "",
-            "Do you have any questions?",
-            "",
-            "Press SPACE to continue.",
-        ],
-    ]
+      def _show_instructions(self) -> bool:
+        full_instruction_pages = [
+            [
+                "Welcome to the Two-Armed Bandit task!",
+                "",
+                "In this game, you will see two flowers on the screen.",
+                "",
+                "Each round, you will choose one of the two flowers",
+                "and then receive feedback about your choice.",
+                "",
+                "Use 1 to choose the flower on the left.",
+                "Use 0 to choose the flower on the right.",
+                "",
+                "You will only have a few seconds to make your decision.",
+                "Try to respond as quickly as possible.",
+                "",
+                "Press SPACE to continue.",
+            ],
 
-    short_instruction_pages = [
-        [
-            "Welcome back to the Two-Armed Bandit task!",
-            "",
-            "You will see two flowers and choose one on each trial.",
-            "",
-            "Use 1 to choose the flower on the left.",
-            "Use 0 to choose the flower on the right.",
-            "",
-            "Try to respond as quickly as possible.",
-            "",
-            "Press SPACE to continue.",
-        ],
-        [
-            "You will receive feedback after each choice.",
-            "",
-            "One flower is more likely to give you a prize,",
-            "and the better flower may occasionally change.",
-            "",
-            "Your goal is to earn as many prizes as you can.",
-            "",
-            "Press SPACE to continue.",
-        ],
-        [
-            "When you receive a prize, you will see:",
-            "",
-        ],
-        [
-            "When you receive nothing, you will see:",
-            "",
-        ],
-        [
-            "You will see the same two flowers for this run.",
-            "",
-            "Do you have any questions?",
-            "",
-            "Press SPACE to continue.",
-        ],
-    ]
+            [
+                "After making your choice, you will receive feedback",
+                "based on your decision.",
+                "",
+                "You can either receive a prize or receive nothing.",
+                "",
+                "Press SPACE to continue.",
+            ],
 
-    # Full instructions at the beginning of the visit;
-    # shortened instructions at the end of the visit.
-    if self.visit_phase == "pre-stim":
-        instruction_pages = full_instruction_pages
-    else:
-        instruction_pages = short_instruction_pages
+            [
+                "When you receive a prize, you will see:",
+                "",
+            ],
 
-    for page_num, page in enumerate(instruction_pages):
-        lines = page
+            [
+                "When you receive nothing, you will see:",
+                "",
+            ],
+
+            [
+                "One of these flowers is more likely to give you a prize,",
+                "and this flower may occasionally change during the game.",
+                "",
+                "Your goal is to earn as many prizes as you can.",
+                "",
+                "Press SPACE to continue.",
+            ],
+
+            [
+                "At the end of the study, the number of prizes you earn",
+                "will be used to calculate your bonus payment.",
+                "",
+                "This run of the game will last about 5 minutes.",
+                "",
+                "You will see the same two flowers for this run.",
+                "",
+                "Do you have any questions?",
+                "",
+                "Press SPACE to continue.",
+            ],
+        ]
+
+        short_instruction_pages = [
+            [
+                "Welcome back to the Two-Armed Bandit task!",
+                "",
+                "You will see two flowers on the screen.",
+                "",
+                "Each round, choose one of the two flowers.",
+                "",
+                "Use 1 to choose the flower on the left.",
+                "Use 0 to choose the flower on the right.",
+                "",
+                "You will only have a few seconds to make your decision.",
+                "Try to respond as quickly as possible.",
+                "",
+                "Press SPACE to continue.",
+            ],
+
+            [
+                "After making your choice, you will receive feedback.",
+                "",
+                "You can either receive a prize or receive nothing.",
+                "",
+                "One flower is more likely to give you a prize,",
+                "and this may occasionally change during the game.",
+                "",
+                "Your goal is to earn as many prizes as you can.",
+                "",
+                "Press SPACE to continue.",
+            ],
+
+            [
+                "When you receive a prize, you will see:",
+                "",
+            ],
+
+            [
+                "When you receive nothing, you will see:",
+                "",
+            ],
+
+            [
+                "You will see the same two flowers for this run.",
+                "",
+                "Do you have any questions?",
+                "",
+                "Press SPACE to continue.",
+            ],
+        ]
+
+        if self.visit_phase == "pre-stim":
+            instruction_pages = full_instruction_pages
+        else:
+            instruction_pages = short_instruction_pages
+
+        for page_num, page in enumerate(instruction_pages):
+            lines = page
+
+            self._instructions_stim.text = "\n".join(lines)
+            self._instructions_stim.draw()
+
+            # Prize image on its own screen
+            if page_num == 2:
+                self._instruction_win_stim.draw()
+
+            # Nothing/loss image on its own screen
+            elif page_num == 3:
+                self._instruction_loss_stim.draw()
+
+            self.win.flip()
+
+            if self.auto_respond:
+                core.wait(0.05)
+                continue
+
+            while True:
+                keys = event.getKeys(keyList=["space", "escape"])
+
+                if "space" in keys:
+                    break
+
+                if "escape" in keys:
+                    return False
+
+                core.wait(0.01)
+
+        return True
+
+
+    def _show_waiting_screen(self) -> bool:
+        lines = [
+            f"Two-Armed Bandit Task — {self.run_label}",
+            "",
+            "Please wait for the experimenter",
+            "to start the task, then",
+            "",
+            "Press SPACE to begin",
+            "Press ESC to exit",
+        ]
 
         self._instructions_stim.text = "\n".join(lines)
         self._instructions_stim.draw()
-
-        # Prize image
-        if page_num == 2:
-            self._instruction_win_stim.draw()
-
-        # Nothing/loss image
-        elif page_num == 3:
-            self._instruction_loss_stim.draw()
-
         self.win.flip()
 
         if self.auto_respond:
             core.wait(0.05)
-            continue
+            return True
+
+        listen_lsl = (not self.cli_args.localizer) and self.lsl_trigger is not None
 
         while True:
             keys = event.getKeys(keyList=["space", "escape"])
 
             if "space" in keys:
-                break
+                return True
 
             if "escape" in keys:
                 return False
 
+            if listen_lsl:
+                try:
+                    marker_code, _ = self.lsl_trigger.marker_queue.get_nowait()
+
+                    if marker_code == self.lsl_trigger.TASK_START_MARKER:
+                        print(f"LSL: marker {marker_code} received. Starting task.")
+                        return True
+
+                except queue.Empty:
+                    pass
+
             core.wait(0.01)
 
-    return True
+
+    def _show_start_buffer(self) -> bool:
+        if self.auto_respond:
+            core.wait(0.05)
+            return True
+
+        self.fixation.draw()
+        self.win.flip()
+
+        clock = core.Clock()
+
+        while clock.getTime() < PRE_RUN_BUFFER_SEC:
+            if event.getKeys(keyList=["escape"]):
+                return False
+
+            core.wait(0.01)
+
+        return True
 
 
     def _show_waiting_screen(self) -> bool:
