@@ -1,6 +1,6 @@
 {
   "experiment": {
-    "run_duration_minutes": 6
+    "run_duration_minutes": 5
   },
   "task": {
     "min_trials_same_contingency": 20,
