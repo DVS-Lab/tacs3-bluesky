@@ -584,7 +584,7 @@ class BanditTask:
             )
         return self._flower_stim_cache[flower_id]
 
-            def _show_instructions(self) -> bool:
+        def _show_instructions(self) -> bool:
         full_instruction_pages = [
             [
                 "Welcome to the Two-Armed Bandit task!",
@@ -722,6 +722,78 @@ class BanditTask:
                 core.wait(0.01)
 
         return True
+
+
+    def _show_waiting_screen(self) -> bool:
+        lines = [
+            f"Two-Armed Bandit Task — {self.run_label}",
+            "",
+            "Please wait for the experimenter",
+            "to start the task, then",
+            "",
+            "Press SPACE to begin",
+            "Press ESC to exit",
+        ]
+
+        self._instructions_stim.text = "\n".join(lines)
+        self._instructions_stim.draw()
+        self.win.flip()
+
+        if self.auto_respond:
+            core.wait(0.05)
+            return True
+
+        listen_lsl = (
+            (not self.cli_args.localizer)
+            and self.lsl_trigger is not None
+        )
+
+        while True:
+            keys = event.getKeys(keyList=["space", "escape"])
+
+            if "space" in keys:
+                return True
+
+            if "escape" in keys:
+                return False
+
+            if listen_lsl:
+                try:
+                    marker_code, _ = (
+                        self.lsl_trigger.marker_queue.get_nowait()
+                    )
+
+                    if marker_code == self.lsl_trigger.TASK_START_MARKER:
+                        print(
+                            f"LSL: marker {marker_code} received. "
+                            "Starting task."
+                        )
+                        return True
+
+                except queue.Empty:
+                    pass
+
+            core.wait(0.01)
+
+
+    def _show_start_buffer(self) -> bool:
+        if self.auto_respond:
+            core.wait(0.05)
+            return True
+
+        self.fixation.draw()
+        self.win.flip()
+
+        clock = core.Clock()
+
+        while clock.getTime() < PRE_RUN_BUFFER_SEC:
+            if event.getKeys(keyList=["escape"]):
+                return False
+
+            core.wait(0.01)
+
+        return True
+
 
 
     def _show_waiting_screen(self) -> bool:
