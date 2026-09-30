@@ -1303,10 +1303,8 @@ class SSTTask:
                 (
                     "Your task is to respond to the black arrows "
                     "that appear on the screen.\n\n"
-                    "When you see a LEFT ARROW, press 1 with your "
-                    "index finger.\n\n"
-                    "When you see a RIGHT ARROW, press 2 with your "
-                    "middle finger.\n\n"
+                    "When you see a LEFT ARROW, press 1"
+                    "When you see a RIGHT ARROW, press 0"
                     "Press SPACE to continue."
                 ),
                 (

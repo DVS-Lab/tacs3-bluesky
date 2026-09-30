@@ -970,8 +970,8 @@ class SSTTask:
                     f"Stop Signal Task — "
                     f"{self.run_label}\n\n"
                     "to start the task.\n\n"
-                    "Press A when the arrow points LEFT.\n"
-                    "Press L when the arrow points RIGHT.\n"
+                    "Press 1 when the arrow points LEFT.\n"
+                    "Press 0 when the arrow points RIGHT.\n"
                     "Respond as quickly as possible.\n\n"
                     "If the arrow turns RED, try to stop "
                     "yourself from pressing anything.\n\n"
@@ -1041,9 +1041,9 @@ class SSTTask:
                 )
 
                 expected_key = (
-                    "a"
+                    "1"
                     if direction == "left"
-                    else "l"
+                    else "0"
                 )
 
                 isi = random.uniform(
@@ -1140,9 +1140,9 @@ class SSTTask:
                                 if random.random()
                                 < 0.95
                                 else (
-                                    "l"
-                                    if expected_key == "a"
-                                    else "a"
+                                    "0"
+                                    if expected_key == "1"
+                                    else "1"
                                 )
                             )
 
@@ -1161,8 +1161,8 @@ class SSTTask:
 
                         keys = event.getKeys(
                             keyList=[
-                                "a",
-                                "l",
+                                "1",
+                                "0",
                                 "z",
                             ],
                             timeStamped=trial_clock,
@@ -1388,9 +1388,9 @@ class SSTTask:
         m = self.marker_codes
 
         expected_key = (
-            "a"
+            "1"
             if direction == "left"
-            else "l"
+            else ""
         )
 
         now_task = (
