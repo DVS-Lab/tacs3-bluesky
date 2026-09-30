@@ -636,7 +636,7 @@ class BanditTask:
                 "",
                 "Do you have any questions?",
                 "",
-                "Press SPACE to continue.",
+                "Press SPACE to continue to the waiting screen.",
             ],
         ]
 
@@ -645,10 +645,9 @@ class BanditTask:
                  f"Two-Armed Bandit Task — {self.run_label}",
             "",
             "This run will last 5 minutes"
-            "Please wait for the experimenter",
-            "to start the task, then",
             "",
-            "Please wait for the experimenter to begin the task",
+            "Press SPACE to continue to the waiting screen."
+            "",
             "Press ESC to exit",
         ]
         ]
