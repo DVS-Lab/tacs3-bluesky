@@ -1,5 +1,6 @@
 import os
 from psychopy import visual, core, event, gui
+from datetime import datetime
 import random
 import csv
 import numpy as np  # Needed for exponential and rescaling
@@ -39,7 +40,8 @@ fixation = visual.TextStim(win, text='+', height=40)
 total_bonus = 0
 
 # Output directory
-log_dir = os.path.join(script_dir, 'logs', f'sub-{sub_number}')
+log_dir = os.path.join(script_dir, '..','data', f'sub-{sub_number}')
+log_dir = os.path.normpath(log_dir)
 os.makedirs(log_dir, exist_ok=True)
 
 #  EXPONENTIAL SAMPLES WITH FIXED TOTAL
@@ -66,7 +68,8 @@ fieldnames = [
     'go_correct', 'go_incorrect', 'go_miss', 'stop_success',
     'stop_failure_arrowcorrect'
 ]
-base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_task-SST_run-{run_number}_events")
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_task-SST_{timestamp}_events")
 tsv_filename = base + ".tsv"
 csv_filename = base + ".csv"
 
@@ -442,7 +445,10 @@ final_msg = visual.TextStim(
 final_msg.draw()
 win.flip()
 event.clearEvents(eventType='keyboard')
+
 event.waitKeys(maxWait=20, keyList=['space', 'z'])
+with open(os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_bonus.txt"), 'w') as f:
+    f.write(f"bet={bet}\nwinnings={winnings}\nunbet={unbet_amount}\nrun_bonus={winnings + unbet_amount}\n")
 
 win.close()
 core.quit()
