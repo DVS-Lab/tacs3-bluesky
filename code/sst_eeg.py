@@ -1,2536 +1,480 @@
-#!/usr/bin/env python3
-"""
-Stop Signal Task with StarStim/NIC-2 sync support.
-
-Pre-stimulation participant response version.
-
-Task mechanics:
-    - Go/stop-signal trial structure
-    - SSD staircase
-    - LSL synchronization
-    - EEG recording
-    - Run labeling
-    - Duration/trial-count stop rules
-
-Operator startup:
-    - Subject ID: typed manually
-    - Session Number: typed manually
-    - Run: Beginning of visit or End of visit
-
-Run behavior:
-    - Beginning- and end-of-visit runs use identical task behavior and instructions.
-    - The Run selection only changes the participant-response filename
-      (pre-stim vs post-stim).
-    - The task itself does not reveal stimulation condition/mode.
-
-Output:
-    Participant response CSV files are saved to the directory
-    specified by:
-
-        paths.pre_stimulation_responses_dir
-
-    in config.json.
-
-    If that setting is missing, the script falls back to:
-
-        C:\\Users\\Public\\LAB PROJECTS\\Smith-Lab\\
-        tacs3-bluesky\\stimulation\\
-        pre-stimulation-participant-responses
-
-    Output filename:
-
-        sub-{subject}-{session}_task-SST_{pre-stim|post-stim}_{date-time}.csv
-
-The stimulation frequency/condition is selected outside this script
-and applied by the operator directly in NIC-2.
-"""
-
-from __future__ import annotations
-
-import argparse
-import csv
+import os
+from psychopy import visual, core, event, gui
 from datetime import datetime
-import json
-from pathlib import Path
-import queue
 import random
+import csv
 import time
-
-import numpy as np
-
-from eeg_lsl_recorder import (
-    LSLEEGRecorder,
-    save_recording_summary,
-)
-
-from task_markers import (
-    LSLStimulationTrigger,
-    TaskMarkerLogger,
-)
-
-
-try:
-    from psychopy import core, event, gui, visual
-
-    PSYCHOPY_AVAILABLE = True
-
-except ImportError:  # pragma: no cover - operator dependency
-
-    core = event = gui = visual = None
-
-    PSYCHOPY_AVAILABLE = False
-
-
-# ======================================================================
-# HELPER FUNCTIONS
-# ======================================================================
-
-def normalize_id(
-    value: str,
-    prefix: str,
-) -> str:
-    """
-    Remove a prefix such as sub- or ses- from an ID.
-    """
-
-    return (
-        str(value)
-        .replace(prefix, "")
-        .strip()
-    )
-
-
-def load_config(
-    config_path: str | Path | None = None,
-) -> dict:
-    """
-    Load the JSON configuration file.
-    """
-
-    if config_path is None:
-
-        config_path = (
-            Path(__file__).resolve().parent
-            / "config.json"
-        )
-
-    with Path(config_path).open(
-        "r",
-        encoding="utf-8",
-    ) as handle:
-
-        return json.load(handle)
-
-
-# ======================================================================
-# SST TASK
-# ======================================================================
-
-class SSTTask:
-
-    def __init__(
-        self,
-        config: dict,
-        cli_args: argparse.Namespace,
-    ):
-
-        self.config = config
-
-        self.cli_args = cli_args
-
-        # --------------------------------------------------------------
-        # TEST MODE
-        # --------------------------------------------------------------
-
-        self.test_mode = bool(
-            cli_args.test_mode
-        )
-
-        self.auto_respond = bool(
-            cli_args.auto_respond
-            or self.test_mode
-        )
-
-        # --------------------------------------------------------------
-        # SST CONFIGURATION
-        # --------------------------------------------------------------
-
-        sst_cfg = config.get(
-            "sst",
-            {},
-        )
-
-        self.stop_probability = float(
-            sst_cfg.get(
-                "stop_probability",
-                0.3,
-            )
-        )
-
-        self.stimulus_duration_sec = float(
-            sst_cfg.get(
-                "stimulus_duration_sec",
-                1.5,
-            )
-        )
-
-        self.initial_ssd_sec = float(
-            sst_cfg.get(
-                "initial_ssd_sec",
-                0.25,
-            )
-        )
-
-        self.ssd_step_sec = float(
-            sst_cfg.get(
-                "ssd_step_sec",
-                0.05,
-            )
-        )
-
-        self.min_ssd_sec = float(
-            sst_cfg.get(
-                "min_ssd_sec",
-                0.05,
-            )
-        )
-
-        self.max_ssd_sec = float(
-            sst_cfg.get(
-                "max_ssd_sec",
-                0.9,
-            )
-        )
-
-        self.isi_range_sec = tuple(
-            sst_cfg.get(
-                "isi_range_sec",
-                [0.8, 2.5],
-            )
-        )
-
-        self.iti_range_sec = tuple(
-            sst_cfg.get(
-                "iti_range_sec",
-                [1.5, 4.0],
-            )
-        )
-
-        self.target_trials = sst_cfg.get(
-            "target_trials",
-            200,
-        )
-
-        # --------------------------------------------------------------
-        # RUN DURATION
-        # --------------------------------------------------------------
-
-        duration_minutes = float(
-            cli_args.duration_minutes
-            or config.get(
-                "experiment",
-                {},
-            ).get(
-                "run_duration_minutes",
-                5,
-            )
-        )
-
-        self.max_duration_seconds = (
-            duration_minutes * 60.0
-        )
-
-        self.stop_rule = sst_cfg.get(
-            "stop_rule",
-            "duration_or_trials",
-        )
-
-        # --------------------------------------------------------------
-        # MARKER CODES
-        # --------------------------------------------------------------
-
-        self.marker_codes = (
-            config.get(
-                "stimulation",
-                {},
-            ).get(
-                "markers",
-                {},
-            )
-        )
-
-        # --------------------------------------------------------------
-        # SUBJECT / SESSION / RUN
-        # --------------------------------------------------------------
-
-        self.subject_id: str | None = None
-
-        self.session_id: str | None = None
-
-        self.run_label: str | None = None
-
-        self.visit_phase: str = "pre-stim"
-
-        self.date_label: str | None = None
-
-        # --------------------------------------------------------------
-        # DIRECTORIES
-        # --------------------------------------------------------------
-
-        self.data_dir: Path | None = None
-
-        self.eeg_dir: Path | None = None
-
-        self.qc_dir: Path | None = None
-
-        self.logs_dir: Path | None = None
-
-        self.pre_stimulation_responses_dir: Path | None = None
-
-        # --------------------------------------------------------------
-        # OUTPUT FILE
-        # --------------------------------------------------------------
-
-        self.pre_stimulation_response_path: (
-            Path | None
-        ) = None
-
-        # --------------------------------------------------------------
-        # TRIAL DATA
-        # --------------------------------------------------------------
-
-        self.results: list[dict] = []
-
-        self.current_trial = 0
-
-        self.ssd = self.initial_ssd_sec
-
-        self.task_should_stop = False
-
-        # --------------------------------------------------------------
-        # RUN TIMING
-        # --------------------------------------------------------------
-
-        self.run_start_time: float | None = None
-
-        self.run_start_task_time: float | None = None
-
-        self.run_start_lsl_time: float | None = None
-
-        self.run_end_task_time: float | None = None
-
-        self.run_end_lsl_time: float | None = None
-
-        # --------------------------------------------------------------
-        # SAVING STATE
-        # --------------------------------------------------------------
-
-        self._saved = False
-
-        self._marker_log_saved = False
-
-        self.eeg_recording_saved = False
-
-        # --------------------------------------------------------------
-        # EVENT LOGGER
-        # --------------------------------------------------------------
-
-        self.event_logger = TaskMarkerLogger(
-            config.get(
-                "eeg_recording",
-                {},
-            ).get(
-                "marker_stream_name",
-                "LSLOutletStreamName-Markers",
-            )
-        )
-
-        # --------------------------------------------------------------
-        # EEG RECORDER
-        # --------------------------------------------------------------
-
-        self.eeg_recorder: LSLEEGRecorder | None = None
-
-        # --------------------------------------------------------------
-        # LSL TRIGGER
-        # --------------------------------------------------------------
-
-        self.lsl_trigger: (
-            LSLStimulationTrigger | None
-        ) = None
-
-        lsl_config = (
-            config.get(
-                "stimulation",
-                {},
-            ).get(
-                "lsl",
-                {},
-            )
-        )
-
-        if (
-            not self.test_mode
-            and lsl_config.get(
-                "enabled",
-                True,
-            )
-        ):
-
-            self.lsl_trigger = (
-                LSLStimulationTrigger(
-                    stream_name=lsl_config.get(
-                        "outlet_stream_name"
-                    )
-                )
-            )
-
-            self.lsl_trigger.connect()
-
-            self.lsl_trigger.start_listening()
-
-        # --------------------------------------------------------------
-        # PSYCHOPY WINDOW
-        # --------------------------------------------------------------
-
-        self.win = None
-
-    # ==================================================================
-    # SETUP
-    # ==================================================================
-
-    def _resolve_subject(self) -> None:
-        """
-        Ask for Subject, Run, and Session numbers.
-        """
-
-        # --------------------------------------------------------------
-        # TEST MODE
-        # --------------------------------------------------------------
-
-        if self.test_mode:
-
-            if self.cli_args.subject:
-
-                self.subject_id = normalize_id(
-                    self.cli_args.subject,
-                    "sub-",
-                )
-
+import numpy as np  # Needed for exponential and rescaling
+
+# Screen parameters
+useFullScreen = True
+useDualScreen = 1
+DEBUG = False
+
+#  SETUP
+info = {'Subject Number': '',
+        'Session': '',
+        'Run': ''}
+dlg = gui.DlgFromDict(info, title="Stop Signal Task with Gambling",
+                      sortKeys=False)
+if not dlg.OK:
+    core.quit()
+
+sub_number = info['Subject Number']
+ses_number = info['Session']
+run_number = int(info['Run'])
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+#  WINDOW AND STIMULI
+win = visual.Window(size=(1200, 900), color='grey', fullscr=True,
+                    units='pix', screen=useDualScreen, allowGUI=False)
+
+# Preload ImageStim objects AFTER window creation
+image_stimuli = {
+    'left': visual.ImageStim(win, image=os.path.join(script_dir, 'sst', 'images', 'left_arrow.png'), size=(518, 300)),
+    'right': visual.ImageStim(win, image=os.path.join(script_dir, 'sst', 'images', 'right_arrow.png'), size=(518, 300)),
+    'left_red': visual.ImageStim(win, image=os.path.join(script_dir, 'sst', 'images', 'left_red_arrow.png'), size=(518, 300)),
+    'right_red': visual.ImageStim(win, image=os.path.join(script_dir, 'sst', 'images', 'right_red_arrow.png'), size=(518, 300))
+}
+
+fixation = visual.TextStim(win, text='+', height=40)
+
+total_bonus = 0
+
+# Output directory
+log_dir = os.path.join(script_dir, '..','data', f'sub-{sub_number}')
+log_dir = os.path.normpath(log_dir)
+os.makedirs(log_dir, exist_ok=True)
+
+#  FAST EXPONENTIAL JITTER WITH FIXED TOTAL
+def sample_jitter(n, total, low, high, scale, max_tries=1000, label=""):
+    """Truncated exponential on [f, high], with f >= low chosen so the mean
+    equals total/n. Uses only numpy. The total is hit exactly."""
+    target_mean = total / n
+
+    def mean_for(f):
+        w = high - f
+        return f + scale - w * np.exp(-w / scale) / (-np.expm1(-w / scale))
+
+    # Find the floor f by bisection (mean_for increases with f)
+    if mean_for(low) >= target_mean:
+        f = low
+    else:
+        lo, hi = low, high - 1e-6
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            if mean_for(mid) < target_mean:
+                lo = mid
             else:
-
-                self.subject_id = "999"
-
-            return
-
-        # --------------------------------------------------------------
-        # PSYCHOPY MODE
-        # --------------------------------------------------------------
-
-        if PSYCHOPY_AVAILABLE:
-
-            info = {
-                "Subject ID": "",
-                "Session Number": "",
-                "Run": [
-                    "Beginning of visit",
-                    "End of visit",
-                ],
-            }
-
-            dlg = gui.DlgFromDict(
-                info,
-                title="Stop Signal Task",
-                sortKeys=False,
-            )
-
-            if not dlg.OK:
-
-                raise SystemExit(0)
-
-            self.subject_id = normalize_id(
-                info["Subject ID"],
-                "sub-",
-            )
-
-            if not self.subject_id:
-
-                raise ValueError(
-                    "Subject ID cannot be empty."
-                )
-
-            self.cli_args.session = str(
-                info["Session Number"]
-            ).strip()
-
-            if not self.cli_args.session:
-
-                raise ValueError(
-                    "Session Number cannot be empty."
-                )
-
-            self.visit_phase = (
-                "pre-stim"
-                if info["Run"] == "Beginning of visit"
-                else "post-stim"
-            )
-
-        # --------------------------------------------------------------
-        # NON-PSYCHOPY MODE
-        # --------------------------------------------------------------
-
-        else:
-
-            if self.cli_args.subject:
-
-                self.subject_id = normalize_id(
-                    self.cli_args.subject,
-                    "sub-",
-                )
-
-            else:
-
-                self.subject_id = input(
-                    "Subject ID: "
-                )
-
-    # ==================================================================
-    # SESSION SETUP
-    # ==================================================================
-
-    def _setup_session(self) -> None:
-        """
-        Set up session IDs, directories, and output file paths.
-
-        The participant response directory is configurable through:
-
-            paths.pre_stimulation_responses_dir
-
-        in config.json.
-
-        If it is missing, the script uses the requested Windows
-        path as a fallback.
-        """
-
-        # --------------------------------------------------------------
-        # SESSION NUMBER
-        # --------------------------------------------------------------
-
-        self.session_id = normalize_id(
-            self.cli_args.session or "001",
-            "ses-",
-        )
-
-        # --------------------------------------------------------------
-        # DATE / TIME LABEL
-        # --------------------------------------------------------------
-
-        self.date_label = datetime.now().strftime(
-            "%Y-%m-%d_%H-%M-%S"
-        )
-
-        # --------------------------------------------------------------
-        # PATH CONFIGURATION
-        # --------------------------------------------------------------
-
-        paths_cfg = self.config.get(
-            "paths",
-            {},
-        )
-
-        # --------------------------------------------------------------
-        # STANDARD DATA DIRECTORY
-        # --------------------------------------------------------------
-
-        data_root = Path(
-            paths_cfg.get(
-                "data_dir",
-                "../data",
-            )
-        )
-
-        self.data_dir = (
-            Path(__file__).resolve().parent
-            / data_root
-        ).resolve() / (
-            f"sub-{self.subject_id}"
-        )
-
-        self.data_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # --------------------------------------------------------------
-        # EEG DIRECTORY
-        # --------------------------------------------------------------
-
-        self.eeg_dir = (
-            self.data_dir / "eeg"
-        )
-
-        self.eeg_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # --------------------------------------------------------------
-        # QC DIRECTORY
-        # --------------------------------------------------------------
-
-        self.qc_dir = (
-            self.data_dir / "qc"
-        )
-
-        self.qc_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # --------------------------------------------------------------
-        # LOG DIRECTORY
-        # --------------------------------------------------------------
-
-        self.logs_dir = (
-            self.data_dir / "logs"
-        )
-
-        self.logs_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # --------------------------------------------------------------
-        # PRE-STIMULATION RESPONSE DIRECTORY
-        #
-        # CONFIGURABLE THROUGH config.json
-        #
-        # FALLBACK PATH:
-        # --------------------------------------------------------------
-
-        default_pre_stim_dir = (
-            r"C:\Users\Public\LAB PROJECTS\Smith-Lab"
-            r"\tacs3-bluesky\stimulation"
-            r"\pre-stimulation-participant-responses"
-        )
-
-        pre_stim_dir = paths_cfg.get(
-            "pre_stimulation_responses_dir",
-            default_pre_stim_dir,
-        )
-
-        if not pre_stim_dir:
-
-            pre_stim_dir = (
-                default_pre_stim_dir
-            )
-
-        self.pre_stimulation_responses_dir = (
-            Path(pre_stim_dir)
-        )
-
-        self.pre_stimulation_responses_dir.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
-
-        # --------------------------------------------------------------
-        # RUN LABEL
-        # --------------------------------------------------------------
-
-        if self.cli_args.localizer:
-
-            self.run_label = (
-                "run-localizer"
-            )
-
-        else:
-
-            # Keep the existing internal run label for compatibility.
-            # Beginning/end of visit only changes the participant-response filename.
-            self.run_label = "run-01"
-
-        # --------------------------------------------------------------
-        # PARTICIPANT RESPONSE FILE
-        #
-        # IMPORTANT:
-        # This uses task-SST.
-        #
-        # It does NOT use task-bandit.
-        # --------------------------------------------------------------
-
-        self.pre_stimulation_response_path = (
-            self.pre_stimulation_responses_dir
-            / (
-                f"sub-{self.subject_id}-{self.session_id}"
-                f"_task-SST_{self.visit_phase}"
-                f"_{self.date_label}"
-                f".csv"
-            )
-        )
-
-        # --------------------------------------------------------------
-        # MARKER LOG
-        # --------------------------------------------------------------
-
-        base = (
-            f"sub-{self.subject_id}"
-            f"_ses-{self.session_id}"
-            f"_{self.run_label}"
-            f"_task-SST"
-        )
-
-        self.marker_log_path = (
-            self.logs_dir
-            / f"{base}_markers.jsonl"
-        )
-
-        # --------------------------------------------------------------
-        # EEG SUMMARY
-        # --------------------------------------------------------------
-
-        self.eeg_summary_path = (
-            self.logs_dir
-            / f"{base}_eeg_summary.json"
-        )
-
-        # --------------------------------------------------------------
-        # OPERATOR OUTPUT
-        # --------------------------------------------------------------
-
-        print(
-            "\n=================================================="
-        )
-
-        print(
-            "SST OUTPUT CONFIGURATION"
-        )
-
-        print(
-            "=================================================="
-        )
-
-        print(
-            "Participant response directory:"
-        )
-
-        print(
-            self.pre_stimulation_responses_dir
-        )
-
-        print(
-            "\nParticipant response CSV:"
-        )
-
-        print(
-            self.pre_stimulation_response_path
-        )
-
-        print(
-            "\n=================================================="
-        )
-
-    # ==================================================================
-    # STOP RULE
-    # ==================================================================
-
-    def _should_stop_run(self) -> bool:
-
-        if self.run_start_time is None:
-
-            return False
-
-        elapsed = (
-            time.time()
-            - self.run_start_time
-        )
-
-        duration_reached = (
-            elapsed
-            >= self.max_duration_seconds
-        )
-
-        trial_target_reached = (
-            self.target_trials is not None
-            and self.current_trial
-            >= self.target_trials
-        )
-
-        if self.stop_rule == "duration":
-
-            return duration_reached
-
-        if self.stop_rule == "trials":
-
-            return trial_target_reached
-
-        if self.stop_rule == "duration_and_trials":
-
-            return (
-                duration_reached
-                and trial_target_reached
-            )
-
-        return (
-            duration_reached
-            or trial_target_reached
-        )
-
-    # ==================================================================
-    # EEG RECORDING
-    # ==================================================================
-
-    def _start_eeg_recording_if_requested(
-        self,
-    ) -> None:
-
-        eeg_config = self.config.get(
-            "eeg_recording",
-            {},
-        )
-
-        if not eeg_config.get(
-            "record_lsl_eeg_during_localizer",
-            True,
-        ):
-
-            return
-
-        self.eeg_recorder = (
-            LSLEEGRecorder(
-                preferred_stream_type=eeg_config.get(
-                    "preferred_stream_type",
-                    "EEG",
-                ),
-                preferred_stream_name_contains=eeg_config.get(
-                    "preferred_stream_name_contains",
-                    "StarStim",
-                ),
-            )
-        )
-
-        if not self.eeg_recorder.start():
-
-            print(
-                "EEG recording not started: "
-                f"{self.eeg_recorder.status_message}"
-            )
-
-    def _stop_eeg_recording(
-        self,
-    ) -> None:
-
-        if (
-            self.eeg_recording_saved
-            or self.eeg_recorder is None
-        ):
-
-            return
-
-        eeg_config = self.config.get(
-            "eeg_recording",
-            {},
-        )
-
-        basename = (
-            f"sub-{self.subject_id}"
-            f"_ses-{self.session_id}"
-            f"_{self.run_label}"
-            f"_task-SST_eeg"
-        )
-
-        summary = self.eeg_recorder.save(
-            self.eeg_dir,
-            basename,
-            write_raw_csv=eeg_config.get(
-                "write_raw_csv",
-                True,
-            ),
-            write_raw_npz=eeg_config.get(
-                "write_raw_npz",
-                True,
-            ),
-            extra_metadata={
-                "subject_id": (
-                    f"sub-{self.subject_id}"
-                ),
-                "session_id": (
-                    f"ses-{self.session_id}"
-                ),
-                "task": "SST",
-                "run_label": self.run_label,
-            },
-        )
-
-        save_recording_summary(
-            summary,
-            self.eeg_summary_path,
-        )
-
-        self.eeg_recording_saved = True
-
-    # ==================================================================
-    # MAIN ENTRY POINT
-    # ==================================================================
-
-    def run(self) -> None:
-
-        try:
-
-            self._resolve_subject()
-
-            self._setup_session()
-
-            if self.test_mode:
-
-                self._run_test_mode()
-
-            else:
-
-                self._run_psychopy()
-
-        except KeyboardInterrupt:
-
-            print(
-                "\nSession interrupted by user"
-            )
-
-        finally:
-
-            self.cleanup()
-
-    # ==================================================================
-    # CLEANUP
-    # ==================================================================
-
-    def cleanup(self) -> None:
-
-        if (
-            self.run_start_time is not None
-            and self.run_end_lsl_time is None
-        ):
-
-            self.run_end_task_time = (
-                time.time()
-                - self.run_start_time
-            )
-
-            self.run_end_lsl_time = (
-                self.event_logger.send(
-                    200,
-                    "run_end",
-                    {
-                        "task": "SST",
-                        "run": self.run_label,
-                    },
-                )
-            )
-
-        self.save_events()
-
-        if self.lsl_trigger:
-
-            self.lsl_trigger.stop_listening()
-
-        self._stop_eeg_recording()
-
-        if (
-            not self._marker_log_saved
-            and self.event_logger.events
-        ):
-
-            self.event_logger.save(
-                self.marker_log_path
-            )
-
-            self._marker_log_saved = True
-
-    # ==================================================================
-    # TEST MODE
-    # ==================================================================
-
-    def _run_test_mode(self) -> None:
-
-        rng = np.random.default_rng(
-            911
-        )
-
-        self.ssd = (
-            self.initial_ssd_sec
-        )
-
-        self.run_start_time = (
-            time.time()
-        )
-
-        self.run_start_task_time = 0.0
-
-        self.run_start_lsl_time = (
-            self.event_logger.send(
-                100,
-                "run_start",
-                {
-                    "task": "SST",
-                    "run": self.run_label,
-                },
-            )
-        )
-
-        while not self._should_stop_run():
-
-            trial_num = (
-                self.current_trial + 1
-            )
-
-            direction = (
-                "left"
-                if trial_num % 2
-                else "right"
-            )
-
-            is_stop = bool(
-                rng.random()
-                < self.stop_probability
-            )
-
-            rt = float(
-                rng.normal(
-                    0.42,
-                    0.07,
-                )
-            )
-
-            rt = max(
-                0.05,
-                rt,
-            )
-
-            responded = (
-                not is_stop
-                or rng.random() < 0.5
-            )
-
-            response_key = ""
-
-            if responded:
-
-                expected_key = (
-                    "1"
-                    if direction == "left"
-                    else "0"
-                )
-
-                response_key = (
-                    expected_key
-                    if rng.random() < 0.95
-                    else (
-                        "0"
-                        if expected_key == "1"
-                        else "1"
-                    )
-                )
-
-            stim_onset_unix_time = time.time() * 1000.0
-            response_onset_unix_time = (
-                stim_onset_unix_time + rt * 1000.0
-                if responded
-                else None
-            )
-            stop_onset_unix_time = (
-                stim_onset_unix_time + self.ssd * 1000.0
-                if is_stop
-                else None
-            )
-
-            self._record_trial(
-                trial_num,
-                direction,
-                is_stop,
-                responded,
-                rt if responded else None,
-                self.ssd,
-                stim_onset_unix_time=stim_onset_unix_time,
-                stop_onset_unix_time=stop_onset_unix_time,
-                response_onset_unix_time=response_onset_unix_time,
-                response_key=response_key,
-            )
-
-            if is_stop:
-
-                self.ssd = (
-
-                    min(
-                        self.max_ssd_sec,
-                        self.ssd
-                        + self.ssd_step_sec,
-                    )
-
-                    if not responded
-
-                    else max(
-                        self.min_ssd_sec,
-                        self.ssd
-                        - self.ssd_step_sec,
-                    )
-                )
-
-            self.current_trial += 1
-
-        self.run_end_task_time = (
-            time.time()
-            - self.run_start_time
-        )
-
-        self.run_end_lsl_time = (
-            self.event_logger.send(
-                200,
-                "run_end",
-                {
-                    "task": "SST",
-                    "run": self.run_label,
-                },
-            )
-        )
-
-        print(
-            "SST test mode complete: "
-            f"{self.current_trial} "
-            "simulated trials."
-        )
-
-    # ==================================================================
-    # WAITING / INSTRUCTION SCREEN
-    # ==================================================================
-
-    def _show_waiting_screen(
-        self,
-        msg_stim,
-    ) -> bool:
-
-        msg_stim.draw()
-
-        self.win.flip()
-
-        if self.auto_respond:
-
-            core.wait(0.05)
-
-            return True
-
-        # --------------------------------------------------------------
-        # LSL LISTENING
-        # --------------------------------------------------------------
-
-        listen_lsl = (
-            not self.cli_args.localizer
-            and self.lsl_trigger is not None
-        )
-
+                hi = mid
+        f = (lo + hi) / 2
+    print(f"{label} floor used: {f:.3f} s (nominal floor {low}), cap {high}")
+
+    w = high - f
+    for _ in range(max_tries):
+        u = np.random.uniform(size=n)
+        x = f - scale * np.log(1 - u * (-np.expm1(-w / scale)))   # inverse CDF
+        x += (total - x.sum()) / n                                 # shift to exact total
+        if x.min() >= low and x.max() <= high:
+            return list(x)
+    raise ValueError(f"{label}: could not build {n} durations in [{low}, {high}] "
+                     f"summing to {total:.1f}s")
+
+# ---------- Per-run setup ----------
+results = []
+fieldnames = [
+    'trialNumber', 'bet', 'stim_onset', 'stop_onset',
+    'stimulus_offset', 'stop_offset', 'duration',
+    'stimulus', 'stop', 'response', 'rt', 'stim_file', 'ssd',
+    'fixation_onset', 'fixation_offset',
+    'isi_onset', 'isi_offset', 'iti_onset', 'iti_offset',
+    'go_correct', 'go_incorrect', 'go_miss', 'stop_success',
+    'stop_failure_arrowcorrect', 'run_start_unix'
+]
+timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_task-SST_{timestamp}_events")
+tsv_filename = base + ".tsv"
+csv_filename = base + ".csv"
+
+def write_events(path, delimiter):
+    with open(path, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=delimiter)
+        writer.writeheader()
+        for r in results:
+            writer.writerow(r)
+
+def save_and_quit():
+    write_events(tsv_filename, '\t')
+    write_events(csv_filename, ',')
+    win.close()
+    core.quit()
+
+#  INSTRUCTIONS (run 1 only)
+if run_number == 1:
+    instruction_texts = [
+        "Welcome to the Stop-Signal Task!\n\nPress Space to continue.",
+        
+        "Your task is to respond to the black arrows that appear on the screen.",
+        
+        "Press 1 when you see a LEFT ARROW.\n\nPress 0 when you see a RIGHT ARROW.",
+        
+        "Respond as QUICKLY and ACCURATELY as possible when you see the black arrow.",
+        
+        "On about one third of trials, a RED ARROW will appear shortly after the black one.\n\nWhen this happens, try to STOP your response.",
+        
+        "Sometimes the red arrow will appear quickly, and be easier to stop.\n\nOther times it will appear later and be harder to stop.\n\nThis is normal - just do your best.",
+        
+        "Do not wait for the red arrow to appear.\n\nAlways respond as quickly as possible to the black arrow.\n\nThe red arrow is unpredictable.",
+        
+        "At the beginning of each round, you will be given the option to bet a portion of your $10 endowment.",
+        
+        "To be eligible for the bonus that round, you must:\n\n- Respond correctly on at least 90% of black arrow trials\n\n- Successfully stop on at least 50% of red arrow trials\n\n- Keep your average response time under 500ms on black arrow trials\n\nIf you meet all criteria, your bet will be doubled.",
+        
+        "If you don't bet your entire $10 endowment, the remaining amount will automatically be added to your bonus payment.",
+        
+        "On the next screen, you will be asked how much you would like to bet.\n\nDo you have any questions?"
+    ]
+    for text in instruction_texts:
+        instruction = visual.TextStim(win, text=text, color='white', height=36, wrapWidth=700)
+        instruction.draw()
+        win.flip()
+        event.clearEvents()
         while True:
-
-            keys = event.getKeys(
-                keyList=[
-                    "space",
-                    "equal",
-                    "escape",
-                    "z",
-                ]
-            )
-
-            # ----------------------------------------------------------
-            # SPACE
-            # ----------------------------------------------------------
-
-            if (
-                "space" in keys
-                or "equal" in keys
-            ):
-
-                return True
-
-            # ----------------------------------------------------------
-            # ESCAPE / Z
-            # ----------------------------------------------------------
-
-            if (
-                "escape" in keys
-                or "z" in keys
-            ):
-
-                return False
-
-            # ----------------------------------------------------------
-            # LSL START TRIGGER
-            # ----------------------------------------------------------
-
-            if listen_lsl:
-
-                try:
-
-                    marker_code, _ = (
-                        self.lsl_trigger
-                        .marker_queue
-                        .get_nowait()
-                    )
-
-                    if (
-                        marker_code
-                        == self.lsl_trigger.TASK_START_MARKER
-                    ):
-
-                        print(
-                            "LSL: marker "
-                            f"{marker_code} received. "
-                            "Starting task."
-                        )
-
-                        return True
-
-                except queue.Empty:
-
-                    pass
-
-            core.wait(0.01)
-
-    # ==================================================================
-    # PSYCHOPY
-    # ==================================================================
-
-    def _run_psychopy(self) -> None:
-
-        if not PSYCHOPY_AVAILABLE:
-
-            raise RuntimeError(
-                "PsychoPy is not installed. "
-                "Use --test-mode or install "
-                "psychopy to run SST."
-            )
-
-        script_dir = (
-            Path(__file__).resolve().parent
-            / "sst"
-        )
-
-        screen = int(
-            self.cli_args.screen
-            if self.cli_args.screen is not None
-            else 0
-        )
-
-        self.win = visual.Window(
-            size=(1200, 900),
-            color="grey",
-            fullscr=(
-                not self.cli_args.windowed
-            ),
-            units="pix",
-            screen=screen,
-            allowGUI=False,
-        )
-
-        win = self.win
-
-        try:
-
-            # ==========================================================
-            # IMAGE STIMULI
-            # ==========================================================
-
-            image_stimuli = {
-
-                "left": visual.ImageStim(
-                    win,
-                    image=str(
-                        script_dir
-                        / "images"
-                        / "left_arrow.png"
-                    ),
-                    size=(518, 300),
-                ),
-
-                "right": visual.ImageStim(
-                    win,
-                    image=str(
-                        script_dir
-                        / "images"
-                        / "right_arrow.png"
-                    ),
-                    size=(518, 300),
-                ),
-
-                "left_red": visual.ImageStim(
-                    win,
-                    image=str(
-                        script_dir
-                        / "images"
-                        / "left_red_arrow.png"
-                    ),
-                    size=(518, 300),
-                ),
-
-                "right_red": visual.ImageStim(
-                    win,
-                    image=str(
-                        script_dir
-                        / "images"
-                        / "right_red_arrow.png"
-                    ),
-                    size=(518, 300),
-                ),
-            }
-
-            # ==========================================================
-            # FIXATION
-            # ==========================================================
-
-            fixation = visual.TextStim(
-                win,
-                text="+",
-                height=40,
-            )
-
-            # ==========================================================
-            # ==========================================================
-            # INSTRUCTION SCREENS
-            # ==========================================================
-
-            instruction_pages = [
-                (
-                    "Stop Signal Task\n\n"
-                    "Welcome to the Stop-Signal Task!\n\n"
-                    "Press SPACE to continue."
-                ),
-                (
-                    "Your task is to respond to the black arrows "
-                    "that appear on the screen.\n\n"
-                    "When you see a LEFT ARROW, press 1"
-                    "When you see a RIGHT ARROW, press 0"
-                    "Press SPACE to continue."
-                ),
-                (
-                    "On some trials, a RED ARROW will appear shortly "
-                    "after the black arrow.\n\n"
-                    "When this happens, you should refrain from responding.\n\n"
-                    "Press SPACE to continue."
-                ),
-                (
-                    "On some trials where you see a RED ARROW, it will "
-                    "appear very quickly.\n\n"
-                    "On other trials, it will take longer to appear, "
-                    "and it will be difficult to refrain from responding.\n\n"
-                    "Press SPACE to continue."
-                ),
-                (
-                    "Try to respond as soon as you see the black arrow.\n\n"
-                    "Press SPACE to begin."
-                ),
-            ]
-
-            for page_text in instruction_pages:
-
-                instruction_stim = visual.TextStim(
-                    win,
-                    text=page_text,
-                    color="white",
-                    height=36,
-                    wrapWidth=900,
-                    alignText="center",
-                )
-
-                if not self._show_waiting_screen(instruction_stim):
-                    return
-
-            # ==========================================================
-            # START EEG RECORDING
-            # ==========================================================
-
-            self._start_eeg_recording_if_requested()
-
-            # ==========================================================
-            # START RUN CLOCK
-            # ==========================================================
-
-            self.run_start_time = (
-                time.time()
-            )
-
-            self.run_start_task_time = 0.0
-
-            self.run_start_lsl_time = (
-                self.event_logger.send(
-                    100,
-                    "run_start",
-                    {
-                        "task": "SST",
-                        "run": self.run_label,
-                    },
-                )
-            )
-
-            self.ssd = (
-                self.initial_ssd_sec
-            )
-
-            global_clock = core.Clock()
-
-            # ==========================================================
-            # MAIN TRIAL LOOP
-            # ==========================================================
-
-            while (
-                not self._should_stop_run()
-                and not self.task_should_stop
-            ):
-
-                trial_num = (
-                    self.current_trial + 1
-                )
-
-                direction = random.choice(
-                    [
-                        "left",
-                        "right",
-                    ]
-                )
-
-                is_stop = (
-                    random.random()
-                    < self.stop_probability
-                )
-
-                expected_key = (
-                    "1"
-                    if direction == "left"
-                    else "0"
-                )
-
-                isi = random.uniform(
-                    *self.isi_range_sec
-                )
-
-                iti = random.uniform(
-                    *self.iti_range_sec
-                )
-
-                # ------------------------------------------------------
-                # FIXATION / ISI
-                # ------------------------------------------------------
-
-                fixation.draw()
-
-                win.flip()
-
-                core.wait(isi)
-
-                # ------------------------------------------------------
-                # GO STIMULUS
-                # ------------------------------------------------------
-
-                image_stimuli[
-                    direction
-                ].draw()
-
-                win.flip()
-
-                # Capture Unix timestamp at the actual GO stimulus onset,
-                # matching the Bandit pre-stim timing convention.
-                stim_onset_unix_time = time.time() * 1000.0
-
-                stim_onset = (
-                    global_clock.getTime()
-                )
-
-                stim_lsl = (
-                    self.event_logger.send(
-                        int(
-                            self.marker_codes.get(
-                                "sst_go",
-                                110,
-                            )
-                        ),
-                        "sst_go",
-                        {
-                            "trial_num": trial_num,
-                            "stimulus": direction,
-                            "stim_onset_unix_time": stim_onset_unix_time,
-                        },
-                    )
-                )
-
-                trial_clock = core.Clock()
-
-                responded = False
-
-                response_key = ""
-
-                response_time = None
-                response_onset_unix_time = None
-
-                stop_presented = False
-                stop_onset_unix_time = None
-
-                stop_lsl_time = None
-
-                simulated_rt = (
-                    max(
-                        0.05,
-                        random.gauss(
-                            0.42,
-                            0.07,
-                        ),
-                    )
-                    if self.auto_respond
-                    else None
-                )
-
-                # ------------------------------------------------------
-                # RESPONSE WINDOW
-                # ------------------------------------------------------
-
-                while (
-                    trial_clock.getTime()
-                    < self.stimulus_duration_sec
-                ):
-
-                    # --------------------------------------------------
-                    # AUTO RESPONSE
-                    # --------------------------------------------------
-
-                    if self.auto_respond:
-
-                        if (
-                            not responded
-                            and simulated_rt is not None
-                            and trial_clock.getTime()
-                            >= simulated_rt
-                        ):
-
-                            responded = True
-
-                            response_key = (
-                                expected_key
-                                if random.random()
-                                < 0.95
-                                else (
-                                    "0"
-                                    if expected_key == "1"
-                                    else "1"
-                                )
-                            )
-
-                            response_time = (
-                                simulated_rt
-                            )
-                            response_onset_unix_time = (
-                                stim_onset_unix_time
-                                + simulated_rt * 1000.0
-                            )
-
-                    # --------------------------------------------------
-                    # REAL RESPONSE
-                    # --------------------------------------------------
-
-                    else:
-
-                        keys = event.getKeys(
-                            keyList=[
-                                "1",
-                                "0",
-                                "z",
-                            ],
-                            timeStamped=trial_clock,
-                        )
-
-                        if keys:
-
-                            for key, timestamp in keys:
-
-                                if key == "z":
-
-                                    self.task_should_stop = True
-
-                                    break
-
-                                responded = True
-
-                                response_key = key
-
-                                response_time = (
-                                    float(timestamp)
-                                )
-                                response_onset_unix_time = (
-                                    time.time() * 1000.0
-                                )
-
-                                break
-
-                    # --------------------------------------------------
-                    # RESPONSE RECEIVED
-                    # --------------------------------------------------
-
-                    if (
-                        self.task_should_stop
-                        or responded
-                    ):
-
-                        break
-
-                    # --------------------------------------------------
-                    # STOP SIGNAL
-                    # --------------------------------------------------
-
-                    if (
-                        is_stop
-                        and not stop_presented
-                        and trial_clock.getTime()
-                        >= self.ssd
-                    ):
-
-                        image_stimuli[
-                            f"{direction}_red"
-                        ].draw()
-
-                        win.flip()
-
-                        # Capture Unix timestamp at the actual STOP stimulus
-                        # onset, in milliseconds since the Unix epoch.
-                        stop_onset_unix_time = (
-                            time.time() * 1000.0
-                        )
-
-                        stop_lsl_time = (
-                            self.event_logger.send(
-                                int(
-                                    self.marker_codes.get(
-                                        "sst_stop",
-                                        111,
-                                    )
-                                ),
-                                "sst_stop",
-                                {
-                                    "trial_num": trial_num,
-                                    "ssd": self.ssd,
-                                    "stop_onset_unix_time": stop_onset_unix_time,
-                                },
-                            )
-                        )
-
-                        stop_presented = True
-
-                    if self.auto_respond:
-
-                        core.wait(0.01)
-
-                # ------------------------------------------------------
-                # STOP TASK
-                # ------------------------------------------------------
-
-                if self.task_should_stop:
-
+            keys = event.getKeys()
+            if 'space' in keys:
+                break
+            elif 'z' in keys:
+                save_and_quit()
+
+#  CRITERIA REMINDER (runs 2 and 3)
+if run_number > 1:
+    reminder_text = (
+        "Reminder: To win your bet, you must meet ALL of the following criteria:\n\n"
+        "• Respond correctly on at least 90% of black arrow (go) trials\n\n"
+        "• Successfully stop on at least 50% of red arrow (stop) trials\n\n"
+        "• Keep your average response time under 500 ms on go trials\n\n"
+        "If you meet all criteria, your bet will be doubled.\n\n"
+        "Press the space button to continue."
+    )
+    reminder = visual.TextStim(win, text=reminder_text, color='white', height=32, wrapWidth=700)
+    reminder.draw()
+    win.flip()
+    event.clearEvents(eventType='keyboard')
+    while True:
+        keys = event.getKeys()
+        if 'space' in keys:
+            break
+        elif 'z' in keys:
+            save_and_quit()
+
+#  GAMBLING CHOICE
+title = visual.TextStim(win, text="How much would you like to bet for this round?",
+                        color='white', height=36, pos=(0, 120))
+opt0  = visual.TextStim(win, text="$0",  color='white', height=48, pos=(-220, 40))
+opt5 = visual.TextStim(win, text="$5", color='white', height=48, pos=(0, 40))
+opt10 = visual.TextStim(win, text="$10", color='white', height=48, pos=(220, 40))
+prompt = visual.TextStim(win, text="Press:", color='white', height=28, pos=(0, -40))
+lab_pointer = visual.TextStim(win, text="1",  color='blue', height=28, pos=(0, -90))
+lab_middle  = visual.TextStim(win, text="2", color='yellow', height=28, pos=(0, -130))
+lab_ring    = visual.TextStim(win, text="3",    color='green', height=28, pos=(0, -170))
+
+for stim in (title, opt0, opt5, opt10, prompt, lab_pointer, lab_middle, lab_ring):
+    stim.draw()
+win.flip()
+
+gamble_key_map = {'1': 0, '2': 5, '3': 10}
+opt_by_key = {'1': opt0, '2': opt5, '3': opt10}
+event.clearEvents(eventType='keyboard')
+
+gamble_choice = None
+while gamble_choice not in gamble_key_map:
+    keys = event.getKeys(keyList=['1', '2', '3', 'z'])
+    if not keys:
+        continue
+    if 'z' in keys:
+        save_and_quit()
+    for k in keys:
+        if k in gamble_key_map:
+            gamble_choice = k
+            break
+
+selected_opt = opt_by_key[gamble_choice]
+prev_color = selected_opt.color
+selected_opt.color = 'orange'
+for stim in (title, opt0, opt5, opt10, prompt, lab_pointer, lab_middle, lab_ring):
+    stim.draw()
+win.flip()
+core.wait(0.5)
+selected_opt.color = prev_color
+bet = gamble_key_map[gamble_choice]
+
+# PARAMETERS
+n_trials = 45
+stop_prob = 0.30
+response_keys = ['1', '0']
+exit_key = 'z'
+ssd = 0.25
+ssd_step = 0.05
+min_ssd = 0.05
+max_ssd = 0.9
+
+
+# Scale ISI/ITI totals with n_trials (same per-trial timing as the original 74-trial design)
+total_isi_time = 126.0 / 74 * n_trials
+total_iti_time = 252.0 / 74 * n_trials
+isi_values = sample_jitter(n_trials, total_isi_time, 0.8075, 2.4225, scale=0.5, label="ISI")
+iti_values = sample_jitter(n_trials, total_iti_time, 0.8075, 7.2675, scale=1.5, label="ITI")
+# Build trial list
+trials = []
+for _ in range(n_trials):
+    direction = random.choice(['left', 'right'])
+    is_stop = random.random() < stop_prob
+    trials.append({'direction': direction, 'is_stop': is_stop})
+
+# Precompute trial schedule (anchored)
+trial_schedule = []
+t = 0
+for i in range(n_trials):
+    isi_dur = isi_values.pop()
+    iti_dur = iti_values.pop()
+    t += isi_dur
+    trial_schedule.append({
+        'onset': t,
+        'isi': isi_dur,
+        'iti': iti_dur,
+        'trial': trials[i]
+    })
+    t += 1.5
+    t += iti_dur
+run_duration = t
+print(f"Run {run_number} scheduled duration: {run_duration:.3f} sec")
+
+# Tracking
+stop_trials = 0
+successful_stops = 0
+correct_go_trials = 0
+total_go_trials = 0
+rt_list = []
+trial_number = 0
+
+# WAIT FOR START
+start_msg = visual.TextStim(win,
+    text="Please wait for the experimenter. When they are ready, press the = sign to start the task.\n\n Remember to respond as soon as you see the black arrow.\n\nDo not wait for the red arrow to appear.",
+    color='white', height=36)
+start_msg.draw()
+win.flip()
+
+key = event.waitKeys(keyList=('equal', 'z'))[0]
+if key == 'z':
+    save_and_quit()
+
+global_clock = core.Clock()
+run_start_unix = time.time()   # Unix time at clock zero
+print(f"Run start (Unix): {run_start_unix:.6f}")
+
+def unix(t):
+    """Convert a global_clock time to Unix time. Blank values stay blank."""
+    return round(run_start_unix + t, 4) if t != '' else ''
+
+fixation.draw()
+win.flip()
+
+# TRIAL LOOP
+for sched in trial_schedule:
+    trial_number += 1
+    trial = sched['trial']
+
+    # --- ISI (fixation cross for full isi_dur) ---
+    isi_onset = global_clock.getTime()
+    fixation_onset = isi_onset
+    fixation.draw()
+    win.flip()
+    while global_clock.getTime() < sched['onset']:
+        fixation.draw()
+        win.flip()
+        if exit_key in event.getKeys():
+            save_and_quit()
+    isi_offset = global_clock.getTime()
+    fixation_offset = isi_offset
+
+
+    # --- Stimulus ---
+    direction = trial['direction']
+    is_stop = trial['is_stop']
+    go_stim = image_stimuli[direction]
+    stop_stim = image_stimuli[f"{direction}_red"]
+
+    go_stim.draw()
+    win.flip()
+    stim_onset = global_clock.getTime()
+    trial_clock = core.Clock()
+
+
+    responded = False
+    response_key = ''
+    rt = None
+    stop_presented = False
+    stop_onset = ''
+    response_onset = ''
+
+    while trial_clock.getTime() < 1.5:
+        keys = event.getKeys(keyList=response_keys + [exit_key], timeStamped=trial_clock)
+        if keys:
+            for key, timestamp in keys:
+                if key == exit_key:
+                    save_and_quit()
+                else:
+                    responded = True
+                    response_key = key
+                    rt = timestamp
+                    response_onset = global_clock.getTime()
                     break
-
-                # ------------------------------------------------------
-                # RECORD TRIAL
-                # ------------------------------------------------------
-
-                self._record_trial(
-                    trial_num,
-                    direction,
-                    is_stop,
-                    responded,
-                    response_time,
-                    self.ssd,
-                    stim_onset_task_time=stim_onset,
-                    stim_onset_lsl_time=stim_lsl,
-                    stim_onset_unix_time=stim_onset_unix_time,
-                    stop_presented=stop_presented,
-                    stop_onset_lsl_time=stop_lsl_time,
-                    stop_onset_unix_time=stop_onset_unix_time,
-                    response_onset_unix_time=response_onset_unix_time,
-                    response_key=response_key,
-                )
-
-                # ------------------------------------------------------
-                # UPDATE SSD
-                # ------------------------------------------------------
-
-                if is_stop:
-
-                    self.ssd = (
-
-                        min(
-                            self.max_ssd_sec,
-                            self.ssd
-                            + self.ssd_step_sec,
-                        )
-
-                        if not responded
-
-                        else max(
-                            self.min_ssd_sec,
-                            self.ssd
-                            - self.ssd_step_sec,
-                        )
-                    )
-
-                self.current_trial += 1
-
-                # ------------------------------------------------------
-                # ITI
-                # ------------------------------------------------------
-
-                fixation.draw()
-
-                win.flip()
-
-                core.wait(iti)
-
-            # ==========================================================
-            # END RUN
-            # ==========================================================
-
-            self.run_end_task_time = (
-                time.time()
-                - self.run_start_time
-            )
-
-            self.run_end_lsl_time = (
-                self.event_logger.send(
-                    200,
-                    "run_end",
-                    {
-                        "task": "SST",
-                        "run": self.run_label,
-                    },
-                )
-            )
-
-            print(
-                "\nRun complete. "
-                f"Total trials: "
-                f"{self.current_trial}"
-            )
-
-            # ==========================================================
-            # LOCALIZER FOLLOW-UP
-            # ==========================================================
-
-            if self.cli_args.localizer:
-
-                print(
-                    "Next step: "
-                    "python run_rhythm_estimation.py "
-                    "--task sst "
-                    f"--subject {self.subject_id} "
-                    f"--session {self.session_id} "
-                    "--auto-find --all-defaults"
-                )
-
-            # ==========================================================
-            # END SCREEN
-            # ==========================================================
-
-            end_msg = visual.TextStim(
-                win,
-                text=(
-                    "Run complete.\n\n"
-                    "Thank you!"
-                ),
-                color="white",
-                height=36,
-            )
-
-            end_msg.draw()
-
+            if responded:
+                break
+        if is_stop and not stop_presented and trial_clock.getTime() >= ssd:
+            stop_stim.draw()
             win.flip()
+            stop_onset = global_clock.getTime()
+            stop_presented = True
 
-            if self.auto_respond:
+    # ITI until next onset
+    iti_onset = global_clock.getTime()
+    stimulus_offset = iti_onset
+    stop_offset = iti_onset if stop_presented else ''
+    next_onset = sched['onset'] + 1.5 + sched['iti']
+    while global_clock.getTime() < next_onset:
+        fixation.draw()  # Add this line
+        win.flip()
+        if exit_key in event.getKeys():
+            save_and_quit()
+    iti_offset = global_clock.getTime()
 
-                core.wait(0.05)
-
+    # Outcomes
+    expected_key = '1' if direction == 'left' else '0'
+    go_correct = 0
+    go_incorrect = 0
+    go_miss = 0
+    stop_success = 0
+    stop_failure_arrowcorrect = ''
+    if is_stop:
+        stop_trials += 1
+        if not responded:
+            successful_stops += 1
+            ssd = min(max_ssd, ssd + ssd_step)
+            stop_success = 1
+        else:
+            ssd = max(min_ssd, ssd - ssd_step)
+            stop_success = 0
+            stop_failure_arrowcorrect = (response_key == expected_key)
+    else:
+        total_go_trials += 1
+        if responded:
+            if response_key == expected_key:
+                go_correct = 1
+                correct_go_trials += 1
+                rt_list.append(rt)
             else:
-
-                event.waitKeys(
-                    keyList=[
-                        "space",
-                        "escape",
-                    ],
-                    maxWait=8.0,
-                )
-
-        finally:
-
-            if self.win is not None:
-
-                self.win.close()
-
-                self.win = None
-
-    # ==================================================================
-    # RECORD TRIAL
-    # ==================================================================
-
-    def _record_trial(
-        self,
-        trial_num: int,
-        direction: str,
-        is_stop: bool,
-        responded: bool,
-        rt: float | None,
-        ssd: float,
-        *,
-        stim_onset_task_time: float | None = None,
-        stim_onset_lsl_time: float | None = None,
-        stim_onset_unix_time: float | None = None,
-        stop_presented: bool | None = None,
-        stop_onset_lsl_time: float | None = None,
-        stop_onset_unix_time: float | None = None,
-        response_onset_unix_time: float | None = None,
-        response_key: str = "",
-    ) -> None:
-
-        # --------------------------------------------------------------
-        # STOP PRESENTED
-        # --------------------------------------------------------------
-
-        stop_presented = (
-            is_stop
-            if stop_presented is None
-            else stop_presented
-        )
-
-        m = self.marker_codes
-
-        expected_key = (
-            "1"
-            if direction == "left"
-            else "0"
-        )
-
-        # --------------------------------------------------------------
-        # CURRENT TASK TIME
-        # --------------------------------------------------------------
-
-        if self.run_start_time is not None:
-
-            now_task = (
-                time.time()
-                - self.run_start_time
-            )
-
+                go_incorrect = 1
         else:
-
-            now_task = 0.0
-
-        stim_onset_task_time = (
-            now_task
-            if stim_onset_task_time is None
-            else stim_onset_task_time
-        )
-
-        if stim_onset_unix_time is None and self.run_start_time is not None:
-            stim_onset_unix_time = (
-                self.run_start_time
-                + stim_onset_task_time
-            ) * 1000.0
-
-        # --------------------------------------------------------------
-        # GO MARKER
-        # --------------------------------------------------------------
-
-        if stim_onset_lsl_time is None:
-
-            stim_onset_lsl_time = (
-                self.event_logger.send(
-                    int(
-                        m.get(
-                            "sst_go",
-                            110,
-                        )
-                    ),
-                    "sst_go",
-                    {
-                        "trial_num": trial_num,
-                        "stimulus": direction,
-                    },
-                )
-            )
-
-        # --------------------------------------------------------------
-        # STOP ONSET
-        # --------------------------------------------------------------
-
-        stop_onset_task_time = (
-            stim_onset_task_time + ssd
-            if stop_presented
-            else None
-        )
-
-        if (
-            stop_onset_unix_time is None
-            and stop_presented
-            and stim_onset_unix_time is not None
-        ):
-            stop_onset_unix_time = (
-                stim_onset_unix_time
-                + ssd * 1000.0
-            )
-
-        if stop_presented:
-
-            if stop_onset_lsl_time is None:
-
-                stop_onset_lsl_time = (
-                    self.event_logger.send(
-                        int(
-                            m.get(
-                                "sst_stop",
-                                111,
-                            )
-                        ),
-                        "sst_stop",
-                        {
-                            "trial_num": trial_num,
-                            "ssd": ssd,
-                        },
-                    )
-                )
-
-        # --------------------------------------------------------------
-        # RESPONSE
-        # --------------------------------------------------------------
-
-        response_onset_task_time = (
-            stim_onset_task_time + rt
-            if responded
-            and rt is not None
-            else None
-        )
-
-        if (
-            response_onset_unix_time is None
-            and responded
-            and rt is not None
-            and stim_onset_unix_time is not None
-        ):
-            response_onset_unix_time = (
-                stim_onset_unix_time
-                + rt * 1000.0
-            )
-
-        response_onset_lsl_time = None
-
-        if (
-            responded
-            and rt is not None
-        ):
-
-            response_onset_lsl_time = (
-                self.event_logger.send(
-                    int(
-                        m.get(
-                            "sst_response",
-                            120,
-                        )
-                    ),
-                    "sst_response",
-                    {
-                        "trial_num": trial_num,
-                        "rt": rt,
-                        "response_onset_unix_time": response_onset_unix_time,
-                    },
-                )
-            )
-
-        # --------------------------------------------------------------
-        # GO OUTCOMES
-        # --------------------------------------------------------------
-
-        go_correct = int(
-            (not is_stop)
-            and responded
-            and (
-                response_key
-                in {
-                    "",
-                    expected_key,
-                }
-            )
-        )
-
-        go_incorrect = int(
-            (not is_stop)
-            and responded
-            and response_key
-            not in {
-                "",
-                expected_key,
-            }
-        )
-
-        go_miss = int(
-            (not is_stop)
-            and not responded
-        )
-
-        # --------------------------------------------------------------
-        # STOP OUTCOMES
-        # --------------------------------------------------------------
-
-        stop_success = int(
-            is_stop
-            and not responded
-        )
-
-        stop_failure = int(
-            is_stop
-            and responded
-        )
-
-        # --------------------------------------------------------------
-        # OUTCOME MARKER
-        # --------------------------------------------------------------
-
-        if stop_success:
-
-            outcome_marker = int(
-                m.get(
-                    "sst_stop_success",
-                    131,
-                )
-            )
-
-            outcome = (
-                "stop_success"
-            )
-
-        elif stop_failure:
-
-            outcome_marker = int(
-                m.get(
-                    "sst_stop_failure",
-                    132,
-                )
-            )
-
-            outcome = (
-                "stop_failure"
-            )
-
-        elif go_correct:
-
-            outcome_marker = int(
-                m.get(
-                    "sst_go_correct",
-                    133,
-                )
-            )
-
-            outcome = (
-                "go_correct"
-            )
-
-        elif go_incorrect:
-
-            outcome_marker = int(
-                m.get(
-                    "sst_go_incorrect",
-                    134,
-                )
-            )
-
-            outcome = (
-                "go_incorrect"
-            )
-
-        else:
-
-            outcome_marker = int(
-                m.get(
-                    "sst_go_miss",
-                    135,
-                )
-            )
-
-            outcome = (
-                "go_miss"
-            )
-
-        # --------------------------------------------------------------
-        # SEND OUTCOME MARKER
-        # --------------------------------------------------------------
-
-        outcome_lsl_time = (
-            self.event_logger.send(
-                outcome_marker,
-                outcome,
-                {
-                    "trial_num": trial_num,
-                },
-            )
-        )
-
-        # --------------------------------------------------------------
-        # SAVE TRIAL
-        # --------------------------------------------------------------
-
-        self.results.append(
-            {
-                "subject_id": (
-                    f"sub-{self.subject_id}"
-                ),
-
-                "session_id": (
-                    f"ses-{self.session_id}"
-                ),
-
-                "run": (
-                    self.run_label
-                ),
-
-                "localizer": int(
-                    bool(
-                        self.cli_args.localizer
-                    )
-                ),
-
-                "trialNumber": (
-                    trial_num
-                ),
-
-                "stim_onset": (
-                    stim_onset_task_time
-                ),
-
-                "stim_onset_lsl_time": (
-                    stim_onset_lsl_time
-                ),
-
-                "stim_onset_unix_time": (
-                    stim_onset_unix_time
-                ),
-
-                "stop_onset": (
-                    stop_onset_task_time
-                    if stop_onset_task_time
-                    is not None
-                    else ""
-                ),
-
-                "stop_onset_lsl_time": (
-                    stop_onset_lsl_time
-                    if stop_onset_lsl_time
-                    is not None
-                    else ""
-                ),
-
-                "stop_onset_unix_time": (
-                    stop_onset_unix_time
-                    if stop_onset_unix_time
-                    is not None
-                    else ""
-                ),
-
-                "response_onset": (
-                    response_onset_task_time
-                    if response_onset_task_time
-                    is not None
-                    else ""
-                ),
-
-                "response_onset_lsl_time": (
-                    response_onset_lsl_time
-                    if response_onset_lsl_time
-                    is not None
-                    else ""
-                ),
-
-                "response_onset_unix_time": (
-                    response_onset_unix_time
-                    if response_onset_unix_time
-                    is not None
-                    else ""
-                ),
-
-                "outcome_lsl_time": (
-                    outcome_lsl_time
-                ),
-
-                "marker_code": (
-                    outcome_marker
-                ),
-
-                "stimulus": (
-                    direction
-                ),
-
-                "stop": int(
-                    is_stop
-                ),
-
-                "response": bool(
-                    responded
-                ),
-
-                "response_key": (
-                    response_key
-                ),
-
-                "rt": (
-                    rt
-                    if rt is not None
-                    else ""
-                ),
-
-                "ssd": round(
-                    float(ssd),
-                    3,
-                ),
-
-                "go_correct": (
-                    go_correct
-                ),
-
-                "go_incorrect": (
-                    go_incorrect
-                ),
-
-                "go_miss": (
-                    go_miss
-                ),
-
-                "stop_success": (
-                    stop_success
-                ),
-
-                "stop_failure_arrowcorrect": (
-                    bool(
-                        response_key
-                        in {
-                            "",
-                            expected_key,
-                        }
-                    )
-                    if stop_failure
-                    else ""
-                ),
-
-                "outcome": (
-                    outcome
-                ),
-
-                "run_start_lsl_time": (
-                    self.run_start_lsl_time
-                ),
-
-                "run_end_lsl_time": (
-                    self.run_end_lsl_time
-                ),
-
-                "run_start_task_time": (
-                    0.0
-                ),
-
-                "run_end_task_time": (
-                    self.run_end_task_time
-                ),
-            }
-        )
-
-    # ==================================================================
-    # SAVE EVENTS
-    # ==================================================================
-
-    def save_events(self) -> None:
-        """
-        Save participant response data.
-
-        CSV files are saved directly into the configured
-        pre-stimulation participant response directory.
-
-        Filename:
-
-            sub-{subject}_ses-{session}_{run}_task-SST_{date-time}.csv
-        """
-
-        if self._saved:
-
-            return
-
-        if not self.results:
-
-            print(
-                "No participant response trials "
-                "were recorded. No CSV was written."
-            )
-
-            return
-
-        if (
-            self.pre_stimulation_responses_dir
-            is None
-        ):
-
-            raise RuntimeError(
-                "Pre-stimulation response directory "
-                "has not been configured."
-            )
-
-        # --------------------------------------------------------------
-        # UPDATE RUN END TIMES
-        # --------------------------------------------------------------
-
-        for row in self.results:
-
-            row[
-                "run_end_lsl_time"
-            ] = self.run_end_lsl_time
-
-            row[
-                "run_end_task_time"
-            ] = self.run_end_task_time
-
-        # --------------------------------------------------------------
-        # BASE FILE PATH
-        #
-        # IMPORTANT:
-        # task-SST, NOT task-bandit.
-        # --------------------------------------------------------------
-
-        base = (
-            self.pre_stimulation_responses_dir
-            / (
-                f"sub-{self.subject_id}-{self.session_id}"
-                f"_task-SST_{self.visit_phase}"
-                f"_{self.date_label}"
-            )
-        )
-
-        fields = list(
-            self.results[0].keys()
-        )
-
-        # --------------------------------------------------------------
-        # CSV
-        # --------------------------------------------------------------
-
-        csv_path = (
-            base.with_suffix(".csv")
-        )
-
-        with csv_path.open(
-            "w",
-            encoding="utf-8",
-            newline="",
-        ) as handle:
-
-            writer = csv.DictWriter(
-                handle,
-                fieldnames=fields,
-                delimiter=",",
-            )
-
-            writer.writeheader()
-
-            writer.writerows(
-                self.results
-            )
-
-        self._saved = True
-
-        # --------------------------------------------------------------
-        # CONFIRM OUTPUT
-        # --------------------------------------------------------------
-
-        print(
-            "\n=================================================="
-        )
-
-        print(
-            "SST PARTICIPANT RESPONSE DATA SAVED"
-        )
-
-        print(
-            "=================================================="
-        )
-
-        print(
-            f"CSV:\n{csv_path}"
-        )
-
-        print(
-            f"\nTrials saved: {len(self.results)}"
-        )
-
-        print(
-            "=================================================="
-        )
-
-
-# ======================================================================
-# ARGUMENT PARSER
-# ======================================================================
-
-def build_arg_parser() -> argparse.ArgumentParser:
-
-    parser = argparse.ArgumentParser(
-        description=(
-            "Run the Stop Signal Task "
-            "with optional NIC-2 LSL trigger sync."
-        )
-    )
-
-    # --------------------------------------------------------------
-    # CONFIG
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--config",
-        default=str(
-            Path(__file__).resolve().parent
-            / "config.json"
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # SUBJECT
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--subject",
-        help=(
-            "Subject ID, with or without "
-            "the sub- prefix."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # SESSION
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--session",
-        default="001",
-        help=(
-            "Session ID, with or without "
-            "the ses- prefix."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # LOCALIZER
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--localizer",
-        action="store_true",
-        help=(
-            "Mark this as the pre-stimulation "
-            "baseline run. Labels the file "
-            "run-localizer and skips the "
-            "LSL start trigger."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # DURATION
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--duration-minutes",
-        type=float,
-        help=(
-            "Override the configured "
-            "run duration."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # TEST MODE
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--test-mode",
-        action="store_true",
-        help=(
-            "Run without PsychoPy, LSL, "
-            "or stimulation hardware."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # AUTO RESPONSE
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--auto-respond",
-        action="store_true",
-        help=(
-            "Auto-start and simulate "
-            "button responses."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # SCREEN
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--screen",
-        type=int,
-        help=(
-            "Monitor index for the "
-            "PsychoPy window."
-        ),
-    )
-
-    # --------------------------------------------------------------
-    # WINDOWED
-    # --------------------------------------------------------------
-
-    parser.add_argument(
-        "--windowed",
-        action="store_true",
-        help=(
-            "Run in a window instead "
-            "of fullscreen."
-        ),
-    )
-
-    return parser
-
-
-# ======================================================================
-# MAIN
-# ======================================================================
-
-def main() -> int:
-
-    cli_args = (
-        build_arg_parser()
-        .parse_args()
-    )
-
-    config = load_config(
-        cli_args.config
-    )
-
-    task = SSTTask(
-        config,
-        cli_args,
-    )
-
-    task.run()
-
-    return 0
-
-
-# ======================================================================
-# SCRIPT ENTRY
-# ======================================================================
-
-if __name__ == "__main__":
-
-    raise SystemExit(
-        main()
-    )
+            go_miss = 999
+
+    duration_val = float(rt) if rt is not None else 1.5
+    results.append({
+        'trialNumber': trial_number,
+        'bet': bet,
+        'stim_onset': unix(stim_onset),
+        'stop_onset': unix(stop_onset),
+        'stimulus_offset': unix(stimulus_offset),
+        'stop_offset': unix(stop_offset),
+        'duration': round(duration_val, 3),
+        'stimulus': direction,
+        'stop': int(is_stop),
+        'response': responded,
+        'rt': rt if rt is not None else '',
+        'stim_file': os.path.join(script_dir,'sst', 'images', f"{direction}_arrow.png"),
+        'ssd': round(ssd, 3),
+        'fixation_onset': unix(fixation_onset),
+        'fixation_offset': unix(fixation_offset),
+        'isi_onset': unix(isi_onset),
+        'isi_offset': unix(isi_offset),
+        'iti_onset': unix(iti_onset),
+        'iti_offset': unix(iti_offset),
+        'go_correct': go_correct,
+        'go_incorrect': go_incorrect,
+        'go_miss': go_miss,
+        'stop_success': stop_success,
+        'stop_failure_arrowcorrect': stop_failure_arrowcorrect,
+        'run_start_unix': round(run_start_unix, 4)
+    })
+
+# Calculate performance metrics
+mean_rt = (sum(rt_list) / len(rt_list) * 1000) if rt_list else 999
+go_accuracy = (correct_go_trials / total_go_trials) * 100 if total_go_trials > 0 else 0
+stop_accuracy = (successful_stops / stop_trials) * 100 if stop_trials > 0 else 0
+
+# Check each criterion (matching instructions)
+go_accuracy_met = go_accuracy >= 90
+stop_accuracy_met = stop_accuracy >= 50
+rt_met = mean_rt < 500
+
+# Determine winnings based on all criteria
+all_criteria_met = go_accuracy_met and stop_accuracy_met and rt_met
+if all_criteria_met and bet > 0:
+    winnings = bet * 2
+else:
+    winnings = 0
+
+# Add unbet amount to bonus
+unbet_amount = 10 - bet
+total_bonus += winnings + unbet_amount
+
+# Save events
+write_events(tsv_filename, '\t')
+write_events(csv_filename, ',')
+
+# Feedback screen
+summary_text = f"End of Run {run_number}.\n\n"
+summary_text += f"Average response time: {mean_rt:.0f} ms (target: < 500 ms) "
+summary_text += "✓\n" if rt_met else "✗\n"
+summary_text += f"Go Accuracy: {go_accuracy:.1f}% (target: ≥ 90%) "
+summary_text += "✓\n" if go_accuracy_met else "✗\n"
+summary_text += f"Stop Accuracy: {stop_accuracy:.1f}% (target: ≥ 50%) "
+summary_text += "✓\n\n" if stop_accuracy_met else "✗\n\n"
+
+if bet == 0:
+    summary_text += "You did not place a bet this round.\n"
+elif all_criteria_met:
+    summary_text += "Congratulations! You met all criteria.\n"
+    summary_text += f"Your ${bet} bet was doubled to ${winnings}!\n"
+else:
+    summary_text += f"You did not win your ${bet} bet.\n"
+    missed_reasons = []
+    if not go_accuracy_met:
+        missed_reasons.append("Go accuracy was below 90%")
+    if not stop_accuracy_met:
+        missed_reasons.append("Stop accuracy was below 50%")
+    if not rt_met:
+        missed_reasons.append("Average response time was 500 ms or slower")
+    summary_text += "Reason(s): " + "; ".join(missed_reasons) + "\n"
+
+summary = visual.TextStim(win, text=summary_text, color='white', height=32, wrapWidth=800)
+summary.draw()
+win.flip()
+event.clearEvents(eventType='keyboard')
+keys = event.waitKeys(maxWait=20, keyList=['space', 'z'])
+
+final_msg = visual.TextStim(
+    win,
+    text="You have completed this run of the Stop-Signal Task.\n\nPlease press space to exit the task.",
+    color='white', height=36
+)
+final_msg.draw()
+win.flip()
+event.clearEvents(eventType='keyboard')
+
+event.waitKeys(maxWait=20, keyList=['space', 'z'])
+with open(os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_bonus.txt"), 'w') as f:
+    f.write(f"bet={bet}\nwinnings={winnings}\nunbet={unbet_amount}\nrun_bonus={winnings + unbet_amount}\n")
+
+win.close()
+core.quit()
