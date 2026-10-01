@@ -263,7 +263,7 @@ class BanditTask:
             (parent for parent in (script_path.parent, *script_path.parents) if parent.name == "tacs3-bluesky"),
             script_path.parent,
         )
-        self.data_dir = repo_root / "behavioral-data" / f"sub-{self.subject_id}"
+        self.data_dir = repo_root / "data" / f"sub-{self.subject_id}"
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
         # Always use a single run label

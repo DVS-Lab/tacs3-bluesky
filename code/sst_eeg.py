@@ -14,7 +14,7 @@ DEBUG = False
 #  SETUP
 info = {'Subject Number': '',
         'Session': '',
-        'Run': ''}
+        'Timepoint': ['Beginning of visit', 'End of visit']}
 dlg = gui.DlgFromDict(info, title="Stop Signal Task with Gambling",
                       sortKeys=False)
 if not dlg.OK:
@@ -22,7 +22,8 @@ if not dlg.OK:
 
 sub_number = info['Subject Number']
 ses_number = info['Session']
-run_number = int(info['Run'])
+is_pre = (info['Timepoint'] == 'Beginning of visit')
+stim_label = 'pre-stim' if is_pre else 'post-stim'
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 #  WINDOW AND STIMULI
@@ -42,8 +43,7 @@ fixation = visual.TextStim(win, text='+', height=40)
 total_bonus = 0
 
 # Output directory
-log_dir = os.path.join(script_dir, '..','data', f'sub-{sub_number}')
-log_dir = os.path.normpath(log_dir)
+log_dir = os.path.normpath(os.path.join(script_dir, '..', 'stimulation', 'pre-stimulation-participant-responses'))
 os.makedirs(log_dir, exist_ok=True)
 
 #  FAST EXPONENTIAL JITTER WITH FIXED TOTAL
@@ -92,9 +92,7 @@ fieldnames = [
     'stop_failure_arrowcorrect', 'run_start_unix'
 ]
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_task-SST_{timestamp}_events")
-tsv_filename = base + ".tsv"
-csv_filename = base + ".csv"
+csv_filename = os.path.join(log_dir, f"sub-{sub_number}-{ses_number}_task-SST_{stim_label}_{timestamp}.csv")
 
 def write_events(path, delimiter):
     with open(path, 'w', newline='') as f:
@@ -104,13 +102,12 @@ def write_events(path, delimiter):
             writer.writerow(r)
 
 def save_and_quit():
-    write_events(tsv_filename, '\t')
     write_events(csv_filename, ',')
     win.close()
     core.quit()
 
 #  INSTRUCTIONS (run 1 only)
-if run_number == 1:
+if is_pre:
     instruction_texts = [
         "Welcome to the Stop-Signal Task!\n\nPress Space to continue.",
         
@@ -147,7 +144,7 @@ if run_number == 1:
                 save_and_quit()
 
 #  CRITERIA REMINDER (runs 2 and 3)
-if run_number > 1:
+if not is_pre:
     reminder_text = (
         "Reminder: To win your bet, you must meet ALL of the following criteria:\n\n"
         "• Respond correctly on at least 90% of black arrow (go) trials\n\n"
@@ -247,7 +244,7 @@ for i in range(n_trials):
     t += 1.5
     t += iti_dur
 run_duration = t
-print(f"Run {run_number} scheduled duration: {run_duration:.3f} sec")
+print(f"Run {stim_label} scheduled duration: {run_duration:.3f} sec")
 
 # Tracking
 stop_trials = 0
@@ -429,11 +426,10 @@ unbet_amount = 10 - bet
 total_bonus += winnings + unbet_amount
 
 # Save events
-write_events(tsv_filename, '\t')
 write_events(csv_filename, ',')
 
 # Feedback screen
-summary_text = f"End of Run {run_number}.\n\n"
+summary_text = "End of task.\n\n"
 summary_text += f"Average response time: {mean_rt:.0f} ms (target: < 500 ms) "
 summary_text += "✓\n" if rt_met else "✗\n"
 summary_text += f"Go Accuracy: {go_accuracy:.1f}% (target: ≥ 90%) "
@@ -473,8 +469,6 @@ win.flip()
 event.clearEvents(eventType='keyboard')
 
 event.waitKeys(maxWait=20, keyList=['space', 'z'])
-with open(os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_bonus.txt"), 'w') as f:
-    f.write(f"bet={bet}\nwinnings={winnings}\nunbet={unbet_amount}\nrun_bonus={winnings + unbet_amount}\n")
 
 win.close()
 core.quit()
