@@ -3,6 +3,7 @@ from psychopy import visual, core, event, gui
 from datetime import datetime
 import random
 import csv
+import time
 import numpy as np  # Needed for exponential and rescaling
 
 # Screen parameters
@@ -14,7 +15,8 @@ DEBUG = False
 info = {'Subject Number': '',
         'Session': '',
         'Run': ''}
-dlg = gui.DlgFromDict(info, title="Stop Signal Task with Gambling")
+dlg = gui.DlgFromDict(info, title="Stop Signal Task with Gambling",
+                      sortKeys=False)
 if not dlg.OK:
     core.quit()
 
@@ -44,18 +46,39 @@ log_dir = os.path.join(script_dir, '..','data', f'sub-{sub_number}')
 log_dir = os.path.normpath(log_dir)
 os.makedirs(log_dir, exist_ok=True)
 
-#  EXPONENTIAL SAMPLES WITH FIXED TOTAL
-def sample_scaled_exp_durations(n, total_duration, low, high, scale):
-    while True:
-        samples = np.random.exponential(scale=scale, size=n * 10)
-        clipped = samples[(samples >= low) & (samples <= high)]
-        if len(clipped) >= n:
-            clipped = clipped[:n]
-            clipped = np.array(clipped)
-            scaled = clipped / clipped.sum() * total_duration
-            if np.all((scaled >= low) & (scaled <= high)):
-                return list(scaled)
+#  FAST EXPONENTIAL JITTER WITH FIXED TOTAL
+def sample_jitter(n, total, low, high, scale, max_tries=1000, label=""):
+    """Truncated exponential on [f, high], with f >= low chosen so the mean
+    equals total/n. Uses only numpy. The total is hit exactly."""
+    target_mean = total / n
 
+    def mean_for(f):
+        w = high - f
+        return f + scale - w * np.exp(-w / scale) / (-np.expm1(-w / scale))
+
+    # Find the floor f by bisection (mean_for increases with f)
+    if mean_for(low) >= target_mean:
+        f = low
+    else:
+        lo, hi = low, high - 1e-6
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            if mean_for(mid) < target_mean:
+                lo = mid
+            else:
+                hi = mid
+        f = (lo + hi) / 2
+    print(f"{label} floor used: {f:.3f} s (nominal floor {low}), cap {high}")
+
+    w = high - f
+    for _ in range(max_tries):
+        u = np.random.uniform(size=n)
+        x = f - scale * np.log(1 - u * (-np.expm1(-w / scale)))   # inverse CDF
+        x += (total - x.sum()) / n                                 # shift to exact total
+        if x.min() >= low and x.max() <= high:
+            return list(x)
+    raise ValueError(f"{label}: could not build {n} durations in [{low}, {high}] "
+                     f"summing to {total:.1f}s")
 
 # ---------- Per-run setup ----------
 results = []
@@ -66,7 +89,7 @@ fieldnames = [
     'fixation_onset', 'fixation_offset',
     'isi_onset', 'isi_offset', 'iti_onset', 'iti_offset',
     'go_correct', 'go_incorrect', 'go_miss', 'stop_success',
-    'stop_failure_arrowcorrect'
+    'stop_failure_arrowcorrect', 'run_start_unix'
 ]
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_task-SST_{timestamp}_events")
@@ -186,7 +209,7 @@ selected_opt.color = prev_color
 bet = gamble_key_map[gamble_choice]
 
 # PARAMETERS
-n_trials = 74
+n_trials = 45
 stop_prob = 0.30
 response_keys = ['1', '0']
 exit_key = 'z'
@@ -195,12 +218,12 @@ ssd_step = 0.05
 min_ssd = 0.05
 max_ssd = 0.9
 
-# Sample ISI/ITI durations with fixed totals
-total_isi_time = 126.0
-total_iti_time = 252.0
-isi_values = sample_scaled_exp_durations(n_trials, total_isi_time, 0.8075, 2.4225, scale=0.5)
-iti_values = sample_scaled_exp_durations(n_trials, total_iti_time, 0.8075, 7.2675, scale=1.5)
 
+# Scale ISI/ITI totals with n_trials (same per-trial timing as the original 74-trial design)
+total_isi_time = 126.0 / 74 * n_trials
+total_iti_time = 252.0 / 74 * n_trials
+isi_values = sample_jitter(n_trials, total_isi_time, 0.8075, 2.4225, scale=0.5, label="ISI")
+iti_values = sample_jitter(n_trials, total_iti_time, 0.8075, 7.2675, scale=1.5, label="ITI")
 # Build trial list
 trials = []
 for _ in range(n_trials):
@@ -246,6 +269,13 @@ if key == 'z':
     save_and_quit()
 
 global_clock = core.Clock()
+run_start_unix = time.time()   # Unix time at clock zero
+print(f"Run start (Unix): {run_start_unix:.6f}")
+
+def unix(t):
+    """Convert a global_clock time to Unix time. Blank values stay blank."""
+    return round(run_start_unix + t, 4) if t != '' else ''
+
 fixation.draw()
 win.flip()
 
@@ -259,7 +289,7 @@ for sched in trial_schedule:
     fixation_onset = isi_onset
     fixation.draw()
     win.flip()
-    while global_clock.getTime() < isi_onset + sched['isi']:
+    while global_clock.getTime() < sched['onset']:
         fixation.draw()
         win.flip()
         if exit_key in event.getKeys():
@@ -311,12 +341,7 @@ for sched in trial_schedule:
     iti_onset = global_clock.getTime()
     stimulus_offset = iti_onset
     stop_offset = iti_onset if stop_presented else ''
-    next_onset = None
-    idx = trial_number
-    if idx < len(trial_schedule):
-        next_onset = trial_schedule[idx]['onset']
-    else:
-        next_onset = run_duration
+    next_onset = sched['onset'] + 1.5 + sched['iti']
     while global_clock.getTime() < next_onset:
         fixation.draw()  # Add this line
         win.flip()
@@ -357,10 +382,10 @@ for sched in trial_schedule:
     results.append({
         'trialNumber': trial_number,
         'bet': bet,
-        'stim_onset': stim_onset,
-        'stop_onset': stop_onset,
-        'stimulus_offset': stimulus_offset,
-        'stop_offset': stop_offset,
+        'stim_onset': unix(stim_onset),
+        'stop_onset': unix(stop_onset),
+        'stimulus_offset': unix(stimulus_offset),
+        'stop_offset': unix(stop_offset),
         'duration': round(duration_val, 3),
         'stimulus': direction,
         'stop': int(is_stop),
@@ -368,17 +393,18 @@ for sched in trial_schedule:
         'rt': rt if rt is not None else '',
         'stim_file': os.path.join(script_dir,'sst', 'images', f"{direction}_arrow.png"),
         'ssd': round(ssd, 3),
-        'fixation_onset': fixation_onset,
-        'fixation_offset': fixation_offset,
-        'isi_onset': isi_onset,
-        'isi_offset': isi_offset,
-        'iti_onset': iti_onset,
-        'iti_offset': iti_offset,
+        'fixation_onset': unix(fixation_onset),
+        'fixation_offset': unix(fixation_offset),
+        'isi_onset': unix(isi_onset),
+        'isi_offset': unix(isi_offset),
+        'iti_onset': unix(iti_onset),
+        'iti_offset': unix(iti_offset),
         'go_correct': go_correct,
         'go_incorrect': go_incorrect,
         'go_miss': go_miss,
         'stop_success': stop_success,
-        'stop_failure_arrowcorrect': stop_failure_arrowcorrect
+        'stop_failure_arrowcorrect': stop_failure_arrowcorrect,
+        'run_start_unix': round(run_start_unix, 4)
     })
 
 # Calculate performance metrics
@@ -439,7 +465,7 @@ keys = event.waitKeys(maxWait=20, keyList=['space', 'z'])
 
 final_msg = visual.TextStim(
     win,
-    text="You have completed this run of the Stop-Signal Task.\n\nPlease wait for the experimenter.",
+    text="You have completed this run of the Stop-Signal Task.\n\nPlease press space to exit the task.",
     color='white', height=36
 )
 final_msg.draw()
