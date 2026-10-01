@@ -121,7 +121,7 @@ def extract_frequency_values(subject_id, visit_number):
 # MODIFY PROTOCOL
 # ============================================================
 
-def replace_protocol_info(file_path, frequency, template_name):
+def replace_protocol_info(file_path, frequency, template_name, step_name):
     """
     Replace the frequency and TemplateName in a copied
     protocol template.
@@ -162,7 +162,24 @@ def replace_protocol_info(file_path, frequency, template_name):
             "Could not find <TemplateName></TemplateName> "
             "in the protocol template."
         )
+    # --------------------------------------------------------
+    # Replace stepName
+    # --------------------------------------------------------
 
+    text, step_replaced = re.subn(
+        r"<stepName>.*?</stepName>",
+        f"<stepName>{step_name}</stepName>",
+        text,
+        flags=re.DOTALL,
+    )
+
+    if step_replaced == 0:
+        raise ValueError(
+            "Could not find <stepName></stepName> "
+            "in the protocol template."
+        )
+
+    file_path.write_text(text, encoding="utf-8")
     file_path.write_text(text, encoding="utf-8")
 
 
@@ -238,23 +255,23 @@ def create_protocol(subject_id, visit_number, counterbalance):
     ]
 
     # --------------------------------------------------------
-    # Protocol names
+    # Tasks and run numbers (same order as output_files)
     # --------------------------------------------------------
 
-    protocol_names = [
-        "Bandit-Run1",
-        "Bandit-Run2",
-        "SST-Run1",
-        "SST-Run2",
+    runs = [
+        ("Bandit", 1),
+        ("Bandit", 2),
+        ("SST", 1),
+        ("SST", 2),
     ]
 
     # --------------------------------------------------------
     # Generate each protocol
     # --------------------------------------------------------
 
-    for output_file, run_name in zip(
+    for output_file, (task, run_number) in zip(
         output_files,
-        protocol_names,
+        runs,
     ):
 
         shutil.copy(
@@ -265,13 +282,16 @@ def create_protocol(subject_id, visit_number, counterbalance):
         template_name = (
             f"TACS3-{subject_id}-"
             f"Visit{visit_number}-"
-            f"{run_name}"
+            f"{task}-Run{run_number}"
         )
+
+        step_name = f"{task}-{run_number}"
 
         replace_protocol_info(
             output_file,
             frequency,
             template_name,
+            step_name,
         )
 
     # --------------------------------------------------------
