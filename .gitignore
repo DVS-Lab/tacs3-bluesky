@@ -218,7 +218,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Lab-local task outputs
-data/
 logs/
 code/data/
 code/logs/
