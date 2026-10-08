@@ -285,3 +285,15 @@ def test_secondary_no_peak_is_valid_json(config,tmp_path):
     write_json(tmp_path/'result.json',result)
     assert result['feedback_specparam']['candidate_hz'] is None
     assert result['feedback_specparam']['peak_parameters']==[]
+
+
+def test_legacy_auto_find_does_not_confuse_eeg_csv_with_events(tmp_path,monkeypatch):
+    import run_rhythm_estimation as cli
+    monkeypatch.setattr(cli,'_repo_root',lambda:tmp_path)
+    subject=tmp_path/'data/sub-001';(subject/'eeg').mkdir(parents=True)
+    events=subject/'sub-001_ses-1_run-localizer_task-SST_2026-01-01_events.csv';events.touch()
+    eeg=subject/'eeg/sub-001_ses-1_run-localizer_task-SST_eeg.csv';eeg.touch()
+    assert cli._auto_find_inputs('001','1','sst')==(events,eeg)
+    # A different session and task must not be used as a fallback.
+    assert cli._auto_find_inputs('001','2','sst')==(None,None)
+    assert cli._auto_find_inputs('001','1','bandit')==(None,None)

@@ -1,4 +1,4 @@
-................................................s.                       [100%]
+.................................................s.                      [100%]
 =============================== warnings summary ===============================
 tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
   <analysis-environment>/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:64: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
@@ -29,4 +29,4 @@ tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ============================
 SKIPPED [1] tests/test_rhythm_workflow.py:172: Pre-existing obsolete SST CLI test: current sst_main.py is a PsychoPy GUI with no --test-mode; task timing is outside this audit.
-49 passed, 1 skipped, 14 warnings in 4.84s
+50 passed, 1 skipped, 14 warnings in 20.95s
