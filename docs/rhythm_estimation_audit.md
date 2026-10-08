@@ -22,6 +22,8 @@ The six fixture participants have 24 recording entries. Post recordings for 1003
 
 The loader supports the actual recorded formats: NIC `.easy` plus `.info`, LSL EEG CSV plus metadata, and behavioral CSV/TSV. The tracked LSL CSV examples contain no samples; they correctly fail. A nonempty LSL file also requires documented amplitude units because the old recorder did not save them. Other formats advertised in the historical CLI are not claimed as validated here.
 
+The repository attributes preserve exact file bytes on Windows checkout; line-ending conversion must not invalidate provenance hashes.
+
 NIC voltages convert nV→µV and Unix timestamps ms→s, following the [manufacturer's format specification](https://www.neuroelectrics.com/api/downloads/NE_P3_UM004_EN_NIC2.1.0_1.pdf). Check metadata/channel/sample counts, monotonicity, rate, packet-loss markers, gaps, event identity, recording overlap, and nearest-sample errors. Units and clock domain are explicit; no “looks close” LSL/task-time substitution occurs. Dual-clock event columns diagnose offset inconsistency; they never silently shift EEG. This catches about 1.006 s of Unix–LSL offset range in 10037 Bandit pre and up to 0.496 s in SST pre. It cannot prove whether EEG and event computers shared a synchronized wall clock.
 
 ## Prespecified offline estimands

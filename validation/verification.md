@@ -10,4 +10,5 @@
 - Historical replay: all 11 available Bandit beta fixture values reproduced exactly. SST provenance remains unknown (4/11 all-response and 5/11 correct-go hypothesis matches).
 - Visual inspection: fixture overview, response spectrum/TFR panels, and channel-QC panels checked for readable labels, clear failed-candidate status, and visible search boundaries. All figures use the same reviewed layout.
 - Preservation: Git diff inspected to confirm no original EEG, behavioral data, historical report, `.neprot`, task timing script, `code/config.json`, or counterbalancing changes.
+- Windows CI exposed a 32-bit integer overflow in one synthetic timestamp fixture; it now uses explicit float64 timestamps. Git attributes preserve exact input bytes across platforms. CI smoke assertions verify actual eligible/retained counts, not merely successful process exit.
 - Windows/Linux Python 3.11 tests and the actual 10034 smoke test are configured in `.github/workflows/rhythm-validation.yml`. Remote results are reported on the PR; local validation is not a claim that Avi's lab computer was tested.

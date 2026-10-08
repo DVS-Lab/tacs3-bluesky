@@ -2,6 +2,7 @@ name: Offline rhythm validation
 on:
   pull_request:
     paths:
+      - '.gitattributes'
       - 'code/**'
       - 'tests/**'
       - 'validation/**'
@@ -24,4 +25,5 @@ jobs:
           cache-dependency-path: requirements-validation.txt
       - run: python -m pip install -r requirements-validation.txt
       - run: python -m pytest tests -q
-      - run: python code/validate_rhythms.py --subject 10034 --skip-legacy
+      - run: python code/validate_rhythms.py --subject 10034 --skip-legacy --output-name ci-smoke
+      - run: python tests/check_pilot_smoke.py

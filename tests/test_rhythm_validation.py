@@ -229,7 +229,7 @@ def test_legacy_localizer_ambiguity_fails(tmp_path):
 
 def test_clock_residual_diagnostic(config):
     t=1_780_000_000+np.arange(5000)/500
-    rows=pd.DataFrame({'response_onset_unix_time':(1_780_000_000+np.array([2,4,6]))*1000,
+    rows=pd.DataFrame({'response_onset_unix_time':(1_780_000_000+np.array([2,4,6],dtype=np.float64))*1000,
                        'response_onset_lsl_time':[2,4,6.5]})
     logs=[dict(eligible=True,event_sec=v/1000,event_column='response_onset_unix_time') for v in rows.response_onset_unix_time]
     with pytest.raises(InputError,match='clock_inconsistency') as exc:alignment_qc(logs,rows,t,config['preprocessing'])
