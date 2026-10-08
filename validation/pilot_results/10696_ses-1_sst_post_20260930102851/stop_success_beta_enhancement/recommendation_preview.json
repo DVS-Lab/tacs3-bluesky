@@ -1,0 +1,28 @@
+{
+  "schema": "rhythm-recommendation-preview-v1",
+  "mode": "dry_run_only",
+  "subject": "10696",
+  "session": "1",
+  "task": "sst",
+  "phase": "post",
+  "run": "20260930102851",
+  "estimand": "stop_success_beta_enhancement",
+  "candidate_frequency_hz": null,
+  "approved_stimulation_frequency_hz": null,
+  "fallback_option_hz": 20,
+  "requires_pi_approval": true,
+  "failure_reasons": [
+    "bootstrap_feature_often_missing",
+    "bootstrap_frequency_uncertain",
+    "effect_direction_uncertain",
+    "insufficient_epochs",
+    "low_retention",
+    "missing_or_nonfinite_spectrum"
+  ],
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "input_sha256": {
+    "eeg": "f12f47f2eb538c146a8e4f4ae4e85893318cbe8910f297f246a75f672ca86538",
+    "metadata": "c03e51ec9ebbc4052f70e66bc8d34d5d20acc4635a35123f2acaacba1b060762",
+    "events": "2153b6ebf2e6a692bd25e94698f3a674b02b0f98d9781492c789a0b5c583c098"
+  }
+}

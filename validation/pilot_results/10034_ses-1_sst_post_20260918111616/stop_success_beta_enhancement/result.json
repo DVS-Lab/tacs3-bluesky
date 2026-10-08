@@ -1,0 +1,50 @@
+{
+  "subject": "10034",
+  "session": "1",
+  "task": "sst",
+  "phase": "post",
+  "run": "20260918111616",
+  "recording_id": "10034_ses-1_sst_post_20260918111616",
+  "estimand": "stop_success_beta_enhancement",
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "config_sha256": "bc775cd5050f01648ba957cdd98810df667c4709206f2a5fb7f303850c4ada08",
+  "input_paths": {
+    "eeg": "pilot_data/Pilot-G10034/20260918111616_10034-1_SST_post-stim.easy",
+    "events": "pilot_data/Pilot-G10034/sub-10034-1_task-SST_post-stim_2026-09-18_11-16-03.csv",
+    "metadata": "stimulation/stimulation-data/20260918111616_10034-1_SST_post-stim.info"
+  },
+  "input_sha256": {
+    "eeg": "9011ba33655969dd5310f0c3a16d8bb53051868d8b5010ea2c8f9818e42af2bd",
+    "metadata": "f93105c6a0175cac5efb4e0c083d36159cfc2c8e41e5a388f36e1303626df727",
+    "events": "4e3bc8b9dd3511a89853cc8e2da4954232f2d3fdbf160b0a8c33a4430c1aeeb6"
+  },
+  "intended_use": "offline_validation_only",
+  "approved_stimulation_frequency_hz": null,
+  "legacy_reproduction": [],
+  "timestamp_diagnostics": {
+    "n_samples": 150000,
+    "start_sec": 1789744576.881,
+    "end_sec": 1789744876.879,
+    "nominal_hz": 500.0,
+    "empirical_hz": 500.00000015576785,
+    "irregular_fraction": 0.0,
+    "max_interval_sec": 0.002000093460083008,
+    "clock_domain": "unix",
+    "event_overlap_fraction": 0.6923076923076923,
+    "n_valid_timestamps": 13
+  },
+  "reliable": false,
+  "qc": "FAIL",
+  "status": "unreliable_no_individualized_frequency",
+  "candidate_hz": null,
+  "individualized_frequency_hz": null,
+  "effect_db": null,
+  "fallback_option_hz": 20,
+  "n_eligible": 13,
+  "n_retained": 0,
+  "retention_fraction": 0,
+  "failure_reasons": [
+    "event_recording_overlap_below_threshold"
+  ],
+  "warnings": []
+}

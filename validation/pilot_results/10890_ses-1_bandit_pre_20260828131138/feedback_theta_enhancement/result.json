@@ -1,0 +1,224 @@
+{
+  "subject": "10890",
+  "session": "1",
+  "task": "bandit",
+  "phase": "pre",
+  "run": "20260828131138",
+  "recording_id": "10890_ses-1_bandit_pre_20260828131138",
+  "estimand": "feedback_theta_enhancement",
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "config_sha256": "bc775cd5050f01648ba957cdd98810df667c4709206f2a5fb7f303850c4ada08",
+  "input_paths": {
+    "eeg": "pilot_data/Pilot-G10890/20260828131138_10890-1_Bandit_pre-stim.easy",
+    "events": "stimulation/pre-stimulation-participant-responses/sub-10890-1_task-bandit_2026-08-28_13-10-01.csv",
+    "metadata": "stimulation/stimulation-data/20260828131138_10890-1_Bandit_pre-stim.info"
+  },
+  "input_sha256": {
+    "eeg": "0d28ee18c7b026c50bb847238671e9e6bbdeed56beaaaebdad37ce334849e93c",
+    "metadata": "d97b5973cf322450ea41b32afdb0683ed8ac73def37a18532ed3e1868e08ab42",
+    "events": "dca8733301827e60279d4cd6d774fa53a86439d63c6425358b8727b1304a0fb0"
+  },
+  "intended_use": "offline_validation_only",
+  "approved_stimulation_frequency_hz": null,
+  "legacy_reproduction": [],
+  "timestamp_diagnostics": {
+    "n_samples": 150000,
+    "start_sec": 1787937098.019,
+    "end_sec": 1787937398.017,
+    "nominal_hz": 500.0,
+    "empirical_hz": 500.00000015576785,
+    "irregular_fraction": 0.0,
+    "max_interval_sec": 0.002000093460083008,
+    "clock_domain": "unix",
+    "event_overlap_fraction": 0.9416666666666667,
+    "unix_lsl_max_offset_residual_sec": 0.0007598400115966797,
+    "synchronization": "software_timestamps_only_no_hardware_latency_validation"
+  },
+  "candidate_hz": 8.0,
+  "effect_db": 4.546050158355553,
+  "prominence_db": null,
+  "width_hz": null,
+  "absolute_peak_hz": 8.25,
+  "reasons": [
+    "search_band_boundary",
+    "no_localized_contrast"
+  ],
+  "reliable": false,
+  "failure_reasons": [
+    "bootstrap_feature_often_missing",
+    "bootstrap_frequency_uncertain",
+    "chronological_split_unstable_or_missing",
+    "insufficient_epochs",
+    "low_retention",
+    "no_localized_contrast",
+    "odd_even_split_unstable_or_missing",
+    "search_band_boundary"
+  ],
+  "status": "unreliable_no_individualized_frequency",
+  "individualized_frequency_hz": null,
+  "fallback_option_hz": 6,
+  "n_eligible": 120,
+  "n_retained": 4,
+  "retention_fraction": 0.03333333333333333,
+  "splits": {
+    "chronological": {
+      "halves": [
+        {
+          "candidate_hz": 8.0,
+          "effect_db": 6.305499881448878,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": 8.25,
+          "reasons": [
+            "search_band_boundary",
+            "no_localized_contrast"
+          ]
+        },
+        {
+          "candidate_hz": 8.0,
+          "effect_db": 2.786600435262229,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": 8.25,
+          "reasons": [
+            "search_band_boundary",
+            "no_localized_contrast"
+          ]
+        }
+      ],
+      "difference_hz": 0.0
+    },
+    "odd_even": {
+      "halves": [
+        {
+          "candidate_hz": 8.0,
+          "effect_db": 4.944578048434435,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": 7.75,
+          "reasons": [
+            "search_band_boundary",
+            "no_localized_contrast"
+          ]
+        },
+        {
+          "candidate_hz": 8.0,
+          "effect_db": 4.147522268276672,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": 8.5,
+          "reasons": [
+            "search_band_boundary",
+            "no_localized_contrast"
+          ]
+        }
+      ],
+      "difference_hz": 0.0
+    }
+  },
+  "bootstrap_detection_fraction": 0.0,
+  "bootstrap_ci_hz": null,
+  "effect_ci_db": [
+    4.546050158355553,
+    4.546050158355554
+  ],
+  "bootstrap_valid_iterations": 0,
+  "qc": "FAIL",
+  "warnings": [
+    "below_recommended_epoch_count",
+    "software_timestamp_latency_unvalidated",
+    "sparse_frontal_montage_not_motor_cortex"
+  ],
+  "exclusions": {
+    "ocular_artifact_spreads_to_roi": 104,
+    "artifact:FCz": 1,
+    "artifact:F4,FCz": 3,
+    "insufficient_epoch_padding": 1,
+    "event_outside_recording_or_alignment_error": 7
+  },
+  "roi_channels": [
+    "FCz",
+    "F4"
+  ],
+  "reference_channels": [
+    "FCz",
+    "FT7",
+    "F4",
+    "P4",
+    "P3"
+  ],
+  "resolution": {
+    "grid_step_hz": 0.25,
+    "wavelet_power_fwhm_hz_at_candidate": 3.33,
+    "interpretation": "grid spacing is not independent frequency resolution"
+  },
+  "secondary_theta": {
+    "status": "descriptive_only_not_validated_for_stimulation",
+    "feedback_specparam": {
+      "candidate_hz": null,
+      "reason": "no_interior_modeled_peak",
+      "r_squared": 0.883807307122709,
+      "peak_parameters": [
+        [
+          8.54347870039789,
+          1.0316326178577626,
+          2.420730664329602
+        ],
+        [
+          14.066239297654883,
+          0.5902746264214597,
+          2.2315493730848277
+        ],
+        [
+          17.72295610991721,
+          0.7185740082386637,
+          1.8370670471895445
+        ]
+      ]
+    },
+    "feedback_native_bin_spacing_hz": 0.7142857142857142,
+    "iaf_minus_5": {
+      "alpha": {
+        "candidate_hz": 9.54701045093922,
+        "reason": null,
+        "r_squared": 0.9981208603123037,
+        "peak_parameters": [
+          [
+            9.54701045093922,
+            0.26444604466873445,
+            2.322258964693976
+          ],
+          [
+            18.55584779745839,
+            0.267210220717102,
+            2.8904922883718527
+          ],
+          [
+            21.2423217627431,
+            0.11718022947449125,
+            1.5000000000001161
+          ],
+          [
+            32.44804412875949,
+            0.1573876531909152,
+            2.136169157682452
+          ],
+          [
+            35.06815371020075,
+            0.14532202420971752,
+            1.5000021837052557
+          ],
+          [
+            36.3844171499547,
+            0.12156829462789287,
+            7.160488989241362
+          ]
+        ]
+      },
+      "unclipped_theta_hz": 4.54701045093922,
+      "candidate_hz": 4.54701045093922,
+      "reason": "heuristic_not_feedback_theta_no_clipping_or_power_argmax_fallback",
+      "n_clean_windows": 150
+    }
+  }
+}

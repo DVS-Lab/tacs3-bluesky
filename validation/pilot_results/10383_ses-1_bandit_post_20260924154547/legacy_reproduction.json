@@ -1,0 +1,11 @@
+[
+  {
+    "mode": "bandit_original",
+    "n_events": 120,
+    "n_retained": 117,
+    "frequency_hz": 23.0,
+    "effect_db": -0.8348680858904143,
+    "boundary": false,
+    "provenance": "committed_bandit_algorithm"
+  }
+]

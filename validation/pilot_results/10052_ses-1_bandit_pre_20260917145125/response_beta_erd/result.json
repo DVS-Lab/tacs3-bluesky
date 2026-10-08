@@ -1,0 +1,173 @@
+{
+  "subject": "10052",
+  "session": "1",
+  "task": "bandit",
+  "phase": "pre",
+  "run": "20260917145125",
+  "recording_id": "10052_ses-1_bandit_pre_20260917145125",
+  "estimand": "response_beta_erd",
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "config_sha256": "bc775cd5050f01648ba957cdd98810df667c4709206f2a5fb7f303850c4ada08",
+  "input_paths": {
+    "eeg": "pilot_data/Pilot-G10052/20260917145125_10052-1_Bandit_pre-stim.easy",
+    "events": "pilot_data/Pilot-G10052/sub-10052-1_task-bandit_pre-stim_2026-09-17_14-49-57.csv",
+    "metadata": "stimulation/stimulation-data/20260917145125_10052-1_Bandit_pre-stim.info"
+  },
+  "input_sha256": {
+    "eeg": "b032496eb1deb59f19770ec5a8f8750383da3aaa23dacba0ad1231b979148948",
+    "metadata": "c706eda32dbab81e2539d34069e4680894cb34fff443ca8cfc332a5cab66e8d1",
+    "events": "fcf39f2c05c11f8154353249e9dc42ad47fb1ee2a9591f6d429bd1634b607973"
+  },
+  "intended_use": "offline_validation_only",
+  "approved_stimulation_frequency_hz": null,
+  "legacy_reproduction": [
+    {
+      "mode": "bandit_original",
+      "n_events": 119,
+      "n_retained": 104,
+      "frequency_hz": 24.5,
+      "effect_db": -0.7544127668891127,
+      "boundary": false,
+      "provenance": "committed_bandit_algorithm"
+    }
+  ],
+  "timestamp_diagnostics": {
+    "n_samples": 150000,
+    "start_sec": 1789671085.362,
+    "end_sec": 1789671385.36,
+    "nominal_hz": 500.0,
+    "empirical_hz": 500.00000015576785,
+    "irregular_fraction": 0.0,
+    "max_interval_sec": 0.002000093460083008,
+    "clock_domain": "unix",
+    "event_overlap_fraction": 0.9243697478991597,
+    "unix_lsl_max_offset_residual_sec": 0.005028724670410156,
+    "synchronization": "software_timestamps_only_no_hardware_latency_validation"
+  },
+  "candidate_hz": 23.5,
+  "effect_db": -1.427919966563564,
+  "prominence_db": null,
+  "width_hz": null,
+  "absolute_peak_hz": null,
+  "reasons": [
+    "no_localized_contrast",
+    "no_absolute_spectral_corroboration"
+  ],
+  "reliable": false,
+  "failure_reasons": [
+    "bootstrap_feature_often_missing",
+    "chronological_split_unstable_or_missing",
+    "no_absolute_spectral_corroboration",
+    "no_localized_contrast",
+    "odd_even_split_unstable_or_missing"
+  ],
+  "status": "unreliable_no_individualized_frequency",
+  "individualized_frequency_hz": null,
+  "fallback_option_hz": 20,
+  "n_eligible": 119,
+  "n_retained": 76,
+  "retention_fraction": 0.6386554621848739,
+  "splits": {
+    "chronological": {
+      "halves": [
+        {
+          "candidate_hz": 23.5,
+          "effect_db": -1.2906680303892963,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": null,
+          "reasons": [
+            "no_localized_contrast",
+            "no_absolute_spectral_corroboration"
+          ]
+        },
+        {
+          "candidate_hz": 23.0,
+          "effect_db": -1.574513087516416,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": null,
+          "reasons": [
+            "no_localized_contrast",
+            "no_absolute_spectral_corroboration"
+          ]
+        }
+      ],
+      "difference_hz": 0.5
+    },
+    "odd_even": {
+      "halves": [
+        {
+          "candidate_hz": 27.0,
+          "effect_db": -1.4554058785956114,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": 27.5,
+          "reasons": [
+            "no_localized_contrast"
+          ]
+        },
+        {
+          "candidate_hz": 22.5,
+          "effect_db": -1.542452698182135,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": null,
+          "reasons": [
+            "no_localized_contrast",
+            "no_absolute_spectral_corroboration"
+          ]
+        }
+      ],
+      "difference_hz": 4.5
+    }
+  },
+  "bootstrap_detection_fraction": 0.01,
+  "bootstrap_ci_hz": [
+    23.025,
+    23.5
+  ],
+  "effect_ci_db": [
+    -1.780231889407065,
+    -1.0865986679584378
+  ],
+  "bootstrap_valid_iterations": 3,
+  "qc": "FAIL",
+  "warnings": [
+    "below_recommended_epoch_count",
+    "software_timestamp_latency_unvalidated",
+    "sparse_frontal_montage_not_motor_cortex"
+  ],
+  "exclusions": {
+    "ocular_artifact_spreads_to_roi": 14,
+    "no_bandit_choice": 1,
+    "artifact:F3,F4": 4,
+    "artifact:F3,F4,P3,P4": 2,
+    "artifact:F3": 5,
+    "artifact:F3,F4,FT7,P3": 1,
+    "artifact:F3,F4,FT7": 1,
+    "artifact:F4": 3,
+    "artifact:F3,F4,FT7,P3,P4": 2,
+    "artifact:F3,F4,FCz,FT7,P3,P4": 1,
+    "insufficient_epoch_padding": 1,
+    "event_outside_recording_or_alignment_error": 9
+  },
+  "roi_channels": [
+    "F3",
+    "FCz",
+    "F4"
+  ],
+  "reference_channels": [
+    "F3",
+    "FCz",
+    "FT7",
+    "F4",
+    "P4",
+    "P3"
+  ],
+  "resolution": {
+    "grid_step_hz": 0.5,
+    "wavelet_power_fwhm_hz_at_candidate": 5.589642857142857,
+    "interpretation": "grid spacing is not independent frequency resolution"
+  }
+}
