@@ -136,6 +136,10 @@ def select_stimulation_frequency(
         )
 
     estimate = _load_json(Path(estimate_file))
+    if (estimate.get("intended_use") == "offline_validation_only"
+            or estimate.get("mode") == "dry_run_only"
+            or str(estimate.get("analysis_version", "")).startswith("offline-rhythm-validation")):
+        raise ValueError("Offline validation candidates cannot select stimulation. PI approval and a separately reviewed deployment are required.")
     reliable = bool(estimate.get("reliable", False))
     reason = (
         estimate.get("decision", {}).get("reason")

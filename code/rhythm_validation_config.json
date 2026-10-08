@@ -1,0 +1,227 @@
+{
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "seed": 112358,
+  "preprocessing": {
+    "highpass_hz": 1.0,
+    "lowpass_hz": 45.0,
+    "filter_order": 4,
+    "reference_channels": [
+      "F3",
+      "FCz",
+      "FT7",
+      "F4",
+      "P4",
+      "P3"
+    ],
+    "roi_channels": [
+      "F3",
+      "FCz",
+      "F4"
+    ],
+    "min_roi_channels": 2,
+    "channel_window_sec": 2.0,
+    "flat_std_uv": 0.1,
+    "epoch_ptp_uv": 150.0,
+    "step_uv": 75.0,
+    "max_bad_window_fraction": 0.2,
+    "ocular_correlation": 0.6,
+    "sampling_relative_tolerance": 0.02,
+    "max_irregular_fraction": 0.01,
+    "interval_tolerance_fraction": 0.25,
+    "max_gap_factor": 1.5,
+    "event_tolerance_sec": 0.01,
+    "min_event_overlap_fraction": 0.8,
+    "clock_residual_limit_sec": 0.05
+  },
+  "reliability": {
+    "min_epochs": 40,
+    "recommended_epochs": 80,
+    "min_retention": 0.6,
+    "bootstrap_iterations": 300,
+    "bootstrap_block_epochs": 5,
+    "min_bootstrap_detection_fraction": 0.8,
+    "min_effect_db": 0.5,
+    "min_prominence_db": 0.5,
+    "competing_peak_fraction": 0.8,
+    "min_absolute_prominence_db": 0.5
+  },
+  "estimands": {
+    "response_beta_erd": {
+      "direction": -1,
+      "band_hz": [
+        13,
+        30
+      ],
+      "grid_hz": [
+        8,
+        40,
+        0.5
+      ],
+      "epoch_sec": [
+        -2.2,
+        1.6
+      ],
+      "baseline_sec": [
+        -1.2,
+        -0.7
+      ],
+      "analysis_sec": [
+        -0.4,
+        0.1
+      ],
+      "plot_sec": [
+        -1.4,
+        0.7
+      ],
+      "cycles": 7,
+      "width_hz": [
+        1,
+        10
+      ],
+      "max_split_hz": 3,
+      "max_ci_hz": 4,
+      "absolute_match_hz": 2,
+      "fallback_option_hz": 20
+    },
+    "stop_success_beta_enhancement": {
+      "direction": 1,
+      "band_hz": [
+        13,
+        30
+      ],
+      "grid_hz": [
+        8,
+        40,
+        0.5
+      ],
+      "epoch_sec": [
+        -2.2,
+        1.6
+      ],
+      "baseline_sec": [
+        -1.2,
+        -0.7
+      ],
+      "analysis_sec": [
+        0.1,
+        0.5
+      ],
+      "plot_sec": [
+        -1.4,
+        0.8
+      ],
+      "cycles": 7,
+      "width_hz": [
+        1,
+        10
+      ],
+      "max_split_hz": 3,
+      "max_ci_hz": 4,
+      "absolute_match_hz": 2,
+      "fallback_option_hz": 20
+    },
+    "stop_failure_beta_enhancement": {
+      "direction": 1,
+      "band_hz": [
+        13,
+        30
+      ],
+      "grid_hz": [
+        8,
+        40,
+        0.5
+      ],
+      "epoch_sec": [
+        -2.2,
+        1.6
+      ],
+      "baseline_sec": [
+        -1.2,
+        -0.7
+      ],
+      "analysis_sec": [
+        0.1,
+        0.5
+      ],
+      "plot_sec": [
+        -1.4,
+        0.8
+      ],
+      "cycles": 7,
+      "width_hz": [
+        1,
+        10
+      ],
+      "max_split_hz": 3,
+      "max_ci_hz": 4,
+      "absolute_match_hz": 2,
+      "fallback_option_hz": 20
+    },
+    "feedback_theta_enhancement": {
+      "direction": 1,
+      "band_hz": [
+        4,
+        8
+      ],
+      "grid_hz": [
+        3,
+        15,
+        0.25
+      ],
+      "epoch_sec": [
+        -2.0,
+        2.2
+      ],
+      "baseline_sec": [
+        -0.8,
+        -0.3
+      ],
+      "analysis_sec": [
+        0.2,
+        0.8
+      ],
+      "plot_sec": [
+        -0.8,
+        1.0
+      ],
+      "cycles": 4,
+      "width_hz": [
+        0.5,
+        3
+      ],
+      "max_split_hz": 1,
+      "max_ci_hz": 1.5,
+      "absolute_match_hz": 1,
+      "fallback_option_hz": 6
+    }
+  },
+  "theta_secondary": {
+    "feedback_window_sec": [
+      0.1,
+      1.5
+    ],
+    "welch_seconds": 1.4,
+    "fit_range_hz": [
+      2,
+      40
+    ],
+    "peak_width_hz": [
+      1.5,
+      8
+    ],
+    "max_n_peaks": 6,
+    "min_peak_height_log10": 0.05,
+    "posterior_channels": [
+      "P3",
+      "P4"
+    ],
+    "alpha_band_hz": [
+      8,
+      13
+    ],
+    "iaf_welch_seconds": 2,
+    "iaf_offset_hz": 5,
+    "epoch_ptp_uv": 150.0,
+    "step_uv": 75.0
+  }
+}

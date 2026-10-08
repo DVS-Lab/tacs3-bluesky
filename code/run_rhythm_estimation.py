@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Estimate participant-specific task-evoked rhythms from a localizer run."""
+"""Historical compatibility CLI; use validate_rhythms.py for audited offline QC."""
 
 from __future__ import annotations
 
@@ -20,10 +20,9 @@ def _repo_root() -> Path:
 
 
 def _find_latest(base_dir: Path, patterns: list[str]) -> Path | None:
-    matches: list[Path] = []
-    for pattern in patterns:
-        matches.extend(path for path in base_dir.glob(pattern) if path.is_file())
-    matches.sort(key=lambda item: item.stat().st_mtime, reverse=True)
+    matches = sorted({path for pattern in patterns for path in base_dir.glob(pattern) if path.is_file()})
+    if len(matches) > 1:
+        raise ValueError("Ambiguous legacy inputs; specify files explicitly or use the offline validation manifest.")
     return matches[0] if matches else None
 
 
@@ -34,20 +33,20 @@ def _auto_find_inputs(subject_id: str, session_id: str, task: str) -> tuple[Path
     if task == "sst":
         events = _find_latest(
             subject_dir,
-            [f"**/*ses-{session}*run-localizer*task-SST*.csv", f"**/*ses-{session}*run-localizer*task-sst*.csv"],
+            [f"**/*ses-{session}_*run-localizer*task-SST*.csv", f"**/*ses-{session}_*run-localizer*task-sst*.csv"],
         )
         eeg = _find_latest(
             subject_dir,
             [
-                f"**/*ses-{session}*run-localizer*task-SST*eeg.npz",
-                f"**/*ses-{session}*run-localizer*task-sst*eeg.npz",
-                f"**/*ses-{session}*run-localizer*task-SST*eeg.csv",
-                f"**/*ses-{session}*run-localizer*task-sst*eeg.csv",
+                f"**/*ses-{session}_*run-localizer*task-SST*eeg.npz",
+                f"**/*ses-{session}_*run-localizer*task-sst*eeg.npz",
+                f"**/*ses-{session}_*run-localizer*task-SST*eeg.csv",
+                f"**/*ses-{session}_*run-localizer*task-sst*eeg.csv",
             ],
         )
     else:
-        events = _find_latest(subject_dir, [f"**/*ses-{session}*run-localizer*task-bandit*.csv", f"**/*ses-{session}*localizer*.csv"])
-        eeg = _find_latest(subject_dir, [f"**/*ses-{session}*localizer*eeg.npz", f"**/*ses-{session}*localizer*eeg.csv"])
+        events = _find_latest(subject_dir, [f"**/*ses-{session}_*run-localizer*task-bandit*.csv", f"**/*ses-{session}_*localizer*task-bandit*.csv"])
+        eeg = _find_latest(subject_dir, [f"**/*ses-{session}_*localizer*task-bandit*eeg.npz", f"**/*ses-{session}_*localizer*task-bandit*eeg.csv"])
     return events, eeg
 
 
@@ -62,7 +61,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--eeg", help="Path to EEG recording file.")
     parser.add_argument("--config", default=str(Path(__file__).resolve().parent / "config.json"))
     parser.add_argument("--out", help="Output QC directory.")
-    parser.add_argument("--auto-find", action="store_true", help="Auto-find latest events and EEG files.")
+    parser.add_argument("--auto-find", action="store_true", help="Find unique localizer inputs; ambiguity is an error.")
     parser.add_argument("--run-label", default="run-localizer")
     return parser
 

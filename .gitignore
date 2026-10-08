@@ -227,3 +227,6 @@ code/*/logs/
 *.edf
 *.bdf
 *.set
+
+# Immutable derived offline runs; reviewed snapshot lives in validation/pilot_results
+validation_outputs/
