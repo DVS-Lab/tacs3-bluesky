@@ -1,0 +1,50 @@
+{
+  "subject": "10037",
+  "session": "1",
+  "task": "bandit",
+  "phase": "pre",
+  "run": "20260916105944",
+  "recording_id": "10037_ses-1_bandit_pre_20260916105944",
+  "estimand": "feedback_theta_enhancement",
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "config_sha256": "bc775cd5050f01648ba957cdd98810df667c4709206f2a5fb7f303850c4ada08",
+  "input_paths": {
+    "eeg": "pilot_data/Pilot-G10037/20260916105944_10037-1_Bandit_pre-stim.easy",
+    "events": "pilot_data/Pilot-G10037/sub-10037-1_task-bandit_pre-stim_2026-09-16_10-58-33.csv",
+    "metadata": "stimulation/stimulation-data/20260916105944_10037-1_Run 1.info"
+  },
+  "input_sha256": {
+    "eeg": "08bfc01b16d24dfb85b7a8137f8c76fdbb0c4a167c6c047599ef4c2aa45d5645",
+    "metadata": "093ec2cecf7c906bddf97892317f2a13b696ca537a6e2046a8b19305c9ce2282",
+    "events": "594b4dff0dea4d6ada3a0eb6e76070785e3ae45aacee44d9dc7607e205cedf8b"
+  },
+  "intended_use": "offline_validation_only",
+  "approved_stimulation_frequency_hz": null,
+  "legacy_reproduction": [],
+  "timestamp_diagnostics": {
+    "n_samples": 150000,
+    "start_sec": 1789570784.88,
+    "end_sec": 1789571084.878,
+    "nominal_hz": 500.0,
+    "empirical_hz": 500.00000015576785,
+    "irregular_fraction": 0.0,
+    "max_interval_sec": 0.002000093460083008,
+    "clock_domain": "unix",
+    "event_overlap_fraction": 0.9333333333333333,
+    "unix_lsl_max_offset_residual_sec": 0.9940035343170166
+  },
+  "reliable": false,
+  "qc": "FAIL",
+  "status": "unreliable_no_individualized_frequency",
+  "candidate_hz": null,
+  "individualized_frequency_hz": null,
+  "effect_db": null,
+  "fallback_option_hz": 6,
+  "n_eligible": 120,
+  "n_retained": 0,
+  "retention_fraction": 0,
+  "failure_reasons": [
+    "event_unix_lsl_clock_inconsistency"
+  ],
+  "warnings": []
+}

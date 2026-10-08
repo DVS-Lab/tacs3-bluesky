@@ -1,0 +1,23 @@
+{
+  "schema": "rhythm-recommendation-preview-v1",
+  "mode": "dry_run_only",
+  "subject": "10037",
+  "session": "1",
+  "task": "bandit",
+  "phase": "post",
+  "run": "20260916113955",
+  "estimand": "feedback_theta_enhancement",
+  "candidate_frequency_hz": null,
+  "approved_stimulation_frequency_hz": null,
+  "fallback_option_hz": 6,
+  "requires_pi_approval": true,
+  "failure_reasons": [
+    "event_recording_overlap_below_threshold"
+  ],
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "input_sha256": {
+    "eeg": "e658548122baacf262cba8bc0bcbd64b4ec1e1388043e69e4817db1d9a1ea34b",
+    "metadata": "76345dca5c35b38baf564c564b77f66d7e51e3d5e53eff1bb3dc608cae5928ae",
+    "events": "e6077b9b5ba8355cc91307d83fd7172082779f26d457c299d1972de435478f21"
+  }
+}

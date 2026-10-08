@@ -1,0 +1,92 @@
+{
+  "subject": "10052",
+  "session": "1",
+  "task": "sst",
+  "phase": "post",
+  "run": "20260917154536",
+  "recording_id": "10052_ses-1_sst_post_20260917154536",
+  "estimand": "stop_success_beta_enhancement",
+  "analysis_version": "offline-rhythm-validation-1.0",
+  "config_sha256": "bc775cd5050f01648ba957cdd98810df667c4709206f2a5fb7f303850c4ada08",
+  "input_paths": {
+    "eeg": "pilot_data/Pilot-G10052/20260917154536_10052-1_SST_post-stim.easy",
+    "events": "pilot_data/Pilot-G10052/sub-10052-1_task-SST_post-stim_2026-09-17_15-45-23.csv",
+    "metadata": "stimulation/stimulation-data/20260917154536_10052-1_SST_post-stim.info"
+  },
+  "input_sha256": {
+    "eeg": "dec4e91f22c14d4c7eb0ff9fe308f584c8582f2ced9ccb740f6c840212feb337",
+    "metadata": "8ed0390ac4f0f90e0ad28b5e62f67e4ac9ae98f2d4dd5fd2b005eaf3ed924943",
+    "events": "ced37b0c783a1e29e633317206844311a831f36ff33631711369613952670b3d"
+  },
+  "intended_use": "offline_validation_only",
+  "approved_stimulation_frequency_hz": null,
+  "legacy_reproduction": [],
+  "timestamp_diagnostics": {
+    "n_samples": 149909,
+    "start_sec": 1789674336.678,
+    "end_sec": 1789674636.494,
+    "nominal_hz": 500.0,
+    "empirical_hz": 500.0000000254469,
+    "irregular_fraction": 0.0,
+    "max_interval_sec": 0.002000093460083008,
+    "clock_domain": "unix",
+    "event_overlap_fraction": 0.84,
+    "unix_lsl_max_offset_residual_sec": 0.004307270050048828,
+    "synchronization": "software_timestamps_only_no_hardware_latency_validation"
+  },
+  "candidate_hz": null,
+  "effect_db": null,
+  "prominence_db": null,
+  "width_hz": null,
+  "absolute_peak_hz": null,
+  "reasons": [
+    "missing_or_nonfinite_spectrum"
+  ],
+  "reliable": false,
+  "failure_reasons": [
+    "bootstrap_feature_often_missing",
+    "bootstrap_frequency_uncertain",
+    "effect_direction_uncertain",
+    "insufficient_epochs",
+    "insufficient_roi_channels",
+    "low_retention",
+    "missing_or_nonfinite_spectrum"
+  ],
+  "status": "unreliable_no_individualized_frequency",
+  "individualized_frequency_hz": null,
+  "fallback_option_hz": 20,
+  "n_eligible": 25,
+  "n_retained": 0,
+  "retention_fraction": 0.0,
+  "splits": {},
+  "bootstrap_detection_fraction": 0.0,
+  "bootstrap_ci_hz": null,
+  "effect_ci_db": null,
+  "bootstrap_valid_iterations": 0,
+  "qc": "FAIL",
+  "warnings": [
+    "below_recommended_epoch_count",
+    "software_timestamp_latency_unvalidated",
+    "sparse_frontal_montage_not_motor_cortex"
+  ],
+  "exclusions": {
+    "not_successful_stop": 39,
+    "insufficient_roi_channels": 20,
+    "insufficient_epoch_padding": 1,
+    "event_outside_recording_or_alignment_error": 4
+  },
+  "roi_channels": [
+    "FCz"
+  ],
+  "reference_channels": [
+    "FCz",
+    "FT7",
+    "P4",
+    "P3"
+  ],
+  "resolution": {
+    "grid_step_hz": 0.5,
+    "wavelet_power_fwhm_hz_at_candidate": null,
+    "interpretation": "grid spacing is not independent frequency resolution"
+  }
+}

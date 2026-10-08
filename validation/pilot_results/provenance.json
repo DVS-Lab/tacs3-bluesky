@@ -1,0 +1,21 @@
+{
+  "created_at": "2026-10-08T02:53:45.024896+00:00",
+  "python": "3.11.17",
+  "platform": "macOS-26.7.1-arm64-arm-64bit",
+  "git_commit": "39c4104115d159340fef46f5b7f57ae8b3a25c02",
+  "source_sha256": {
+    "rhythm_validation_core.py": "03f043143fcb7bc8b1048b8b6f166e1a2b01d1d87f5fae15f871d571190cb4be",
+    "rhythm_validation_io.py": "6f771cf4346fc80dc37f48a7d7a60cb44dc92c3a1f3c3812366f99694f2c25af",
+    "rhythm_validation_report.py": "0e2911bdda47b5d82ffd5403d02d21cf5478cde7b7d1028ecab06d98c11ab3b7",
+    "validate_rhythms.py": "6124b8ffefd6b77c41b13bde2981a0b82424ff7939ebe019a285d38e4bfbfea9"
+  },
+  "config_sha256": "bc775cd5050f01648ba957cdd98810df667c4709206f2a5fb7f303850c4ada08",
+  "manifest_sha256": "848bc4fbec5e089ee0e47f7fae3dbbdb0e1dbcee8dce28b03816a025c16e5979",
+  "packages": {
+    "numpy": "1.26.4",
+    "scipy": "1.14.1",
+    "pandas": "2.2.3",
+    "matplotlib": "3.9.4",
+    "specparam": "2.0.0rc3"
+  }
+}

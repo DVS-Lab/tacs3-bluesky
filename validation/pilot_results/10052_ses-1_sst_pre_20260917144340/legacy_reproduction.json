@@ -1,0 +1,20 @@
+[
+  {
+    "mode": "sst_all_responses_hypothesis",
+    "n_events": 59,
+    "n_retained": 46,
+    "frequency_hz": 13.0,
+    "effect_db": 0.44812596193814697,
+    "boundary": true,
+    "provenance": "SST_algorithm_not_found_variant_is_not_provenance"
+  },
+  {
+    "mode": "sst_correct_go_hypothesis",
+    "n_events": 51,
+    "n_retained": 40,
+    "frequency_hz": 13.0,
+    "effect_db": -0.08728769026165198,
+    "boundary": true,
+    "provenance": "SST_algorithm_not_found_variant_is_not_provenance"
+  }
+]

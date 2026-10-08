@@ -1,0 +1,32 @@
+.................................................s.                      [100%]
+=============================== warnings summary ===============================
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  <analysis-environment>/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:64: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    prop = Group((name + Suppress("=") + comma_separated(value)) | oneOf(_CONSTANTS))
+
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  <analysis-environment>/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:85: PyparsingDeprecationWarning: 'parseString' deprecated - use 'parse_string'
+    parse = parser.parseString(pattern)
+
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  <analysis-environment>/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:89: PyparsingDeprecationWarning: 'resetCache' deprecated - use 'reset_cache'
+    parser.resetCache()
+
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  <analysis-environment>/lib/python3.11/site-packages/matplotlib/_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
+    ParserElement.enablePackrat()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_rhythm_workflow.py:172: Pre-existing obsolete SST CLI test: current sst_main.py is a PsychoPy GUI with no --test-mode; task timing is outside this audit.
+50 passed, 1 skipped, 14 warnings in 4.26s

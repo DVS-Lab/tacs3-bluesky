@@ -1,0 +1,78 @@
+# Rhythm-estimation audit and offline methods
+
+Audited starting commit: `39c4104115d159340fef46f5b7f57ae8b3a25c02`. The validated software workflow is `code/validate_rhythms.py`; “validated” here describes checked software behavior, **not empirical validation of individualized stimulation**. The pilot findings are in [pilot validation report](pilot_rhythm_validation_report.md). All thresholds remain provisional.
+
+## Confirmed problems and consequences
+
+- `calculate_theta_beta.py` and `pilot_data/frequency_analysis.py` minimize baseline-corrected beta power. `rhythm_estimator.py` maximizes it, and its original beta test adds a burst. They estimate suppression and enhancement respectively; agreement is not expected. The old compatibility API remains explicitly labeled historical to avoid silently changing its prospective downstream semantics. New offline estimands and tests implement actual suppression separately from enhancement.
+- Legacy `find_peak` always returns a minimum/maximum, including boundaries, positive “ERD,” flat spectra, and broad slopes. Historical 10034 (13 Hz, +0.008774 dB), 10037 (13 Hz, +0.174 dB), and 10085 (30 Hz, −1.995 dB) illustrate the problem. The revised result can retain a diagnostic extremum in `candidate_hz` while leaving `individualized_frequency_hz` null.
+- The legacy finder matched only participant/session, chose by modification time, and offered an unrelated newest EEG file. Reports for 10579 and 10010 explicitly pair SST EEG with Bandit behavior and retain zero feedback epochs. The finder now requires exactly one labeled Bandit/pre pair; no substitution or overwrite is permitted. The old localizer CLI also rejects ambiguous matches. Use the reviewed manifest for the new workflow.
+- The `.info` files establish the actual order **F3, Fp1, FCz, FT7, F4, P4, P3, EXT**. Fz/Cz are not present; this is a sparse frontal ROI, not a sensorimotor montage. Legacy referencing includes Fp1, and its epoch rejection considers every reference channel. Ocular activity can therefore contaminate the reference and discard useful frontal data. Conversely, simply ignoring blinks could retain artifacts.
+- Newer legacy preprocessing resamples by interpolation before filtering, records timestamp irregularities mainly as warnings, and uses a rectangular FFT filter. Its epoching assumes a regular clock and can still reject channels already marked bad. Its fallback ROI can silently become all available channels. The revised workflow has no ROI substitution, no gap interpolation, and no resampling.
+- Newer legacy spectral estimation and legacy feedback Specparam first average channel voltages. Opposite phases can cancel before power is measured. Revised estimates compute each channel's power first. The synthetic suite includes opposite-phase channels.
+- The legacy beta baseline starts at the epoch's left boundary (−1.5 s). Its wavelets necessarily extend beyond the recorded epoch there, biasing the baseline. The revised implementation requires real EEG padding for **five Gaussian standard deviations** at the lowest analyzed frequency; no zero-filled baseline edges are accepted.
+- A 0.5-s Welch segment has 2-Hz bin spacing. Only a few independent samples cover 4–8 Hz, despite a 1-Hz lower peak-width setting. Fine Morlet/projection grids do not confer equivalent resolution. Revised plots retain a 0.5-Hz beta grid, but each result reports the approximate wavelet power FWHM (about 5 Hz at 21 Hz with seven cycles). Bootstrap precision does not erase spectral smoothing.
+- `bandit_eeg.py` logs `feedback_onset_task_time` using milliseconds minus a seconds-based run start; that column is invalid. Its choice marker is sent after the highlight delay, unlike the response timestamp. The analysis uses explicit Unix response/feedback columns for `.easy`, not those fallback columns. Experimental timing/logging code was audited but not modified. Both tasks rely on software event timestamps; display, response, and EEG clock latency still lack independent hardware verification.
+
+## Input matching and clocks
+
+`validation/pilot_manifest.json` is the explicit input authority: subject, session, task, pre/post, recording/run, relative paths, SHA-256 hashes, and match evidence. It covers all 38 `.easy` recordings in the ten pilot directories. Every supplied `.info` is paired through a source `.easy` file with the same SHA-256, including 10037 files originally named “Run 1.” Renamed files are not assumed equivalent from their name alone.
+
+The six fixture participants have 24 recording entries. Post recordings for 10037 also have event files elsewhere in the repository; these are included, despite missing fixture values. Other entries without a unique verifiable behavioral match remain explicit failures. Older SST files with only LSL times cannot be mapped to Unix EEG without a recorded clock bridge. The 12193 files contain identity/session ambiguities; the pipeline does not reinterpret participant IDs or relabel runs to repair them. Both SST recordings labeled pre for 10890 remain separate pre runs.
+
+The loader supports the actual recorded formats: NIC `.easy` plus `.info`, LSL EEG CSV plus metadata, and behavioral CSV/TSV. The tracked LSL CSV examples contain no samples; they correctly fail. A nonempty LSL file also requires documented amplitude units because the old recorder did not save them. Other formats advertised in the historical CLI are not claimed as validated here.
+
+The repository attributes preserve exact file bytes on Windows checkout; line-ending conversion must not invalidate provenance hashes.
+
+NIC voltages convert nV→µV and Unix timestamps ms→s, following the [manufacturer's format specification](https://www.neuroelectrics.com/api/downloads/NE_P3_UM004_EN_NIC2.1.0_1.pdf). Check metadata/channel/sample counts, monotonicity, rate, packet-loss markers, gaps, event identity, recording overlap, and nearest-sample errors. Units and clock domain are explicit; no “looks close” LSL/task-time substitution occurs. Dual-clock event columns diagnose offset inconsistency; they never silently shift EEG. This catches about 1.006 s of Unix–LSL offset range in 10037 Bandit pre and up to 0.496 s in SST pre. It cannot prove whether EEG and event computers shared a synchronized wall clock.
+
+## Prespecified offline estimands
+
+| Estimand | Trials and locking | Baseline | Analysis | Direction |
+|---|---|---|---|---|
+| Response beta ERD, primary | Bandit valid choices; SST correct go only; response locked | −1.2 to −0.7 s | −0.4 to +0.1 s | suppression, 13–30 Hz |
+| Stop-success beta, exploratory | successful stops only; stop locked | −1.2 to −0.7 s | +0.1 to +0.5 s | enhancement, 13–30 Hz |
+| Stop-failure beta, exploratory | failed stops with response only; stop locked | −1.2 to −0.7 s | +0.1 to +0.5 s | enhancement, 13–30 Hz |
+| Feedback theta | Bandit win/loss feedback; feedback locked | −0.8 to −0.3 s | +0.2 to +0.8 s | enhancement, 4–8 Hz |
+
+These response windows make the task comparison more comparable, but do not equate cognitive context: Bandit baseline can contain previous-trial feedback, while SST baseline often contains fixation. No claim of rest-versus-task ERD is made. The stop analysis estimates average power enhancement, **not individual beta-burst timing or an inhibition-specific causal signal**. Distinguishing response and stop phenomena is supported by [Wessel's movement initiation/cancellation study](https://pmc.ncbi.nlm.nih.gov/articles/PMC6948942/); its findings do not validate this sparse montage or these thresholds.
+
+Continuous fourth-order SOS Butterworth 1–45-Hz filtering is zero phase. No extra 60-Hz notch is applied outside the analysis band; no interpolation, ICA, or resampling is performed. The reference is the available good subset of F3/FCz/FT7/F4/P4/P3. Fp1 and EXT never enter it. At least two good F3/FCz/F4 channels are required. Bad-channel detection uses pre-reference filtered 2-s windows plus raw flat/nonfinite checks; thresholds are unchanged across tasks. Transient artifacts in reference-contributing channels or the referenced ROI exclude epochs.
+
+Fp1 excursions are logged. An excursion rejects an epoch when its correlation with the **referenced** ROI indicates spread; correlation is computed after the same reference transformation, avoiding false rejection from common acquisition-reference activity. This is a conservative ocular screen, not verified EOG correction. Independent Fp1 noise does not veto clean ROI trials; synthetic spread and independent-noise cases test both sides. The sparse montage limits source separation and leaves residual muscle/ocular ambiguity.
+
+Power is computed per channel and trial using explicitly zero-mean Morlets, then averaged over ROI channels. Each trial is normalized to its own baseline before averaging dB contrasts. This differs from the legacy log of a ratio of grand-average power; the report treats them as different estimators, not interchangeable numbers. Padding is checked for baseline, analysis, and plotted intervals. The [MNE wavelet documentation](https://mne.tools/stable/generated/mne.time_frequency.tfr_array_morlet.html) explains the support and time/frequency tradeoff underlying this design.
+
+## Reliability and threshold rationale
+
+All operational settings are version controlled in `code/rhythm_validation_config.json`, separately from the experimental `config.json`. No task timing, counterbalancing, live fallback assignment, or historical protocol changes are included.
+
+**Hard validity exclusions:** missing/ambiguous/hash-mismatched inputs; incorrect identity; wrong clock units; duplicate/reversed samples or events; nominal/empirical rate mismatch; packet loss/gaps; absent ROI; insufficient real padding; no finite events/power; wrong effect sign; boundary extrema. These indicate that the requested estimand is absent or unverifiable. Nominal rate tolerance (2%), irregular interval fraction (1%), largest interval (1.5 sample periods), event overlap (80%), nearest-sample tolerance (10 ms), and dual-clock residual tolerance (50 ms) are conservative implementation limits, not calibrated physiological standards. Failure diagnostics preserve measured overlap/residuals.
+
+**Provisional acceptance gates**, not independently validated sensitivity/specificity thresholds:
+
+- ≥40 usable trials, ≥60% retained selected trials, ≥2 ROI channels; <80 trials generates a warning. Forty gives twenty trials per chronological half, but does not establish adequate power for every participant. Missing selected-event timestamps count against retention. Stop subgroups often cannot reach forty in these recordings.
+- ≥0.5-dB correctly signed change and ≥0.5-dB **local prominence**, interior to the search band. A linear-trend-removed contrast must retain a nearby feature. Competing peaks with ≥80% of the selected prominence cause ambiguity.
+- Contrast half-prominence width 1–10 Hz for beta; 0.5–3 Hz for theta. The beta upper bound accounts for nonlinear dB ratios plus wavelet smoothing: a strong known 21-Hz sinusoid has ~9-Hz contrast width at seven cycles even though its absolute peak is narrower. This bound was checked using synthetic signals, not chosen to improve pilot/task agreement.
+- Require an absolute-power spectral feature near the candidate (baseline for ERD, analysis period for enhancement), with ≥0.5-dB prominence after a log-frequency slope subtraction. This corroboration is a screening heuristic, **not Specparam or proof of a neural oscillator**.
+- Both chronological and odd/even halves must each have a valid feature, differ by ≤3 Hz beta/≤1 Hz theta, and pass the same localization gates.
+- 300 deterministic circular moving-block bootstraps (five consecutive trials/block; seed 112358). At least 80% must recover a valid feature; the 95% frequency interval must span ≤4 Hz beta/≤1.5 Hz theta, and the effect interval must exclude zero in the intended direction. Frequency CI is conditional on a detected feature; detection fraction is always reported. Effect CI at the selected frequency is descriptive and subject to selection bias, not a corrected significance test.
+- Channel windows/epochs: 150-µV peak-to-peak, 75-µV adjacent-sample step; flat SD <0.1 µV; >20% bad windows excludes a channel. Fp1-to-ROI absolute correlation >0.6 with an Fp1 excursion triggers ocular rejection. These require prospective calibration; thresholds were not relaxed to recover more pilot frequencies.
+
+No task-agreement optimization, correlations, significance tests, or post-stimulation “test–retest” claims are used. A PASS means a **provisionally reliable candidate**, not an approved treatment frequency.
+
+## Theta and downstream boundaries
+
+Feedback Specparam is now a separately labeled descriptive output using 1.4-s Welch windows (~0.714-Hz native spacing), per-channel power, broader 2–40-Hz fits, and peak-width bounds compatible with that spacing. Its fitted peak absence is distinguishable from missing epochs. Fine grid spacing or a high fit R² cannot establish theta. The [Specparam/FOOOF FAQ](https://github.com/fooof-tools/fooof/blob/main/doc/faq.rst) explains why no modeled peak can reflect absent or weak/variable periodic activity, rather than an error to fix by forcing a maximum. The pinned release-candidate API is explicit; the historical code's `model.results...` API is incompatible with the pinned rc3 release and previously unpinned dependencies were not reproducible.
+
+IAF−5 remains a separate posterior-alpha heuristic. It uses clean P3/P4 windows and a modeled interior alpha peak; no fallback raw-power argmax and no clipping to 4 Hz. Its outputs are descriptive and lack the primary estimator's full reliability qualification; they cannot feed the new preview's individualized field. Neither secondary method is forced to agree with feedback TFR.
+
+`protocol_generator.extract_frequency_values` reads the literal “Theta/Beta stimulation frequency” lines without reading QC or checking reliability. Thus 10034's 13-Hz boundary value is accepted by that parser; whether it was delivered is not established by the report. Existing generated files were inspected read-only, with condition assignments omitted from outputs to preserve blinding. The audit does not reproduce condition keys or participant-specific protocol contents.
+
+The new `recommendation_preview.json` is **dry run only**: candidate, fallback option, provenance, reasons, `requires_pi_approval=true`, and `approved_stimulation_frequency_hz=null`. It contains no protocol label or counterbalancing decision. The live JSON selector explicitly refuses offline results/previews even if an individualized flag is present. Existing 20-Hz beta and 6-Hz theta fallbacks remain unchanged documented options. Legacy numerical behavior and protocol parsing remain historical compatibility paths; this PR does not make them scientifically validated. Deploying a replacement requires PI approval and a separate reviewed integration (including replacing any distributed executables).
+
+## Scientific decisions before deployment
+
+1. Approve an estimand, montage/reference, windows, and prospectively calibrated QC policy. The present data do not establish a dependable individualized frequency.
+2. Approve what to do when no frequency is reliable: fixed fallback, another acquisition, or no individualized stimulation. This analysis does not change the current assignment policy.
+3. Approve any acquisition/protocol changes needed for a stronger test, such as more artifact-free trials, appropriate sensorimotor coverage, and independently verified EEG/event synchronization. These are future study decisions, not tasks left for Avi to choose.
