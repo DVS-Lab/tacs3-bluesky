@@ -549,8 +549,8 @@ class BanditTask:
         )
 
         # Instruction-page feedback images
-        win_image_path = self.stimuli_dir / "006-win.png"
-        loss_image_path = self.stimuli_dir / "002-loss.png"
+        win_image_path = self.stimuli_dir / "win-up.png"
+        loss_image_path = self.stimuli_dir / "neutral-gray.png"
 
         self._instruction_win_stim = visual.ImageStim(
             self.win,
@@ -566,8 +566,8 @@ class BanditTask:
             pos=(0.0, -0.15)
         )
     def _build_feedback_stims(self) -> None:
-        win_images = sorted(self.stimuli_dir.glob("*6-win.png")) if self.stimuli_dir.exists() else []
-        loss_images = sorted(self.stimuli_dir.glob("*2-loss.png")) if self.stimuli_dir.exists() else []
+        win_images = sorted(self.stimuli_dir.glob("win-up.png")) if self.stimuli_dir.exists() else []
+        loss_images = sorted(self.stimuli_dir.glob("neutral-gray.png")) if self.stimuli_dir.exists() else []
         question_image = self.stimuli_dir / "question-mark.png"
         question_images = [question_image] if question_image.exists() else []
         self._feedback_stims = {

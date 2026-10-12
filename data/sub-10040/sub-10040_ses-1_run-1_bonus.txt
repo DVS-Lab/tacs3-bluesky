@@ -1,4 +1,0 @@
-bet=0
-winnings=0
-unbet=10
-run_bonus=10
