@@ -43,6 +43,12 @@ COUNTERBALANCE = {
     "F": ["theta", "beta", "sham"],
 }
 
+# ============================================================
+# DEFAULT FREQUENCIES (used if none is detected in the report)
+# ============================================================
+
+DEFAULT_THETA = 6.0
+DEFAULT_BETA = 20.0
 
 # ============================================================
 # READ THETA / BETA FREQUENCIES
@@ -89,12 +95,9 @@ def extract_frequency_values(subject_id, visit_number):
     )
 
     if theta_match is None:
-        raise ValueError(
-            "Could not find the theta stimulation frequency "
-            "in the theta/beta report."
-        )
-
-    theta = float(theta_match.group(1))
+        theta = DEFAULT_THETA
+    else:
+        theta = float(theta_match.group(1))
 
     # --------------------------------------------------------
     # Extract beta
@@ -107,12 +110,9 @@ def extract_frequency_values(subject_id, visit_number):
     )
 
     if beta_match is None:
-        raise ValueError(
-            "Could not find the beta stimulation frequency "
-            "in the theta/beta report."
-        )
-
-    beta = float(beta_match.group(1))
+        beta = DEFAULT_BETA
+    else:
+        beta = float(beta_match.group(1))
 
     return txt_file, theta, beta
 
