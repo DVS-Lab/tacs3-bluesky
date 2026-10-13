@@ -179,6 +179,18 @@ class BanditTask:
         self._marker_log_saved = False
         self.eeg_recording_saved = False
 
+                # PANAS items - ALWAYS presented in exactly this order
+        self.PANAS_POSITIVE = ["Active", "Alert", "Attentive", "Determined", "Inspired"]
+        self.PANAS_NEGATIVE = ["Afraid", "Ashamed", "Hostile", "Nervous", "Upset"]
+        self.PANAS_LABELS = [
+            "1: Very slightly\nor not at all",
+            "2: A little",
+            "3: Moderately",
+            "4: Quite a bit",
+            "5: Extremely",
+        ]
+        self.panas_results: list[dict] = []
+
         self.event_logger = TaskMarkerLogger(
             config.get("eeg_recording", {}).get("marker_stream_name", "LSLOutletStreamName-Markers")
         )
@@ -961,10 +973,101 @@ class BanditTask:
                     "Next step: python run_rhythm_estimation.py --task bandit "
                     f"--subject {self.subject_id} --session {self.session_id} --auto-find --all-defaults"
                 )
+                            # Post-run PANAS (fixed order: 5 positive, then 5 negative).
+            # Skipped if the run was aborted with ESC.
+            if not self.task_should_stop:
+                self.panas_results = self._show_panas_assessment()
+                for row in self.trial_data:
+                    for i, p in enumerate(self.panas_results):
+                        row[f"panas_item_{i + 1}"] = p["item"]
+                        row[f"panas_valence_{i + 1}"] = p["valence"]
+                        row[f"panas_rating_{i + 1}"] = p["rating"]
             self._show_run_end_screen()
         finally:
             if self.win is not None:
                 self.win.close()
+            
+    def _show_number_selection(self, word: str, value_min: int = 1, value_max: int = 5):
+        """Show one PANAS item. Press a number key to select, SPACE to confirm.
+        No default selection. Returns the int rating, or None if ESC is pressed."""
+        if self.auto_respond:
+            core.wait(0.05)
+            return 3
+
+        win = self.win
+        title = visual.TextStim(win, text=f"Two-Armed Bandit Task — {self.run_label}",
+                                height=0.05, color="white", pos=(0, 0.38))
+        prompt = visual.TextStim(win, text="Indicate the extent to which you\nfeel this way right now:",
+                                 height=0.04, color="white", pos=(0, 0.25), wrapWidth=1.6)
+        word_stim = visual.TextStim(win, text=word, height=0.08, color="yellow",
+                                    bold=True, pos=(0, 0.1))
+        hint = visual.TextStim(win, text="", height=0.035, color="white", pos=(0, -0.32))
+
+        n = value_max - value_min + 1
+        total_width = 0.9
+        xs = [-total_width / 2 + i * total_width / (n - 1) for i in range(n)]
+        num_y = -0.05
+
+        circle = visual.Circle(win, radius=0.04, fillColor="white", lineColor="white", edges=64)
+        num_stims, label_stims = [], []
+        for i, x in enumerate(xs):
+            num_stims.append(visual.TextStim(win, text=str(value_min + i), height=0.05,
+                                             color="gray", pos=(x, num_y)))
+            label_stims.append(visual.TextStim(win, text=self.PANAS_LABELS[i], height=0.025,
+                                               color="gray", pos=(x, num_y - 0.1), wrapWidth=0.25))
+
+        key_map = {}
+        for v in range(value_min, value_max + 1):
+            key_map[str(v)] = v
+            key_map[f"num_{v}"] = v
+
+        selected = None
+        event.clearEvents()
+        while True:
+            title.draw()
+            prompt.draw()
+            word_stim.draw()
+            for i, x in enumerate(xs):
+                val = value_min + i
+                if selected == val:
+                    circle.pos = (x, num_y)
+                    circle.draw()
+                    num_stims[i].color = "black"
+                else:
+                    num_stims[i].color = "gray"
+                num_stims[i].draw()
+                label_stims[i].draw()
+
+            if selected is None:
+                hint.text = "Press a number key to select, then SPACE to confirm"
+                hint.color = "gray"
+            else:
+                hint.text = f"Selected: {selected}  —  Press SPACE to confirm"
+                hint.color = "white"
+            hint.draw()
+            win.flip()
+
+            for key in event.getKeys(keyList=list(key_map) + ["space", "escape"]):
+                if key == "escape":
+                    return None
+                if key == "space":
+                    if selected is not None:
+                        return selected
+                else:
+                    selected = key_map[key]
+            core.wait(0.01)
+
+    def _show_panas_assessment(self) -> list[dict]:
+        """Present the 10 PANAS items in fixed order: 5 positive, then 5 negative."""
+        items = [(w, "positive") for w in self.PANAS_POSITIVE] + \
+                [(w, "negative") for w in self.PANAS_NEGATIVE]
+        results = []
+        for idx, (word, valence) in enumerate(items):
+            rating = self._show_number_selection(word)
+            results.append({"item": word, "valence": valence, "rating": rating})
+            if rating is not None:
+                print(f"PANAS item {idx + 1}/{len(items)}: {word} ({valence}) = {rating}")
+        return results
 
     def _show_run_end_screen(self) -> None:
         self._instructions_stim.text = "Run complete.\n\nThank you!"
