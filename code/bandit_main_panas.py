@@ -214,44 +214,39 @@ class BanditTask:
     def _get_contingency_duration(self) -> int:
         return self.min_trials_same_contingency + random.randint(0, self.contingency_jitter)
 
-    def _resolve_subject(self) -> None:
-        if self.cli_args.subject:
-            self.subject_id = normalize_id(self.cli_args.subject, "sub-")
-        elif self.test_mode:
-            self.subject_id = "999"
-        elif PSYCHOPY_AVAILABLE:
-            while True:
-                info = {
-                    "Subject Number": "",
-                    "Run Number": "",
-                }
 
-                dlg = gui.DlgFromDict(info, title="Two-Armed Bandit Task")
+def _resolve_subject(self):
+    info = {
+        "Subject Number": "",
+        "Session Number": "",
+        "Run Number": "",
+    }
 
-                if not dlg.OK:
-                    raise SystemExit(0)
+    dlg = gui.DlgFromDict(info, title="Bandit Task Setup")
+    if not dlg.OK:
+        core.quit()
 
-                run_number = info["Run Number"].strip()
+    # Validate subject number
+    subject_number = info["Subject Number"].strip()
+    if not subject_number:
+        raise ValueError("Subject Number is required.")
 
-                if run_number.isdigit() and int(run_number) > 0:
-                    self.subject_id = normalize_id(info["Subject Number"], "sub-")
-                    self.gui_run_number = int(run_number)
-                    break
+    self.subject_id = normalize_id(subject_number, "sub-")
 
-                error_dlg = gui.Dlg(
-                    title="Invalid Run Number",
-                    labelButtonOK="OK",
-                )
-                error_dlg.addText("Run Number must be a positive integer.")
-                error_dlg.show()
-        else:
-            self.subject_id = input("Subject ID: ")
-            while True:
-                run_number = input("Run Number: ").strip()
-                if run_number.isdigit() and int(run_number) > 0:
-                    self.gui_run_number = int(run_number)
-                    break
-                print("Run Number must be a positive integer.")
+    # Validate session number
+    session_number = info["Session Number"].strip()
+    if not session_number.isdigit() or int(session_number) < 1:
+        raise ValueError("Session Number must be a positive integer.")
+
+    self.gui_session_number = int(session_number)
+
+    # Validate run number
+    run_number = info["Run Number"].strip()
+    if not run_number.isdigit() or int(run_number) < 1:
+        raise ValueError("Run Number must be a positive integer.")
+
+    self.gui_run_number = int(run_number)
+
 
     def _next_run_number(self) -> int:
         pattern = re.compile(
@@ -265,7 +260,14 @@ class BanditTask:
         return max(existing, default=0) + 1
 
     def _setup_session(self) -> None:
-        self.session_id = normalize_id(self.cli_args.session or "1", "ses-")
+
+        session_number = (
+            self.cli_args.session
+            if self.cli_args.session is not None
+            else self.gui_session_number
+        )
+
+        self.session_id = normalize_id(str(session_number), "ses-")
         self.date_label = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Save behavioral data inside the repository, grouped by participant.
@@ -1098,7 +1100,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the two-armed bandit reversal-learning task.")
     parser.add_argument("--config", default=str(Path(__file__).resolve().parent / "config.json"))
     parser.add_argument("--subject", help="Subject ID, with or without the sub- prefix.")
-    parser.add_argument("--session", default="1", help="Session ID, with or without the ses- prefix.")
+    parser.add_argument(
+        "--session",
+        default=None,
+        help="Session number; if omitted, use the GUI selection."
+    )
     parser.add_argument("--run", type=int, help="Explicit run number. Auto-incremented from existing files if omitted.")
     parser.add_argument(
         "--localizer",
