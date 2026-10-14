@@ -179,7 +179,7 @@ class BanditTask:
         self._marker_log_saved = False
         self.eeg_recording_saved = False
 
-                # PANAS items - ALWAYS presented in exactly this order
+        # PANAS items - ALWAYS presented in exactly this order
         self.PANAS_POSITIVE = ["Active", "Alert", "Attentive", "Determined", "Inspired"]
         self.PANAS_NEGATIVE = ["Afraid", "Ashamed", "Hostile", "Nervous", "Upset"]
         self.PANAS_LABELS = [
@@ -214,39 +214,37 @@ class BanditTask:
     def _get_contingency_duration(self) -> int:
         return self.min_trials_same_contingency + random.randint(0, self.contingency_jitter)
 
+    def _resolve_subject(self):
+        info = {
+            "Subject Number": "",
+            "Session Number": "",
+            "Run Number": "",
+        }
 
-def _resolve_subject(self):
-    info = {
-        "Subject Number": "",
-        "Session Number": "",
-        "Run Number": "",
-    }
+        dlg = gui.DlgFromDict(info, title="Bandit Task Setup")
+        if not dlg.OK:
+            core.quit()
 
-    dlg = gui.DlgFromDict(info, title="Bandit Task Setup")
-    if not dlg.OK:
-        core.quit()
+        # Validate subject number
+        subject_number = info["Subject Number"].strip()
+        if not subject_number:
+            raise ValueError("Subject Number is required.")
 
-    # Validate subject number
-    subject_number = info["Subject Number"].strip()
-    if not subject_number:
-        raise ValueError("Subject Number is required.")
+        self.subject_id = normalize_id(subject_number, "sub-")
 
-    self.subject_id = normalize_id(subject_number, "sub-")
+        # Validate session number
+        session_number = info["Session Number"].strip()
+        if not session_number.isdigit() or int(session_number) < 1:
+            raise ValueError("Session Number must be a positive integer.")
 
-    # Validate session number
-    session_number = info["Session Number"].strip()
-    if not session_number.isdigit() or int(session_number) < 1:
-        raise ValueError("Session Number must be a positive integer.")
+        self.gui_session_number = int(session_number)
 
-    self.gui_session_number = int(session_number)
+        # Validate run number
+        run_number = info["Run Number"].strip()
+        if not run_number.isdigit() or int(run_number) < 1:
+            raise ValueError("Run Number must be a positive integer.")
 
-    # Validate run number
-    run_number = info["Run Number"].strip()
-    if not run_number.isdigit() or int(run_number) < 1:
-        raise ValueError("Run Number must be a positive integer.")
-
-    self.gui_run_number = int(run_number)
-
+        self.gui_run_number = int(run_number)
 
     def _next_run_number(self) -> int:
         pattern = re.compile(
@@ -975,7 +973,7 @@ def _resolve_subject(self):
                     "Next step: python run_rhythm_estimation.py --task bandit "
                     f"--subject {self.subject_id} --session {self.session_id} --auto-find --all-defaults"
                 )
-                            # Post-run PANAS (fixed order: 5 positive, then 5 negative).
+            # Post-run PANAS (fixed order: 5 positive, then 5 negative).
             # Skipped if the run was aborted with ESC.
             if not self.task_should_stop:
                 self.panas_results = self._show_panas_assessment()
@@ -988,7 +986,7 @@ def _resolve_subject(self):
         finally:
             if self.win is not None:
                 self.win.close()
-            
+
     def _show_number_selection(self, word: str, value_min: int = 1, value_max: int = 5):
         """Show one PANAS item. Press a number key to select, SPACE to confirm.
         No default selection. Returns the int rating, or None if ESC is pressed."""
