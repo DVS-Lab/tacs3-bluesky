@@ -89,17 +89,7 @@ fieldnames = [
     'fixation_onset', 'fixation_offset',
     'isi_onset', 'isi_offset', 'iti_onset', 'iti_offset',
     'go_correct', 'go_incorrect', 'go_miss', 'stop_success',
-    'stop_failure_arrowcorrect', 'run_start_unix',
-    'panas_item_1', 'panas_valence_1', 'panas_rating_1',
-    'panas_item_2', 'panas_valence_2', 'panas_rating_2',
-    'panas_item_3', 'panas_valence_3', 'panas_rating_3',
-    'panas_item_4', 'panas_valence_4', 'panas_rating_4',
-    'panas_item_5', 'panas_valence_5', 'panas_rating_5',
-    'panas_item_6', 'panas_valence_6', 'panas_rating_6',
-    'panas_item_7', 'panas_valence_7', 'panas_rating_7',
-    'panas_item_8', 'panas_valence_8', 'panas_rating_8',
-    'panas_item_9', 'panas_valence_9', 'panas_rating_9',
-    'panas_item_10', 'panas_valence_10', 'panas_rating_10'
+    'stop_failure_arrowcorrect', 'run_start_unix'
 ]
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_task-SST_{timestamp}_events")
@@ -473,112 +463,16 @@ win.flip()
 event.clearEvents(eventType='keyboard')
 keys = event.waitKeys(maxWait=20, keyList=['space', 'z'])
 
-# ---------- Post-task PANAS questionnaire ----------
-# Exact item wording and order from bandit_main_panas: positive items first,
-# followed by negative items.
-panas_positive = ["Active", "Alert", "Attentive", "Determined", "Inspired"]
-panas_negative = ["Afraid", "Ashamed", "Hostile", "Nervous", "Upset"]
-panas_labels = [
-    "1: Very slightly\nor not at all",
-    "2: A little",
-    "3: Moderately",
-    "4: Quite a bit",
-    "5: Extremely",
-]
-panas_items = [(word, "positive") for word in panas_positive] + [
-    (word, "negative") for word in panas_negative
-]
-panas_results = []
-
-for item_index, (word, valence) in enumerate(panas_items, start=1):
-    title = visual.TextStim(
-        win, text=f"Stop-Signal Task — Run {run_number}",
-        height=40, color="white", pos=(0, 300)
-    )
-    prompt = visual.TextStim(
-        win, text="Indicate the extent to which you\nfeel this way right now:",
-        height=34, color="white", pos=(0, 190), wrapWidth=900
-    )
-    word_stim = visual.TextStim(
-        win, text=word, height=60, color="yellow", bold=True, pos=(0, 80)
-    )
-    hint = visual.TextStim(win, text="", height=26, color="white", pos=(0, -270))
-    xs = [-360, -180, 0, 180, 360]
-    num_y = -50
-    circle = visual.Circle(win, radius=34, fillColor="yellow", lineColor="yellow", edges=64)
-    number_stims = [
-        visual.TextStim(win, text=str(value), height=38, color="white", pos=(x, num_y))
-        for value, x in zip(range(1, 6), xs)
-    ]
-    label_stims = [
-        visual.TextStim(
-            win, text=panas_labels[i], height=22, color="white",
-            pos=(xs[i], num_y - 75), wrapWidth=165
-        )
-        for i in range(5)
-    ]
-
-    selected = None
-    event.clearEvents(eventType="keyboard")
-    while True:
-        title.draw()
-        prompt.draw()
-        word_stim.draw()
-        for i, x in enumerate(xs):
-            value = i + 1
-            if selected == value:
-                circle.pos = (x, num_y)
-                circle.draw()
-                number_stims[i].color = "black"
-            else:
-                number_stims[i].color = "gray"
-            number_stims[i].draw()
-            label_stims[i].draw()
-
-        if selected is None:
-            hint.text = "Press a number key (1-5) to select, then SPACE to confirm"
-        else:
-            hint.text = f"Selected: {selected}  —  Press SPACE to confirm"
-        hint.draw()
-        win.flip()
-
-        confirmed = False
-        for key in event.getKeys(keyList=["1", "2", "3", "4", "5", "space", "z"]):
-            if key == "z":
-                write_events(tsv_filename, "\t")
-                write_events(csv_filename, ",")
-                save_and_quit()
-            elif key == "space":
-                if selected is not None:
-                    panas_results.append({
-                        "item": word, "valence": valence, "rating": selected
-                    })
-                    confirmed = True
-                    break
-            else:
-                selected = int(key)
-        if confirmed:
-            break
-        core.wait(0.01)
-
-# Include questionnaire responses in both event files.
-for row in results:
-    for i, answer in enumerate(panas_results, start=1):
-        row[f"panas_item_{i}"] = answer["item"]
-        row[f"panas_valence_{i}"] = answer["valence"]
-        row[f"panas_rating_{i}"] = answer["rating"]
-
-write_events(tsv_filename, "\t")
-write_events(csv_filename, ",")
-
-# Final completion screen appears after all 10 answers; then exit automatically.
 final_msg = visual.TextStim(
-    win, text="Run complete.\n\nThank you!", color="white", height=42
+    win,
+    text="You have completed this run of the Stop-Signal Task.\n\nPlease press space to exit the task.",
+    color='white', height=36
 )
 final_msg.draw()
 win.flip()
-core.wait(2.0)
+event.clearEvents(eventType='keyboard')
 
+event.waitKeys(maxWait=20, keyList=['space', 'z'])
 with open(os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_bonus.txt"), 'w') as f:
     f.write(f"bet={bet}\nwinnings={winnings}\nunbet={unbet_amount}\nrun_bonus={winnings + unbet_amount}\n")
 

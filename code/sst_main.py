@@ -5,6 +5,123 @@ import random
 import csv
 import time
 import numpy as np  # Needed for exponential and rescaling
+import json
+import urllib.error
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+# ---------- REDCap settings (PANAS upload only) ----------
+REDCAP_API_URL = "https://cphapps.temple.edu/redcap/api/"
+REDCAP_RECORD_ID_FIELD = "sub_id"
+
+
+def load_redcap_token():
+    """Read the API token from redcap_api_key.txt (next to this script),
+    falling back to the REDCAP_API_TOKEN environment variable."""
+    key_path = Path(__file__).resolve().parent / "redcap_api_key.txt"
+    print(f"[REDCap] Looking for token file: {key_path}")
+    try:
+        token = key_path.read_text(encoding="utf-8").strip()
+        if token:
+            print(f"[REDCap] Token loaded from file ({len(token)} characters).")
+            return token
+        print("[REDCap] Token file is empty.")
+    except OSError as exc:
+        print(f"[REDCap] Could not read token file: {exc}")
+    token = os.environ.get("REDCAP_API_TOKEN", "").strip()
+    if token:
+        print(f"[REDCap] Token loaded from REDCAP_API_TOKEN env var ({len(token)} characters).")
+    return token
+
+
+def redcap_post(token, fields):
+    """POST to REDCap. Returns (http_status, response_body). Never raises."""
+    payload = urllib.parse.urlencode(
+        {"token": token, "returnFormat": "json", **fields}).encode("utf-8")
+    req = urllib.request.Request(REDCAP_API_URL, data=payload, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return resp.status, resp.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as exc:
+        return exc.code, exc.read().decode("utf-8", errors="replace")
+    except Exception as exc:  # network / SSL / DNS problems
+        return None, f"{type(exc).__name__}: {exc}"
+
+
+
+def build_panas_record(subject, session, run, ratings):
+    """Map SST run 1 to PANAS task 3 and SST run 2 to PANAS task 4."""
+    subject = str(subject).replace("sub-", "").strip()
+    ses = str(session).strip()
+    ses_label = int(ses) if ses.isdigit() else ses
+
+    # SST is the second task during the visit.
+    panas_task = {1: 3, 2: 4}[int(run)]
+
+    record = {
+        REDCAP_RECORD_ID_FIELD: subject,
+        "redcap_event_name": f"visit_{ses_label}_arm_1",
+        f"panas_task{panas_task}_timestamp_1": datetime.now().strftime(
+            "%Y-%m-%d %H:%M:%S"
+        ),
+        f"task_panas_{panas_task}_complete": 2,
+    }
+
+    for j in range(5):
+        record[f"panas_task{panas_task}_pos{j + 1}"] = ratings[j]
+        record[f"panas_task{panas_task}_neg{j + 1}"] = ratings[5 + j]
+
+    return record
+
+
+
+def upload_panas_to_redcap(subject, session, run, ratings, log_path):
+    """Test the connection, then upload the PANAS record. Never raises, so a
+    REDCap problem cannot crash the task. Details are printed and written to
+    log_path so a failed upload can be redone by hand. Returns True on success."""
+    log_lines = []
+
+    def log(msg):
+        print(f"[REDCap] {msg}")
+        log_lines.append(msg)
+
+    success = False
+    try:
+        token = load_redcap_token()
+        if not token:
+            log("No API token found. Upload skipped.")
+        else:
+            record = build_panas_record(subject, session, run, ratings)
+            log("Record to upload:\n" + json.dumps(record, indent=2))
+
+            status, body = redcap_post(token, {"content": "version"})
+            log(f"Connection test: HTTP {status}, response: {body[:300]}")
+            if status != 200:
+                log("Connection test FAILED (URL, token, or network problem). Upload skipped.")
+            else:
+                status, body = redcap_post(token, {
+                    "content": "record",
+                    "format": "json",
+                    "type": "flat",
+                    "overwriteBehavior": "normal",
+                    "forceAutoNumber": "false",
+                    "data": json.dumps([record]),
+                    "returnContent": "count",
+                })
+                log(f"Upload: HTTP {status}, response: {body[:1000]}")
+                success = (status == 200)
+                log("Upload SUCCEEDED." if success else
+                    "Upload FAILED. The response above usually names the bad field.")
+    except Exception as exc:
+        log(f"Unexpected error during upload: {type(exc).__name__}: {exc}")
+
+    try:
+        with open(log_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(log_lines) + "\n")
+    except OSError as exc:
+        print(f"[REDCap] Could not write upload log: {exc}")
+    return success
 
 # Screen parameters
 useFullScreen = True
@@ -89,7 +206,17 @@ fieldnames = [
     'fixation_onset', 'fixation_offset',
     'isi_onset', 'isi_offset', 'iti_onset', 'iti_offset',
     'go_correct', 'go_incorrect', 'go_miss', 'stop_success',
-    'stop_failure_arrowcorrect', 'run_start_unix'
+    'stop_failure_arrowcorrect', 'run_start_unix',
+    'panas_item_1', 'panas_valence_1', 'panas_rating_1',
+    'panas_item_2', 'panas_valence_2', 'panas_rating_2',
+    'panas_item_3', 'panas_valence_3', 'panas_rating_3',
+    'panas_item_4', 'panas_valence_4', 'panas_rating_4',
+    'panas_item_5', 'panas_valence_5', 'panas_rating_5',
+    'panas_item_6', 'panas_valence_6', 'panas_rating_6',
+    'panas_item_7', 'panas_valence_7', 'panas_rating_7',
+    'panas_item_8', 'panas_valence_8', 'panas_rating_8',
+    'panas_item_9', 'panas_valence_9', 'panas_rating_9',
+    'panas_item_10', 'panas_valence_10', 'panas_rating_10'
 ]
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 base = os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_task-SST_{timestamp}_events")
@@ -463,16 +590,120 @@ win.flip()
 event.clearEvents(eventType='keyboard')
 keys = event.waitKeys(maxWait=20, keyList=['space', 'z'])
 
+# ---------- Post-task PANAS questionnaire ----------
+# Exact item wording and order from bandit_main_panas: positive items first,
+# followed by negative items.
+panas_positive = ["Active", "Alert", "Attentive", "Determined", "Inspired"]
+panas_negative = ["Afraid", "Ashamed", "Hostile", "Nervous", "Upset"]
+panas_labels = [
+    "1: Very slightly\nor not at all",
+    "2: A little",
+    "3: Moderately",
+    "4: Quite a bit",
+    "5: Extremely",
+]
+panas_items = [(word, "positive") for word in panas_positive] + [
+    (word, "negative") for word in panas_negative
+]
+panas_results = []
+
+for item_index, (word, valence) in enumerate(panas_items, start=1):
+    title = visual.TextStim(
+        win, text=f"Stop-Signal Task — Run {run_number}",
+        height=40, color="white", pos=(0, 300)
+    )
+    prompt = visual.TextStim(
+        win, text="Indicate the extent to which you\nfeel this way right now:",
+        height=34, color="white", pos=(0, 190), wrapWidth=900
+    )
+    word_stim = visual.TextStim(
+        win, text=word, height=60, color="yellow", bold=True, pos=(0, 80)
+    )
+    hint = visual.TextStim(win, text="", height=26, color="white", pos=(0, -270))
+    xs = [-360, -180, 0, 180, 360]
+    num_y = -50
+    circle = visual.Circle(win, radius=34, fillColor="yellow", lineColor="yellow", edges=64)
+    number_stims = [
+        visual.TextStim(win, text=str(value), height=38, color="white", pos=(x, num_y))
+        for value, x in zip(range(1, 6), xs)
+    ]
+    label_stims = [
+        visual.TextStim(
+            win, text=panas_labels[i], height=22, color="white",
+            pos=(xs[i], num_y - 75), wrapWidth=165
+        )
+        for i in range(5)
+    ]
+
+    selected = None
+    event.clearEvents(eventType="keyboard")
+    while True:
+        title.draw()
+        prompt.draw()
+        word_stim.draw()
+        for i, x in enumerate(xs):
+            value = i + 1
+            if selected == value:
+                circle.pos = (x, num_y)
+                circle.draw()
+                number_stims[i].color = "black"
+            else:
+                number_stims[i].color = "gray"
+            number_stims[i].draw()
+            label_stims[i].draw()
+
+        if selected is None:
+            hint.text = "Press a number key (1-5) to select, then SPACE to confirm"
+        else:
+            hint.text = f"Selected: {selected}  —  Press SPACE to confirm"
+        hint.draw()
+        win.flip()
+
+        confirmed = False
+        for key in event.getKeys(keyList=["1", "2", "3", "4", "5", "space", "z"]):
+            if key == "z":
+                write_events(tsv_filename, "\t")
+                write_events(csv_filename, ",")
+                save_and_quit()
+            elif key == "space":
+                if selected is not None:
+                    panas_results.append({
+                        "item": word, "valence": valence, "rating": selected
+                    })
+                    confirmed = True
+                    break
+            else:
+                selected = int(key)
+        if confirmed:
+            break
+        core.wait(0.01)
+
+# Include questionnaire responses in both event files.
+for row in results:
+    for i, answer in enumerate(panas_results, start=1):
+        row[f"panas_item_{i}"] = answer["item"]
+        row[f"panas_valence_{i}"] = answer["valence"]
+        row[f"panas_rating_{i}"] = answer["rating"]
+
+write_events(tsv_filename, "\t")
+write_events(csv_filename, ",")
+
+# Final completion screen appears after all 10 answers; then exit automatically.
 final_msg = visual.TextStim(
-    win,
-    text="You have completed this run of the Stop-Signal Task.\n\nPlease press space to exit the task.",
-    color='white', height=36
+    win, text="Run complete.\n\nThank you!", color="white", height=42
 )
 final_msg.draw()
 win.flip()
-event.clearEvents(eventType='keyboard')
 
-event.waitKeys(maxWait=20, keyList=['space', 'z'])
+# Upload the PANAS ratings to REDCap. Local event files are already saved above,
+# and any failure is only reported to the console/log, never shown to the participant.
+upload_panas_to_redcap(
+    sub_number, ses_number, run_number,
+    [answer["rating"] for answer in panas_results],
+    os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_redcap_upload.txt"),
+)
+core.wait(2.0)
+
 with open(os.path.join(log_dir, f"sub-{sub_number}_ses-{ses_number}_run-{run_number}_bonus.txt"), 'w') as f:
     f.write(f"bet={bet}\nwinnings={winnings}\nunbet={unbet_amount}\nrun_bonus={winnings + unbet_amount}\n")
 

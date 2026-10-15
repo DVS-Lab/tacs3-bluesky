@@ -20,8 +20,12 @@ from __future__ import annotations
 import argparse
 import colorsys
 import json
+import os
 import queue
 import random
+import urllib.error
+import urllib.parse
+import urllib.request
 import re
 import time
 from datetime import datetime
@@ -44,6 +48,26 @@ except ImportError:  # pragma: no cover - operator dependency
 
 
 PRE_RUN_BUFFER_SEC = 5.0
+
+# REDCap (PID 2185). The API token is read from redcap_api_key.txt in the same
+# folder as this script (gitignored), or from the REDCAP_API_TOKEN environment
+# variable if the file is missing.
+REDCAP_API_URL = "https://cphapps.temple.edu/redcap/api/"
+REDCAP_RECORD_ID_FIELD = "sub_id"
+
+
+def _load_redcap_token() -> str:
+    key_path = Path(__file__).resolve().parent / "redcap_api_key.txt"
+    try:
+        token = key_path.read_text(encoding="utf-8").strip()
+        if token:
+            return token
+    except OSError:
+        pass
+    return os.environ.get("REDCAP_API_TOKEN", "").strip()
+
+
+REDCAP_API_TOKEN = _load_redcap_token()
 
 
 def launch_npcap_detector():
@@ -179,6 +203,18 @@ class BanditTask:
         self._marker_log_saved = False
         self.eeg_recording_saved = False
 
+        # PANAS items - ALWAYS presented in exactly this order
+        self.PANAS_POSITIVE = ["Active", "Alert", "Attentive", "Determined", "Inspired"]
+        self.PANAS_NEGATIVE = ["Afraid", "Ashamed", "Hostile", "Nervous", "Upset"]
+        self.PANAS_LABELS = [
+            "1: Very slightly\nor not at all",
+            "2: A little",
+            "3: Moderately",
+            "4: Quite a bit",
+            "5: Extremely",
+        ]
+        self.panas_results: list[dict] = []
+
         self.event_logger = TaskMarkerLogger(
             config.get("eeg_recording", {}).get("marker_stream_name", "LSLOutletStreamName-Markers")
         )
@@ -202,44 +238,37 @@ class BanditTask:
     def _get_contingency_duration(self) -> int:
         return self.min_trials_same_contingency + random.randint(0, self.contingency_jitter)
 
-    def _resolve_subject(self) -> None:
-        if self.cli_args.subject:
-            self.subject_id = normalize_id(self.cli_args.subject, "sub-")
-        elif self.test_mode:
-            self.subject_id = "999"
-        elif PSYCHOPY_AVAILABLE:
-            while True:
-                info = {
-                    "Subject Number": "",
-                    "Run Number": "",
-                }
+    def _resolve_subject(self):
+        info = {
+            "Subject Number": "",
+            "Session Number": "",
+            "Run Number": "",
+        }
 
-                dlg = gui.DlgFromDict(info, title="Two-Armed Bandit Task")
+        dlg = gui.DlgFromDict(info, title="Bandit Task Setup")
+        if not dlg.OK:
+            core.quit()
 
-                if not dlg.OK:
-                    raise SystemExit(0)
+        # Validate subject number
+        subject_number = info["Subject Number"].strip()
+        if not subject_number:
+            raise ValueError("Subject Number is required.")
 
-                run_number = info["Run Number"].strip()
+        self.subject_id = normalize_id(subject_number, "sub-")
 
-                if run_number.isdigit() and int(run_number) > 0:
-                    self.subject_id = normalize_id(info["Subject Number"], "sub-")
-                    self.gui_run_number = int(run_number)
-                    break
+        # Validate session number
+        session_number = info["Session Number"].strip()
+        if not session_number.isdigit() or int(session_number) < 1:
+            raise ValueError("Session Number must be a positive integer.")
 
-                error_dlg = gui.Dlg(
-                    title="Invalid Run Number",
-                    labelButtonOK="OK",
-                )
-                error_dlg.addText("Run Number must be a positive integer.")
-                error_dlg.show()
-        else:
-            self.subject_id = input("Subject ID: ")
-            while True:
-                run_number = input("Run Number: ").strip()
-                if run_number.isdigit() and int(run_number) > 0:
-                    self.gui_run_number = int(run_number)
-                    break
-                print("Run Number must be a positive integer.")
+        self.gui_session_number = int(session_number)
+
+        # Validate run number
+        run_number = info["Run Number"].strip()
+        if not run_number.isdigit() or int(run_number) < 1:
+            raise ValueError("Run Number must be a positive integer.")
+
+        self.gui_run_number = int(run_number)
 
     def _next_run_number(self) -> int:
         pattern = re.compile(
@@ -253,7 +282,14 @@ class BanditTask:
         return max(existing, default=0) + 1
 
     def _setup_session(self) -> None:
-        self.session_id = normalize_id(self.cli_args.session or "1", "ses-")
+
+        session_number = (
+            self.cli_args.session
+            if self.cli_args.session is not None
+            else self.gui_session_number
+        )
+
+        self.session_id = normalize_id(str(session_number), "ses-")
         self.date_label = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         # Save behavioral data inside the repository, grouped by participant.
@@ -408,7 +444,7 @@ class BanditTask:
             f"_task-bandit_{self.date_label}_events.csv"
         )
         filepath = self.data_dir / filename
-        df.to_csv(filepath, sep="\t", index=False)
+        df.to_csv(filepath, index=False)
         self._saved = True
         print(f"\nData saved to: {filepath}")
 
@@ -961,10 +997,153 @@ class BanditTask:
                     "Next step: python run_rhythm_estimation.py --task bandit "
                     f"--subject {self.subject_id} --session {self.session_id} --auto-find --all-defaults"
                 )
+            # Post-run PANAS (fixed order: 5 positive, then 5 negative).
+            # Skipped if the run was aborted with ESC.
+            if not self.task_should_stop:
+                self.panas_results = self._show_panas_assessment()
+                self.panas_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                for row in self.trial_data:
+                    for i, p in enumerate(self.panas_results):
+                        row[f"panas_item_{i + 1}"] = p["item"]
+                        row[f"panas_valence_{i + 1}"] = p["valence"]
+                        row[f"panas_rating_{i + 1}"] = p["rating"]
             self._show_run_end_screen()
+            self._upload_panas_to_redcap()
         finally:
             if self.win is not None:
                 self.win.close()
+
+    def _show_number_selection(self, word: str, value_min: int = 1, value_max: int = 5):
+        """Show one PANAS item. Press a number key to select, SPACE to confirm.
+        No default selection. Returns the int rating, or None if ESC is pressed."""
+        if self.auto_respond:
+            core.wait(0.05)
+            return 3
+
+        win = self.win
+        title = visual.TextStim(win, text=f"Two-Armed Bandit Task — {self.run_label}",
+                                height=0.05, color="white", pos=(0, 0.38))
+        prompt = visual.TextStim(win, text="Indicate the extent to which you\nfeel this way right now:",
+                                 height=0.04, color="white", pos=(0, 0.25), wrapWidth=1.6)
+        word_stim = visual.TextStim(win, text=word, height=0.08, color="yellow",
+                                    bold=True, pos=(0, 0.1))
+        hint = visual.TextStim(win, text="", height=0.035, color="white", pos=(0, -0.32))
+
+        n = value_max - value_min + 1
+        total_width = 0.9
+        xs = [-total_width / 2 + i * total_width / (n - 1) for i in range(n)]
+        num_y = -0.05
+
+        circle = visual.Circle(win, radius=0.04, fillColor="white", lineColor="white", edges=64)
+        num_stims, label_stims = [], []
+        for i, x in enumerate(xs):
+            num_stims.append(visual.TextStim(win, text=str(value_min + i), height=0.05,
+                                             color="gray", pos=(x, num_y)))
+            label_stims.append(visual.TextStim(win, text=self.PANAS_LABELS[i], height=0.025,
+                                               color="gray", pos=(x, num_y - 0.1), wrapWidth=0.25))
+
+        key_map = {}
+        for v in range(value_min, value_max + 1):
+            key_map[str(v)] = v
+            key_map[f"num_{v}"] = v
+
+        selected = None
+        event.clearEvents()
+        while True:
+            title.draw()
+            prompt.draw()
+            word_stim.draw()
+            for i, x in enumerate(xs):
+                val = value_min + i
+                if selected == val:
+                    circle.pos = (x, num_y)
+                    circle.draw()
+                    num_stims[i].color = "black"
+                else:
+                    num_stims[i].color = "gray"
+                num_stims[i].draw()
+                label_stims[i].draw()
+
+            if selected is None:
+                hint.text = "Press a number key to select, then SPACE to confirm"
+                hint.color = "gray"
+            else:
+                hint.text = f"Selected: {selected}  —  Press SPACE to confirm"
+                hint.color = "white"
+            hint.draw()
+            win.flip()
+
+            for key in event.getKeys(keyList=list(key_map) + ["space", "escape"]):
+                if key == "escape":
+                    return None
+                if key == "space":
+                    if selected is not None:
+                        return selected
+                else:
+                    selected = key_map[key]
+            core.wait(0.01)
+
+    def _show_panas_assessment(self) -> list[dict]:
+        """Present the 10 PANAS items in fixed order: 5 positive, then 5 negative."""
+        items = [(w, "positive") for w in self.PANAS_POSITIVE] + \
+                [(w, "negative") for w in self.PANAS_NEGATIVE]
+        results = []
+        for idx, (word, valence) in enumerate(items):
+            rating = self._show_number_selection(word)
+            results.append({"item": word, "valence": valence, "rating": rating})
+            if rating is not None:
+                print(f"PANAS item {idx + 1}/{len(items)}: {word} ({valence}) = {rating}")
+        return results
+
+    def _upload_panas_to_redcap(self) -> None:
+        """Send the completed PANAS responses to REDCap. Never raises: on any
+        problem it prints a warning, and the ratings are still in the CSV."""
+        if self.test_mode or self.auto_respond:
+            return
+        if not self.panas_results or any(p["rating"] is None for p in self.panas_results):
+            print("REDCap: PANAS incomplete or aborted; nothing uploaded.")
+            return
+        run = self.gui_run_number
+        if run not in (1, 2):
+            print(f"REDCap: no PANAS variables for run {run} (only runs 1 and 2); nothing uploaded.")
+            return
+        if not REDCAP_API_TOKEN:
+            print("REDCap: no API token found (redcap_api_key.txt is missing or empty); nothing uploaded.")
+            return
+
+        try:
+            record = {
+                REDCAP_RECORD_ID_FIELD: self.subject_id,
+                "redcap_event_name": f"visit_{int(self.session_id)}_arm_1",
+                f"panas_task{run}_timestamp_1": self.panas_timestamp,
+                f"task_panas_{run}_complete": 2,
+            }
+            counts = {"positive": 0, "negative": 0}
+            for p in self.panas_results:
+                counts[p["valence"]] += 1
+                suffix = "pos" if p["valence"] == "positive" else "neg"
+                record[f"panas_task{run}_{suffix}{counts[p['valence']]}"] = p["rating"]
+
+            payload = urllib.parse.urlencode({
+                "token": REDCAP_API_TOKEN,
+                "content": "record",
+                "format": "json",
+                "type": "flat",
+                "overwriteBehavior": "normal",
+                "forceAutoNumber": "false",
+                "data": json.dumps([record]),
+                "returnContent": "count",
+                "returnFormat": "json",
+            }).encode("utf-8")
+            req = urllib.request.Request(REDCAP_API_URL, data=payload, method="POST")
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                body = resp.read().decode("utf-8", errors="replace")
+            print(f"REDCap: PANAS uploaded for sub-{self.subject_id}, {record['redcap_event_name']} ({body.strip()})")
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            print(f"REDCap upload FAILED (HTTP {exc.code}): {detail}")
+        except Exception as exc:
+            print(f"REDCap upload FAILED: {exc}")
 
     def _show_run_end_screen(self) -> None:
         self._instructions_stim.text = "Run complete.\n\nThank you!"
@@ -995,7 +1174,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the two-armed bandit reversal-learning task.")
     parser.add_argument("--config", default=str(Path(__file__).resolve().parent / "config.json"))
     parser.add_argument("--subject", help="Subject ID, with or without the sub- prefix.")
-    parser.add_argument("--session", default="1", help="Session ID, with or without the ses- prefix.")
+    parser.add_argument(
+        "--session",
+        default=None,
+        help="Session number; if omitted, use the GUI selection."
+    )
     parser.add_argument("--run", type=int, help="Explicit run number. Auto-incremented from existing files if omitted.")
     parser.add_argument(
         "--localizer",
