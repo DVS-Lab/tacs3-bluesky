@@ -49,12 +49,25 @@ except ImportError:  # pragma: no cover - operator dependency
 
 PRE_RUN_BUFFER_SEC = 5.0
 
-# REDCap (PID 2185). The API token is read from an environment variable so it
-# is not stored in the script or committed to the repository.
-#   Windows (one time):  setx REDCAP_API_TOKEN "your-token-here"   (then reopen the terminal)
-REDCAP_API_URL = "https://YOUR-REDCAP-SERVER/api/"  # TODO: set to your institution's REDCap API URL
-REDCAP_RECORD_ID_FIELD = "sub_id" 
-REDCAP_API_TOKEN = os.environ.get("REDCAP_API_TOKEN", "")
+# REDCap (PID 2185). The API token is read from redcap_api_key.txt in the same
+# folder as this script (gitignored), or from the REDCAP_API_TOKEN environment
+# variable if the file is missing.
+REDCAP_API_URL = "https://cphapps.temple.edu/redcap/api/"
+REDCAP_RECORD_ID_FIELD = "sub_id"
+
+
+def _load_redcap_token() -> str:
+    key_path = Path(__file__).resolve().parent / "redcap_api_key.txt"
+    try:
+        token = key_path.read_text(encoding="utf-8").strip()
+        if token:
+            return token
+    except OSError:
+        pass
+    return os.environ.get("REDCAP_API_TOKEN", "").strip()
+
+
+REDCAP_API_TOKEN = _load_redcap_token()
 
 
 def launch_npcap_detector():
@@ -1095,10 +1108,7 @@ class BanditTask:
             print(f"REDCap: no PANAS variables for run {run} (only runs 1 and 2); nothing uploaded.")
             return
         if not REDCAP_API_TOKEN:
-            print("REDCap: REDCAP_API_TOKEN environment variable is not set; nothing uploaded.")
-            return
-        if "YOUR-REDCAP-SERVER" in REDCAP_API_URL:
-            print("REDCap: REDCAP_API_URL has not been set in the script; nothing uploaded.")
+            print("REDCap: no API token found (redcap_api_key.txt is missing or empty); nothing uploaded.")
             return
 
         try:
@@ -1106,6 +1116,7 @@ class BanditTask:
                 REDCAP_RECORD_ID_FIELD: self.subject_id,
                 "redcap_event_name": f"visit_{int(self.session_id)}_arm_1",
                 f"panas_task{run}_timestamp_1": self.panas_timestamp,
+                f"task_panas_{run}_complete": 2,
             }
             counts = {"positive": 0, "negative": 0}
             for p in self.panas_results:
