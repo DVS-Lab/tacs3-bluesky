@@ -20,8 +20,12 @@ from __future__ import annotations
 import argparse
 import colorsys
 import json
+import os
 import queue
 import random
+import urllib.error
+import urllib.parse
+import urllib.request
 import re
 import time
 from datetime import datetime
@@ -44,6 +48,13 @@ except ImportError:  # pragma: no cover - operator dependency
 
 
 PRE_RUN_BUFFER_SEC = 5.0
+
+# REDCap (PID 2185). The API token is read from an environment variable so it
+# is not stored in the script or committed to the repository.
+#   Windows (one time):  setx REDCAP_API_TOKEN "your-token-here"   (then reopen the terminal)
+REDCAP_API_URL = "https://YOUR-REDCAP-SERVER/api/"  # TODO: set to your institution's REDCap API URL
+REDCAP_RECORD_ID_FIELD = "sub_id" 
+REDCAP_API_TOKEN = os.environ.get("REDCAP_API_TOKEN", "")
 
 
 def launch_npcap_detector():
@@ -420,7 +431,7 @@ class BanditTask:
             f"_task-bandit_{self.date_label}_events.csv"
         )
         filepath = self.data_dir / filename
-        df.to_csv(filepath, sep="\t", index=False)
+        df.to_csv(filepath, index=False)
         self._saved = True
         print(f"\nData saved to: {filepath}")
 
@@ -977,12 +988,14 @@ class BanditTask:
             # Skipped if the run was aborted with ESC.
             if not self.task_should_stop:
                 self.panas_results = self._show_panas_assessment()
+                self.panas_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 for row in self.trial_data:
                     for i, p in enumerate(self.panas_results):
                         row[f"panas_item_{i + 1}"] = p["item"]
                         row[f"panas_valence_{i + 1}"] = p["valence"]
                         row[f"panas_rating_{i + 1}"] = p["rating"]
             self._show_run_end_screen()
+            self._upload_panas_to_redcap()
         finally:
             if self.win is not None:
                 self.win.close()
@@ -1068,6 +1081,58 @@ class BanditTask:
             if rating is not None:
                 print(f"PANAS item {idx + 1}/{len(items)}: {word} ({valence}) = {rating}")
         return results
+
+    def _upload_panas_to_redcap(self) -> None:
+        """Send the completed PANAS responses to REDCap. Never raises: on any
+        problem it prints a warning, and the ratings are still in the CSV."""
+        if self.test_mode or self.auto_respond:
+            return
+        if not self.panas_results or any(p["rating"] is None for p in self.panas_results):
+            print("REDCap: PANAS incomplete or aborted; nothing uploaded.")
+            return
+        run = self.gui_run_number
+        if run not in (1, 2):
+            print(f"REDCap: no PANAS variables for run {run} (only runs 1 and 2); nothing uploaded.")
+            return
+        if not REDCAP_API_TOKEN:
+            print("REDCap: REDCAP_API_TOKEN environment variable is not set; nothing uploaded.")
+            return
+        if "YOUR-REDCAP-SERVER" in REDCAP_API_URL:
+            print("REDCap: REDCAP_API_URL has not been set in the script; nothing uploaded.")
+            return
+
+        try:
+            record = {
+                REDCAP_RECORD_ID_FIELD: self.subject_id,
+                "redcap_event_name": f"visit_{int(self.session_id)}_arm_1",
+                f"panas_task{run}_timestamp_1": self.panas_timestamp,
+            }
+            counts = {"positive": 0, "negative": 0}
+            for p in self.panas_results:
+                counts[p["valence"]] += 1
+                suffix = "pos" if p["valence"] == "positive" else "neg"
+                record[f"panas_task{run}_{suffix}{counts[p['valence']]}"] = p["rating"]
+
+            payload = urllib.parse.urlencode({
+                "token": REDCAP_API_TOKEN,
+                "content": "record",
+                "format": "json",
+                "type": "flat",
+                "overwriteBehavior": "normal",
+                "forceAutoNumber": "false",
+                "data": json.dumps([record]),
+                "returnContent": "count",
+                "returnFormat": "json",
+            }).encode("utf-8")
+            req = urllib.request.Request(REDCAP_API_URL, data=payload, method="POST")
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                body = resp.read().decode("utf-8", errors="replace")
+            print(f"REDCap: PANAS uploaded for sub-{self.subject_id}, {record['redcap_event_name']} ({body.strip()})")
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            print(f"REDCap upload FAILED (HTTP {exc.code}): {detail}")
+        except Exception as exc:
+            print(f"REDCap upload FAILED: {exc}")
 
     def _show_run_end_screen(self) -> None:
         self._instructions_stim.text = "Run complete.\n\nThank you!"

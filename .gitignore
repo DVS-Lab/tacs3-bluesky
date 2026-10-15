@@ -227,3 +227,6 @@ code/*/logs/
 *.edf
 *.bdf
 *.set
+
+#API key
+/code/redcap_api_key.txt
