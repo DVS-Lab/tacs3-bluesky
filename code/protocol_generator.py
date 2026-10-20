@@ -319,16 +319,14 @@ def generate_clicked():
     # Subject ID
     # --------------------------------------------------------
 
-    subject_text = subject_entry.get().strip()
+    subject_id = subject_entry.get().strip()
 
-    if not subject_text.isdigit():
+    if not re.fullmatch(r"[A-Za-z0-9]+", subject_id):
         messagebox.showerror(
             "Invalid Subject ID",
-            "Subject ID must contain only integers.",
+            "Subject ID must contain only letters and numbers.",
         )
         return
-
-    subject_id = int(subject_text)
 
     # --------------------------------------------------------
     # Visit

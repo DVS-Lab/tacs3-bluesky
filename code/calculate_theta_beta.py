@@ -158,10 +158,11 @@ def get_subject_and_session():
             messagebox.showerror("Missing Subject ID", "Please enter a subject ID.")
             return
 
-        if not subject.isdigit():
+        if not subject.isalnum():
             messagebox.showerror(
                 "Invalid Subject ID",
-                "Subject ID should contain numbers only.",
+                "Subject ID should contain only letters and numbers "
+                "(no spaces or symbols).",
             )
             return
 
@@ -192,7 +193,7 @@ def newest_file(matches):
 
 def find_input_files(subject_id, session):
     """Find the EEG and behavioral files for a subject/session."""
-    eeg_pattern = f"*_{subject_id}-{session}*.easy"
+    eeg_pattern = f"*_{subject_id}-{session}_Bandit_pre-stim*.easy"
     behavior_pattern = f"sub-{subject_id}-{session}_task-bandit_*.csv"
 
     eeg_matches = list(STIM_DATA_DIR.glob(eeg_pattern))
