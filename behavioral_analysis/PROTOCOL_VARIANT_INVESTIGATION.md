@@ -12,6 +12,13 @@ The 0-Hz files also lack the explicit sham-step settings seen in an earlier
 matched active/sham export pair. Their actual interpretation/output in NIC
 2.1.4.4 remains unverified.**
 
+The recruitment explanation supplied by Avi clarifies that G/R prefixes are an
+intentional long-term identity policy. The prefix is not the defect under review.
+Legacy records should be linked by a documented alias, not by stripping the source
+namespace. The 0.2 analysis correction is described in [IDENTITY_ALIASES.md](IDENTITY_ALIASES.md).
+The investigation below concerns differing generator selections during that
+migration; it does not establish that the later G files were used for treatment.
+
 ## 1. Git establishes two distinct sets, first committed on different days
 
 | Set | First-added commit (not proven generation time) | Recorded contents |

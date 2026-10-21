@@ -11,7 +11,8 @@ import numpy as np
 import pandas as pd
 
 from .common import digest, flag, number
-from .discovery import participant_id, read_table
+from .discovery import read_table
+from .identity import IdentityResolver
 
 
 COUNTERBALANCE = {"A": ["sham", "beta", "theta"], "B": ["sham", "theta", "beta"],
@@ -19,7 +20,8 @@ COUNTERBALANCE = {"A": ["sham", "beta", "theta"], "B": ["sham", "theta", "beta"]
                   "E": ["theta", "sham", "beta"], "F": ["theta", "beta", "sham"]}
 
 
-def scan_metadata(root):
+def scan_metadata(root, identities=None):
+    identities = identities or IdentityResolver()
     frequencies, stimulation, inventory = [], [], []
     folders = ["stimulation/calculated-theta-beta", "stimulation/protocols/generated", "stimulation/stimulation-data"]
     for folder in folders:
@@ -62,7 +64,7 @@ def scan_metadata(root):
                 contrast = re.search(r"TFR beta ERD:.*?\|\s*([+-]?[\d.]+) dB", section)
                 if contrast and float(contrast[1]) >= 0:
                     warnings.append("no_beta_suppression")
-            frequencies.append(dict(participant=participant_id(match[1]), raw_participant=match[1], session=int(match[2]),
+            frequencies.append(dict(**identities.fields(match[1], str(path.relative_to(root))), raw_participant=match[1], session=int(match[2]),
                                     rhythm=rhythm, historical_frequency_hz=number(value[1]) if value else np.nan,
                                     method=method[1].strip() if method else "historical_TFR_ERD" if rhythm == "beta" else "unknown",
                                     task_source=source_task, eeg_source=eeg, behavior_source=behavior,
@@ -81,7 +83,7 @@ def scan_metadata(root):
             error = ""
         except (ET.ParseError, ValueError) as exc:
             hz, error = [], str(exc)
-        stimulation.append(dict(participant=participant_id(match[1]), raw_participant=match[1], session=int(match[2]),
+        stimulation.append(dict(**identities.fields(match[1], str(path.relative_to(root))), raw_participant=match[1], session=int(match[2]),
                                 task=(match[3] or "unknown").lower(), run=int(match[4]) if match[4] else np.nan,
                                 record_kind="generated_protocol", frequency_hz=hz[0] if len(hz) == 1 else np.nan,
                                 frequency_values=";".join(map(str, hz)), delivery_status="generation_only",
@@ -96,7 +98,7 @@ def scan_metadata(root):
         count = re.search(r"Number of records of Stimulation:\s*(\d+)", text)
         first = re.search(r"StartDate \(firstSTIMtimestamp\):\s*(\d+)", text)
         records = int(count[1]) if count else np.nan
-        stimulation.append(dict(participant=participant_id(match[1]), raw_participant=match[1], session=int(match[2]),
+        stimulation.append(dict(**identities.fields(match[1], str(path.relative_to(root))), raw_participant=match[1], session=int(match[2]),
                                 task=match[3].lower(), run=int(match[4]), record_kind="device_info",
                                 frequency_hz=hz[0] if len(hz) == 1 else np.nan, frequency_values=";".join(map(str, hz)),
                                 delivery_status="eeg_only_documented" if "EEG only mode" in text else "settings_only_delivery_unverified",
@@ -106,7 +108,8 @@ def scan_metadata(root):
     return pd.DataFrame(frequencies), pd.DataFrame(stimulation), pd.DataFrame(inventory)
 
 
-def condition_key(path):
+def condition_key(path, identities=None):
+    identities = identities or IdentityResolver()
     if path is None:
         return pd.DataFrame(columns=["participant", "session", "intended_condition", "intended_frequency_hz",
                                      "documented_delivered_frequency_hz", "delivery_verified", "condition_evidence"])
@@ -114,7 +117,8 @@ def condition_key(path):
     required = {"participant", "session", "condition_evidence"}
     if not required.issubset(d):
         raise ValueError("condition key requires participant, session, condition_evidence")
-    d.participant = d.participant.map(participant_id)
+    d["recorded_participant"] = d.participant
+    d.participant = d.participant.map(identities.resolve)
     d.session = pd.to_numeric(d.session, errors="raise").astype(int)
     if d.duplicated(["participant", "session"]).any():
         raise ValueError("duplicate participant/session in condition key")
@@ -140,7 +144,7 @@ def condition_key(path):
             raise ValueError("verified delivery requires a documented frequency (zero permitted for sham)")
     d["condition_key_sha256"] = digest(path)
     # Arbitrary key columns cannot overwrite frequency/QC or clinical fields.
-    allowed = ["participant", "session", "intended_condition", "counterbalance", "intended_frequency_hz",
+    allowed = ["participant", "recorded_participant", "session", "intended_condition", "counterbalance", "intended_frequency_hz",
                "documented_delivered_frequency_hz", "delivery_verified", "condition_evidence", "condition_key_sha256"]
     return d[[name for name in allowed if name in d]]
 

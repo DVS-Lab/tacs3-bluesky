@@ -57,8 +57,8 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
         if len(flagged):
             issue("1_before_more_sessions", "Resolve frequency provenance and reliability with the rhythm-validation team",
                   f"{len(flagged)} rhythm rows carry task-mismatch, zero-epoch, boundary or wrong-sign flags. PR #1 reports no primary beta/theta estimate passing provisional gates. Sources: " + ";".join(flagged.source_file.unique()),
-                  "Historical numeric estimates are not established physiological rhythms; conflicting ID/report variants may select different values.",
-                  "Review the existing rhythm-validation audit and original EEG/event pairing with the PI before further frequency decisions. This pipeline does not change selection or overwrite historical reports.")
+                  "Historical numeric estimates are not established physiological rhythms. G/R prefixes are valid recruitment namespaces; legacy links require documented aliases, and protocol-generation discrepancies require a separate review.",
+                  "Review the rhythm-validation audit and original EEG/event pairing with the PI. Use documented legacy aliases; preserve G/R namespaces. This pipeline does not change selection or overwrite historical reports.")
     incomplete = manifest[manifest.exclusion_reason.fillna("").str.contains("incomplete|unexpected|empty") & manifest.participant.isin(primary.participant.unique())]
     if len(incomplete):
         issue("2_analytically_correctable", "Interrupted recordings and duplicate exports",
@@ -91,8 +91,11 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
     narrative = (
         f"The experimental directory contains {summary['n_experimental_candidate_participants']} candidate study IDs across "
         f"{summary['n_experimental_candidate_visits']} visits, with {summary['n_selected_active_bandit_runs']} selected active Bandit runs "
-        f"and {summary['n_selected_active_sst_runs']} selected active SST runs. A recruitment roster was not supplied: five-digit numeric IDs "
-        "are candidates, not independently verified enrollment. Older pilot-folder recordings and test-like IDs remain separately labeled. "
+        f"and {summary['n_selected_active_sst_runs']} selected active SST runs. Enrollment is not certified by ID shape: "
+        "cohort labels use a documented roster when supplied, otherwise a transparent file/ID heuristic. "
+        "G/R namespaces and leading zeros are preserved; legacy IDs join only through explicit aliases. "
+        "Unmapped legacy IDs can represent the same person as a namespaced ID, so these are ID counts until the roster resolves them. "
+        "Older pilot-folder recordings and test-like IDs remain separately labeled. "
         f"Across all sources, {len(manifest)} behavioral files were inventoried; {summary['n_excluded_or_duplicate_files']} were excluded as "
         "duplicates, incomplete/invalid or ambiguous attempts. All exclusions remain available in the manifest."
     )
@@ -138,7 +141,7 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
     html += ["<h2>Next steps</h2><ol>" + "".join("<li>" + escape(x) + "</li>" for x in roadmap) + "</ol>",
              "<h2>Reproduction and detailed outputs</h2><p>From the repository root: <code>python -m behavioral_analysis</code>. "
              "Methods and variable definitions are in behavioral_analysis/README.md and VARIABLE_DICTIONARY.md.</p><ul>"]
-    for filename in ["manifest.csv", "participant_session_qc.csv", "run_metrics.csv", "session_metrics.csv", "exclusion_log.csv", "trial_qc_log.csv", "sst_trials.csv", "frequency_estimates.csv", "stimulation_records.csv", "collection_warnings.csv", "analysis_readiness.json", "provenance.json"]:
+    for filename in ["manifest.csv", "identity_resolution.csv", "identity_aliases.csv", "participant_session_qc.csv", "run_metrics.csv", "session_metrics.csv", "exclusion_log.csv", "trial_qc_log.csv", "sst_trials.csv", "frequency_estimates.csv", "stimulation_records.csv", "collection_warnings.csv", "analysis_readiness.json", "provenance.json"]:
         html.append(f"<li><a href='{filename}'>{filename}</a></li>")
     html += ["</ul><p>SSRT reference: <a href='https://elifesciences.org/articles/46323'>Verbruggen et al., 2019 consensus guide</a>. "
              "Frequency validation: <a href='https://github.com/DVS-Lab/tacs3-bluesky/pull/1'>PR #1 (unmerged, read-only review)</a>.</p></html>"]

@@ -14,6 +14,7 @@ from .common import digest, dump_json, write_csv
 from .design import paired_differences, readiness
 from .discovery import adjudicate, discover, select_records
 from .metadata import condition_key, scan_metadata, session_metadata
+from .identity import IdentityResolver
 
 
 GROUP = ["participant", "session", "task", "phase", "cohort", "collection_date"]
@@ -37,7 +38,7 @@ def git_revision(root, ref="HEAD"):
         return "unavailable"
 
 
-def run(root, out, config_path=None, key_path=None, roster_path=None, make_figures=True, adjudications_path=None):
+def run(root, out, config_path=None, key_path=None, roster_path=None, make_figures=True, adjudications_path=None, aliases_path=None):
     root, out = Path(root).resolve(), Path(out).resolve()
     for protected in [root / "data", root / "pilot_data", root / "stimulation", root / "code"]:
         if out == protected or protected in out.parents or out in protected.parents:
@@ -46,16 +47,17 @@ def run(root, out, config_path=None, key_path=None, roster_path=None, make_figur
         raise ValueError("use a dedicated output directory")
     config_path = Path(config_path or Path(__file__).with_name("config.json"))
     config = json.loads(config_path.read_text())
-    records = discover(root)
+    identities = IdentityResolver(aliases_path)
+    records = discover(root, identities)
     if not records:
         raise ValueError("no behavioral event files found under the repository data locations")
     # An optional local roster provides independently documented cohort identity.
     if roster_path:
-        from .discovery import participant_id, read_table
+        from .discovery import read_table
         roster, _ = read_table(roster_path)
         if not {"participant", "cohort", "evidence"}.issubset(roster):
             raise ValueError("roster requires participant, cohort, evidence")
-        roster.participant = roster.participant.map(participant_id)
+        roster.participant = roster.participant.map(identities.resolve)
         if roster.participant.duplicated().any() or roster.evidence.str.strip().eq("").any():
             raise ValueError("roster identities must be unique and documented")
         if not roster.cohort.isin(["experimental_candidate", "pilot", "test", "unverified_identity"]).all():
@@ -186,8 +188,8 @@ def run(root, out, config_path=None, key_path=None, roster_path=None, make_figur
             common["session_order"] = common["session"]
             sessions.append({**common, **values})
     sessions = ensure_report_columns(pd.DataFrame(sessions) if sessions else pd.DataFrame(columns=GROUP + ["source_files", "n_runs", "n_trials"]))
-    frequencies, stimulation, aux = scan_metadata(root)
-    key = condition_key(key_path)
+    frequencies, stimulation, aux = scan_metadata(root, identities)
+    key = condition_key(key_path, identities)
     session_meta = session_metadata(manifest, frequencies, stimulation, key)
     sessions = sessions.merge(session_meta, on=["participant", "session"], how="left", validate="many_to_one")
     run_metrics = run_metrics.merge(session_meta, on=["participant", "session"], how="left", validate="many_to_one")
@@ -211,6 +213,8 @@ def run(root, out, config_path=None, key_path=None, roster_path=None, make_figur
         if previous.is_file():
             previous.unlink()
     outputs = {"manifest.csv": manifest, "run_metrics.csv": run_metrics, "session_metrics.csv": sessions,
+               "identity_aliases.csv": identities.rows,
+               "identity_resolution.csv": manifest.reindex(columns=["source_file", "raw_participant", "recorded_participant", "participant", "participant_namespace", "identity_status", "alias_evidence", "alias_scope", "body_identity_resolution", "selected", "exclusion_reason"]),
                "participant_session_qc.csv": sessions, "task_sequence.csv": order_frame,
                "exclusion_log.csv": manifest[~manifest.selected],
                "primary_sample_exclusions.csv": manifest[manifest.primary_sample_status.ne("candidate_active_selected")],
@@ -236,6 +240,8 @@ def run(root, out, config_path=None, key_path=None, roster_path=None, make_figur
                       python=platform.python_version(), packages={name: importlib.metadata.version(name) for name in ["pandas", "numpy", "matplotlib"]},
                       config_sha256=digest(config_path), condition_key_sha256=digest(key_path) if key_path else None,
                       roster_sha256=digest(roster_path) if roster_path else None,
+                      aliases_sha256=digest(aliases_path) if aliases_path else None,
+                      identity_policy="preserve_G_R_and_leading_zeros;explicit_evidenced_flat_aliases_only",
                       adjudications_sha256=digest(adjudications_path) if adjudications_path else None,
                       acquisition_source_hashes={str(p.relative_to(root)): digest(p) for p in
                                                  [root / "code/bandit_main.py", root / "code/sst_main.py", root / "code/sst_eeg.py", root / "code/protocol_generator.py", root / "code/config.json"] if p.exists()},

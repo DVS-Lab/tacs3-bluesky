@@ -7,7 +7,10 @@ explicit because Bandit RT is recorded in milliseconds and SST RT in seconds.
 
 | Variables | Meaning / denominator |
 |---|---|
-| `participant`, `raw_participant` | Formatting-normalized and original ID; no long-ID truncation |
+| `participant`, `raw_participant` | Explicitly resolved canonical ID and original filename ID; G/R namespaces and leading zeros preserved |
+| `recorded_participant`, `participant_namespace` | Formatting-only ID before alias lookup, and G/R/legacy/other namespace |
+| `identity_status`, `alias_evidence`, `alias_scope` | Explicit alias, preserved namespace, unmapped legacy or other ID; supporting evidence and global/exact-file rule scope |
+| `body_identity_resolution` | JSON audit of raw body IDs, resolved identities and alias evidence before filename/body validation |
 | `session`, `session_order` | Recorded visit number, not condition |
 | `run` | Recorded run label within task; does not establish task sequence |
 | `run_order`, `task_order` | Chronological rank across selected runs/tasks in the same visit/date/phase; missing if clock is unverified |

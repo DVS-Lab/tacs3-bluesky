@@ -21,11 +21,25 @@ step/ramp fields, rather than those in an earlier matched explicit-sham export.
 Their physical interpretation in NIC remains unverified. Consult that note before
 certifying a 0-Hz file as the approved sham implementation.
 
+## The G/R prefix policy is appropriate
+
+Avi explained that G25 recruitment IDs use G and future RF1 IDs may use R to avoid
+cross-project collisions. This is intentional namespacing, not a problem with the
+prefix. The earlier analysis incorrectly stripped G automatically; version 0.2
+corrects that assumption. Preserve prefixes and use a private documented alias map
+for confirmed legacy-to-canonical links; see [IDENTITY_ALIASES.md](IDENTITY_ALIASES.md).
+Do not merge G/R participants merely because their numeric suffixes match.
+
+The checks below concern the migration's record linkage, frequency-report content,
+generator selection and actual protocol use. Extra prefixed files may be later
+regenerations/tests. Their existence is not evidence of an incorrect treatment.
+The independent NIC sham-implementation question remains unchanged.
+
 ## What the frequency conflicts actually are
 
 | Case | Observed evidence | What must be checked |
 |---|---|---|
-| **11450, visit 2, October 19** | `11450-2_pre-stim_theta-beta.txt` pairs **SST EEG with Bandit events**, retains **0/116 feedback and 0/116 decision epochs**, reports theta **4.50 Hz via IAF−5**, and beta unavailable. `G11450-2_pre-stim_theta-beta.txt` names Bandit EEG and Bandit events, retains **113/116 and 114/116** epochs, and reports theta **4.00 Hz** and beta **30.00 Hz**. Its theta value is a band-edge negative contrast (−3.310 dB); its beta contrast is positive (+3.220 dB), not suppression. | Confirm `G11450` and `11450` are the same enrolled participant using the private roster. Identify the intended EEG/event pair, exact estimator report, and report used when protocols were generated. A better file pairing does not make the prefixed estimates physiologically reliable. |
+| **11450, visit 2, October 19** | `11450-2_pre-stim_theta-beta.txt` pairs **SST EEG with Bandit events**, retains **0/116 feedback and 0/116 decision epochs**, reports theta **4.50 Hz via IAF−5**, and beta unavailable. `G11450-2_pre-stim_theta-beta.txt` names Bandit EEG and Bandit events, retains **113/116 and 114/116** epochs, and reports theta **4.00 Hz** and beta **30.00 Hz**. Its theta value is a band-edge negative contrast (−3.310 dB); its beta contrast is positive (+3.220 dB), not suppression. | Record the confirmed legacy-to-canonical link in the private alias map using the recruitment roster; the G prefix is the intended namespace. Identify the intended EEG/event pair, exact estimator report, and report used when protocols were generated. A better file pairing does not make the prefixed estimates physiologically reliable. |
 | **11450, visit 2: protocol conflict** | The four unprefixed `11450_visit2_*` protocols contain **4.50 Hz**. The four `G11450_visit2_*` protocols contain **0 Hz**. The four run-specific device `.info` records list **4.50 Hz settings**. | Reconcile the original private counterbalance/visit record, generator inputs, deployed executable/version, exact imported protocol and operator log. Frequency disagreement alone cannot tell us whether the wrong report, a stale protocol, a different generator input, or a different intended assignment explains the files. Do not choose a protocol by recency or prefix. |
 | **10029, visit 1, October 13** | `10029-1_pre-stim_theta-beta.txt` also pairs **SST EEG with Bandit events**. It retains **0/114 feedback and 0/113 decision epochs**, reports theta **4.29 Hz via IAF−5**, and beta unavailable. Generated protocols and run-specific device settings contain **20 Hz**. | Verify the source pairing and whether 20 Hz was explicitly authorized as a fallback. The current generator substitutes 20 Hz when no numeric beta is parsed; that is a plausible explanation, not proof of the historical executable's action or of intended assignment. |
 | **Boundary estimates** | For 10029 visit 2, theta **8 Hz** and beta **13 Hz** are search-band endpoints despite 106/116 and 109/116 retained epochs. For 11450 visit 1, beta **30 Hz** is the upper endpoint with 116/118 retained decision epochs. | Do not equate adequate epoch counts or a numerical extremum with a reliable individualized rhythm. Ask the PI to document how the existing study policy handles failed/uncertain estimates before the next frequency decision. |
@@ -115,7 +129,7 @@ may not reveal the true sham envelope.
 
 | Owner | Check | Evidence to retain / completion criterion |
 |---|---|---|
-| **Coordinator / assignment custodian** | Verify canonical participant ID, visit number, original A–F assignment and authorized protocol code. Resolve G/unprefixed variants privately. | Dated, attributable private key entry and explicit mapping to that visit. Keep condition labels from personnel meant to remain blinded. |
+| **Coordinator / assignment custodian** | Verify canonical participant ID, visit number, original A–F assignment and authorized protocol code. Document confirmed legacy aliases privately while preserving G/R namespaces. | Dated, attributable private key entry and explicit mapping to that visit. Keep condition labels from personnel meant to remain blinded. |
 | **PI / frequency analyst** | Verify the designated EEG and behavioral files belong to the same participant, visit, task and overlapping recording interval. Review retained epochs, estimator method, boundary/sign warnings and reliability status. | Exact source paths/hashes and dated decision under the existing approved frequency-selection/fallback policy. Unavailable or failed estimates remain labeled that way. Do not pick 4 versus 4.5 Hz from these reports automatically. |
 | **Protocol administrator** | Establish one authorized file for each planned task/run. Compare the report used, generator inputs/version, generated bytes and the file imported in NIC. Review frequency, montage, per-channel amplitude/phase, ramps, duration and sham configuration against the approved protocol. | Exact protocol path/hash, version, and recorded review. For a 0-Hz/sham file, documented interpretation in the installed NIC version and confirmation it implements the study's approved sham procedure. |
 | **Stimulation operator / administrator** | Confirm where NIC records execution, how start/end/completion or interruption is captured, and what zero STIM counters mean in this installation. Follow the existing impedance/device SOP. | A named execution record/export location and a demonstrated way, under the lab's SOP, to retain the required evidence. Existing `.info` zeros must not be relabeled as successful delivery. Preserve the required blinding. |

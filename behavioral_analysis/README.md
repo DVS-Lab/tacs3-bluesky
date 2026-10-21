@@ -64,13 +64,20 @@ raw EEG is not analyzed here. Behavioral files and parsed metadata have SHA-256
 hashes; raw EEG has file-size/path coverage only.
 
 * Delimiters are detected from the contents; some `.csv` files contain tabs.
-* Only `sub-`, a numeric `G` prefix, and numeric leading zeros are normalized.
-  Long IDs are **not** truncated or fuzzily matched. Raw IDs are retained. A
-  numeric G-prefix is treated as a formatting variant, not proof of enrollment.
-* Pilot-directory provenance labels recordings as pilot. Elsewhere five-digit
-  IDs starting with 1 are `experimental_candidate`; short/nonnumeric IDs are test,
-  and other numeric formats remain unverified. This heuristic is transparent and
-  cannot certify recruitment. Supply a documented local roster to override it.
+* G/R prefixes are recruitment namespaces and are preserved. `G10034`, `R10034`
+  and bare `10034` remain distinct without an explicit documented alias. Leading
+  zeros are preserved too. Only the `sub-` wrapper/outer whitespace and lowercase
+  g/r before digits are normalized; there is no fuzzy matching or long-ID truncation.
+* Use `--aliases behavioral_analysis/local/aliases.csv` to join documented legacy
+  IDs. The map requires `alias,participant,evidence` and may include an exact
+  repository-relative `source_file` scope. No map is bundled or silently loaded.
+  See [IDENTITY_ALIASES.md](IDENTITY_ALIASES.md) for validation rules, scoped examples,
+  provenance and migration instructions.
+* Pilot-directory provenance labels recordings as pilot. Elsewhere the existing
+  five-digit study-ID heuristic also accepts G/R-prefixed forms as experimental
+  candidates. Other namespaced numeric IDs remain unverified rather than becoming
+  test IDs because they contain a letter. A documented roster overrides the heuristic;
+  enrollment and cross-file identity are not certified by ID shape.
 * Filename/body participant, visit and explicit run labels are checked. Conflicts
   and broken trial sequences are excluded rather than silently repaired.
 * Pre/post labels remain separate phases. Unlabeled localizers do not become
@@ -97,10 +104,17 @@ Optional private inputs (header-only templates are supplied in `templates/`):
 
 ```sh
 python -m behavioral_analysis \
+  --aliases behavioral_analysis/local/aliases.csv \
   --roster behavioral_analysis/local/roster.csv \
   --adjudications behavioral_analysis/local/adjudications.csv \
   --condition-key behavioral_analysis/local/condition_key.csv
 ```
+
+The alias map resolves IDs consistently across behavioral and stimulation files,
+rosters and condition keys before validation or joining. It cannot strip/cross G/R
+namespaces; duplicate identities after resolution are rejected in rosters/keys.
+`identity_resolution.csv`, `identity_aliases.csv` and the alias-file provenance hash
+record the decision basis. Without a map, legacy/namespaced records remain separate.
 
 The roster requires `participant,cohort,evidence`. Allowed cohorts match those
 above. Adjudications require `source_file,sha256,decision,reason`, where decision is
@@ -257,7 +271,7 @@ retain source-file links. `task_sequence.csv` orders actual event timestamps, fl
 overlap, and leaves order unverified when Unix clocks are unavailable.
 
 `provenance.json` records the data-repository revision, analysis-source hashes,
-configuration/key hashes, reviewed rhythm branch, package versions, and end-of-run
+configuration/key/alias hashes, reviewed rhythm branch, package versions, and end-of-run
 source integrity checks. `output_index.json` hashes artifacts including plots and
 links them to the manifest/configuration. Outputs are deterministic for the same
 inputs/software/config, apart from external library metadata. A concurrent source
@@ -266,3 +280,12 @@ change aborts analysis rather than claiming an immutable input snapshot.
 See [VARIABLE_DICTIONARY.md](VARIABLE_DICTIONARY.md), [REUSE.md](REUSE.md), and
 [NEXT_STEPS.md](NEXT_STEPS.md). Source acquisition anomalies are reported, never
 fixed by changing the experiment in this work.
+
+## Identity-policy correction in version 0.2
+
+Version 0.1 incorrectly treated the G namespace as disposable formatting and
+removed numeric leading zeros. Version 0.2 preserves them and uses only explicit
+aliases. Rerun the pipeline; do not rename acquisition files to compensate. Have the
+coordinator populate the private alias map from the recruitment records, including
+any required leading-zero aliases. The prefix policy itself is sound. Report or
+protocol-content discrepancies and the NIC sham question are separate checks.

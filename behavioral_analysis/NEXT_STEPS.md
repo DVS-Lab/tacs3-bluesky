@@ -8,7 +8,7 @@
 2. **After every visit:** run the one-command pipeline. Review newly excluded files,
    restarts, task sequence/duration, reconstructed SSD residuals, go accuracy/speed,
    omissions, stop tracking and SSRT eligibility. Confirm the private recruitment
-   roster and resolve repeated complete attempts with hash-bound adjudications.
+   roster and evidenced legacy-alias map while preserving G/R namespaces; resolve repeated complete attempts with hash-bound adjudications.
 3. **As complete visit pairs accumulate:** use documented intended assignments for
    paired theta–sham Bandit and beta–sham SST summaries. Retain participant, visit,
    task order, run order and delivery verification. Inspect practice/fatigue and

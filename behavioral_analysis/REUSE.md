@@ -70,3 +70,8 @@ The rhythm PR documents were read from the existing remote branch at
 `b3fa31557b5b4251912b96313a5f5d0ead851232`. The branch was not checked out, merged,
 or modified; its failed physiological reliability results remain separate from
 behavioral validity. Review date: 2026-10-20.
+
+Identity handling was corrected in version 0.2 following Avi's recruitment-namespace
+explanation: preserve G/R prefixes and leading zeros, and use an explicit evidenced
+alias map for legacy records. This policy is local to the analysis and changes no
+acquisition code or historical filenames; see [IDENTITY_ALIASES.md](IDENTITY_ALIASES.md).

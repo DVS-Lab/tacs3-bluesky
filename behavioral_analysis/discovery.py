@@ -9,16 +9,7 @@ import numpy as np
 import pandas as pd
 
 from .common import column, digest, flag, numeric
-
-
-def participant_id(raw):
-    """Only documented formatting: sub-, G + digits, and numeric leading zeros.
-
-    Never truncate long numeric IDs (e.g. 1056100000) or do fuzzy matching.
-    """
-    value = re.sub(r"^sub-", "", str(raw).strip(), flags=re.I)
-    value = re.sub(r"^[Gg](?=\d+$)", "", value)
-    return str(int(value)) if value.isdigit() else value.lower()
+from .identity import IdentityResolver, participant_id
 
 
 def read_table(path):
@@ -45,7 +36,8 @@ class Recording:
     issues: list = field(default_factory=list)
 
 
-def load_recording(path, root):
+def load_recording(path, root, identities=None):
+    identities = identities or IdentityResolver()
     relative = str(path.relative_to(root))
     frame, delimiter = read_table(path)
     match = re.search(r"sub-(.*?)_(?:ses-|task-)", path.name, re.I)
@@ -58,9 +50,11 @@ def load_recording(path, root):
         raw_id, session = suffix[1], int(suffix[2])
     else:
         session = int(ses[1]) if ses else None
-    identity = participant_id(raw_id)
+    identity_fields = identities.fields(raw_id, relative)
+    identity = identity_fields["participant"]
     issues = []
-    body_ids = {participant_id(x) for x in column(frame, "subject_id") if x}
+    raw_body_ids = sorted({x for x in column(frame, "subject_id") if x})
+    body_ids = {identities.resolve(x, relative) for x in raw_body_ids}
     if body_ids and body_ids != {identity}:
         issues.append("identity_conflict")
     body_ses = {int(re.sub(r"^ses-", "", x)) for x in column(frame, "session_id")
@@ -83,8 +77,10 @@ def load_recording(path, root):
     # Folder provenance takes precedence over the identity heuristic.
     if relative.startswith("pilot_data/"):
         cohort = "pilot"
-    elif re.fullmatch(r"1\d{4}", identity):
+    elif re.fullmatch(r"(?:[GR])?1\d{4}", identity):
         cohort = "experimental_candidate"
+    elif re.fullmatch(r"[GR]\d+", identity):
+        cohort = "unverified_identity"
     elif not identity.isdigit() or len(identity) <= 4:
         cohort = "test"
     else:
@@ -139,7 +135,9 @@ def load_recording(path, root):
     canonical = json.dumps({"columns": sorted(frame.columns),
                             "rows": frame.reindex(columns=sorted(frame.columns)).values.tolist()}, sort_keys=True)
     semantic_hash = hashlib.sha256(canonical.encode()).hexdigest()
-    meta = dict(participant=identity, raw_participant=raw_id, session=session, task=task,
+    meta = dict(**identity_fields, raw_participant=raw_id,
+                body_identity_resolution=json.dumps([dict(raw_participant=x, **identities.fields(x, relative)) for x in raw_body_ids]),
+                session=session, task=task,
                 phase=phase, run=run, source_file=relative, cohort=cohort,
                 sha256=digest(path), semantic_sha256=semantic_hash,
                 schema_family=schema_family, schema_hash=hashlib.sha256("|".join(frame.columns).encode()).hexdigest()[:12],
@@ -151,14 +149,14 @@ def load_recording(path, root):
     return Recording(meta, frame, issues)
 
 
-def discover(root):
+def discover(root, identities=None):
     records = []
     for folder in ["data", "pilot_data", "stimulation/pre-stimulation-participant-responses"]:
         for path in sorted((root / folder).rglob("*")):
             if path.suffix.lower() not in {".csv", ".tsv"} or not re.search(r"_task-(bandit|sst)_", path.name, re.I):
                 continue
             try:
-                records.append(load_recording(path, root))
+                records.append(load_recording(path, root, identities))
             except (ValueError, OSError, pd.errors.ParserError) as error:
                 records.append(Recording(dict(source_file=str(path.relative_to(root)), sha256=digest(path),
                                               selected=False, exclusion_reason="read_error:" + str(error),
@@ -204,10 +202,12 @@ def select_records(records, config):
                                              not r.meta["source_file"].startswith("pilot_data/"), r.meta["source_file"])):
         m = rec.meta
         h = m.get("semantic_sha256")
-        if h and h in hashes:
-            m["exclusion_reason"] = "duplicate_export_of:" + hashes[h]
+        # Equal trial bytes do not make G123 and R123 the same recording/person.
+        key = tuple(m.get(k) for k in ["participant", "session", "task", "phase", "run", "collection_date"]) + (h,)
+        if h and key in hashes:
+            m["exclusion_reason"] = "duplicate_export_of:" + hashes[key]
         elif h:
-            hashes[h] = m["source_file"]
+            hashes[key] = m["source_file"]
     grouped = {}
     for rec in records:
         m = rec.meta

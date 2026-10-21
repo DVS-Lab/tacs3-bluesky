@@ -44,7 +44,7 @@ def test_content_delimiter_overrides_extension(tmp_path):
     assert rec.meta["trial_count"] == 91
 
 
-@pytest.mark.parametrize("raw,expected", [("sub-G010029", "10029"), ("010579", "10579"), ("1056100000", "1056100000"), ("avi-pilot", "avi-pilot")])
+@pytest.mark.parametrize("raw,expected", [("sub-G010029", "G010029"), ("010579", "010579"), ("sub-r10029", "R10029"), ("1056100000", "1056100000"), ("avi-pilot", "avi-pilot")])
 def test_identity_formatting_only(raw, expected):
     assert participant_id(raw) == expected
 
@@ -73,7 +73,7 @@ def test_condition_key_requires_evidence_and_rejects_conflicts(tmp_path):
     pd.DataFrame([dict(participant="G10029", session=2, counterbalance="A", condition_evidence="coordinator")]).to_csv(path, index=False)
     key = condition_key(path)
     assert key.intended_condition.iloc[0] == "beta"
-    assert key.participant.iloc[0] == "10029"
+    assert key.participant.iloc[0] == "G10029"
 
 
 def test_no_key_does_not_infer_condition():
