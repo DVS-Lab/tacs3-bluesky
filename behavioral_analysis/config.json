@@ -1,0 +1,21 @@
+{
+  "sst": {
+    "initial_ssd_s": 0.25,
+    "ssd_step_s": 0.05,
+    "min_ssd_s": 0.05,
+    "max_ssd_s": 0.9,
+    "timing_tolerance_s": 0.05,
+    "response_deadline_s": 1.5,
+    "min_go_trials": 30,
+    "min_stop_trials_run": 20,
+    "min_stop_trials_session": 50,
+    "min_go_accuracy": 0.8,
+    "max_go_omission_rate": 0.1,
+    "min_p_respond": 0.25,
+    "max_p_respond": 0.75,
+    "min_ssrt_s": 0.05,
+    "max_ssrt_s": 0.5
+  },
+  "bandit": {"min_trials": 40, "active_duration_s": 600, "duration_tolerance_s": 15},
+  "reversal": {"pre": 5, "post": 15}
+}
