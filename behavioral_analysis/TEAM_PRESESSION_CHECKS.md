@@ -13,6 +13,14 @@ it is used for another individualized-frequency decision. Old delivery gaps can
 remain explicitly unresolved while staff establish a verifiable prospective
 workflow; do not invent retrospective certainty or silently repeat a session.
 
+Follow-up: [PROTOCOL_VARIANT_INVESTIGATION.md](PROTOCOL_VARIANT_INVESTIGATION.md)
+shows that the G/unprefixed protocol variants exactly reproduce different
+visit-2 condition-selection branches; changing the ID prefix alone does not
+explain 4.5 Hz versus 0 Hz. The generated 0-Hz files also retain the active-style
+step/ramp fields, rather than those in an earlier matched explicit-sham export.
+Their physical interpretation in NIC remains unverified. Consult that note before
+certifying a 0-Hz file as the approved sham implementation.
+
 ## What the frequency conflicts actually are
 
 | Case | Observed evidence | What must be checked |

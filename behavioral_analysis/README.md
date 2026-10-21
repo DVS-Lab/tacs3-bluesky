@@ -18,6 +18,10 @@ For the current frequency-report discrepancies, delivery evidence gaps and the
 next-session checklist, see [TEAM_PRESESSION_CHECKS.md](TEAM_PRESESSION_CHECKS.md).
 That note is intended for the PI and authorized stimulation staff; its parameter
 details should be shared under the study's blinding rules.
+The follow-up [protocol investigation](PROTOCOL_VARIANT_INVESTIGATION.md) documents
+the G/unprefixed Git history, exact offline reproductions, and the remaining NIC
+sham-verification question. Generated results remain local; this README is the
+analysis guide, not the participant-results report.
 
 ## Setup and testing
 
