@@ -14,6 +14,11 @@ That command scans new and existing files, scores Bandit and SST, and rebuilds
 The output directory and `behavioral_analysis/local/` are ignored. Do not commit
 derived participant data, a condition key, a recruitment roster or clinical records.
 
+For the current frequency-report discrepancies, delivery evidence gaps and the
+next-session checklist, see [TEAM_PRESESSION_CHECKS.md](TEAM_PRESESSION_CHECKS.md).
+That note is intended for the PI and authorized stimulation staff; its parameter
+details should be shared under the study's blinding rules.
+
 ## Setup and testing
 
 Python 3.9 or later; NumPy, pandas and Matplotlib, with pytest for tests. No Bayesian,
