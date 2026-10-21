@@ -164,13 +164,16 @@ def run(root, out, config_path=None, key_path=None, roster_path=None, make_figur
                 values = bandit.metrics(g, rev)
             else:
                 values = sst.metrics(g, config["sst"], "session")
-                # Session SSRT pools only runs passing substantive gates; low-count-only
-                # runs can contribute, since the pooled stop-count gate is applied anew.
+                # Discovery already selected structurally valid, complete recordings.
+                # Exclude invalid events/SSD only; behavioral gates apply to the pool.
                 local_runs = run_metrics[run_metrics.source_file.isin(sources)]
                 keep = []
+                pool_exclusions = {}
                 for _, r in local_runs.iterrows():
-                    flags = set(str(r.ssrt_exclusion_reasons).split(";")) - {"", "insufficient_stop_trials", "insufficient_go_trials"}
-                    if not flags:
+                    invalid = set(str(r.ssrt_exclusion_reasons).split(";")) & {"event_or_ssd_inconsistency", "invalid_ssd"}
+                    if invalid:
+                        pool_exclusions[r.source_file] = sorted(invalid)
+                    else:
                         keep.append(r.source_file)
                 pool = g[g.source_file.isin(keep)]
                 pooled = sst.metrics(pool, config["sst"], "session") if len(pool) else dict(ssrt_ms=np.nan, ssrt_valid=False, ssrt_status="withheld", ssrt_exclusion_reasons="no_eligible_runs")
@@ -178,6 +181,7 @@ def run(root, out, config_path=None, key_path=None, roster_path=None, make_figur
                     values[name] = pooled[name]
                 values.update(ssrt_pool_source_files=";".join(sorted(keep)),
                               ssrt_pool_excluded_source_files=";".join(sorted(sources - set(keep))),
+                              ssrt_pool_exclusion_reasons=json.dumps(pool_exclusions, sort_keys=True),
                               ssrt_pool_n_go=pooled.get("n_go", 0), ssrt_pool_n_stop=pooled.get("n_stop", 0),
                               ssrt_pool_p_respond=pooled.get("p_respond_stop", np.nan),
                               ssrt_pool_ssd_mean_ms=pooled.get("ssd_mean_ms", np.nan))

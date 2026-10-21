@@ -50,6 +50,63 @@ def test_source_output_overlap_is_rejected(tmp_path):
         run(tmp_path, tmp_path / "data/derived")
 
 
+@pytest.mark.parametrize("behavioral_failure", ["low_go_accuracy", "high_go_omissions"])
+def test_session_ssrt_includes_behaviorally_flagged_complete_runs(tmp_path, behavioral_failure):
+    root = tmp_path / "repo"
+    synthetic_repository(root)
+    path = next((root / "data").rglob("*run-1_task-SST*.csv"))
+    raw = pd.read_csv(path)
+    go = raw.index[raw.stop.eq(0)]
+    if behavioral_failure == "low_go_accuracy":
+        # 45/60 correct in run 1 fails 80%; 105/120 pooled passes (87.5%).
+        raw.loc[go[:15], "go_correct"] = 0
+    else:
+        # 8/60 omissions fail 10%; 8/120 pooled passes (6.67%).
+        raw.loc[go[:8], ["response", "rt", "go_correct", "go_miss"]] = [False, float("nan"), 0, 999]
+    raw.to_csv(path, index=False)
+    output = tmp_path / "derived"
+    run(root, output, make_figures=False)
+    runs = pd.read_csv(output / "run_metrics.csv")
+    flagged = runs[runs.source_file.str.endswith(path.name)].iloc[0]
+    assert not flagged.ssrt_valid
+    assert behavioral_failure in flagged.ssrt_exclusion_reasons
+    session = pd.read_csv(output / "session_metrics.csv").query("task == 'sst'").iloc[0]
+    assert session.ssrt_valid
+    assert session.ssrt_pool_n_go == 120
+    assert session.ssrt_pool_n_stop == 62
+    assert session.ssrt_ms == pytest.approx(325.8064516, abs=.001)
+    assert len(session.ssrt_pool_source_files.split(";")) == 2
+    assert pd.isna(session.ssrt_pool_excluded_source_files)
+    assert json.loads(session.ssrt_pool_exclusion_reasons) == {}
+
+
+@pytest.mark.parametrize("invalid_information", ["event", "ssd_state", "ssd_timing"])
+def test_session_ssrt_excludes_invalid_events_or_ssd_with_reasons(tmp_path, invalid_information):
+    root = tmp_path / "repo"
+    synthetic_repository(root)
+    path = next((root / "data").rglob("*run-1_task-SST*.csv"))
+    raw = pd.read_csv(path)
+    if invalid_information == "event":
+        raw.loc[1, "rt"] = 999  # A reported response without a usable RT.
+    elif invalid_information == "ssd_state":
+        raw.loc[0, "ssd"] = .9  # Contradicts the recorded staircase outcome.
+    else:
+        raw.loc[0, "stop_onset"] = raw.loc[0, "stim_onset"] + 2  # Invalid delay and timing.
+    raw.to_csv(path, index=False)
+    output = tmp_path / "derived"
+    run(root, output, make_figures=False)
+    session = pd.read_csv(output / "session_metrics.csv").query("task == 'sst'").iloc[0]
+    assert not session.ssrt_valid
+    assert session.ssrt_pool_n_stop == 31  # Only the other structurally sound run.
+    assert "insufficient_stop_trials" in session.ssrt_exclusion_reasons
+    excluded = session.ssrt_pool_excluded_source_files
+    assert excluded.endswith(path.name)
+    reasons = json.loads(session.ssrt_pool_exclusion_reasons)
+    assert "event_or_ssd_inconsistency" in reasons[excluded]
+    if invalid_information == "ssd_timing":
+        assert "invalid_ssd" in reasons[excluded]
+
+
 @pytest.mark.parametrize("available", ["bandit", "sst", "only_aborted"])
 def test_partial_and_entirely_excluded_task_coverage(tmp_path, available):
     root = tmp_path / "repo"

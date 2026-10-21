@@ -78,7 +78,7 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
         issue("3_more_data_or_review", "Some SST runs cannot support an interpretable SSRT",
               "; ".join(r.source_file + ":" + str(r.ssrt_exclusion_reasons) for _, r in bad_sst.iterrows()),
               "Low stop counts, poor go behavior or failed race-model diagnostics can invalidate individual estimates.",
-              "Inspect run-level QC before additional visits; follow existing speed/accuracy instructions. Pool only substantively eligible runs within the same visit/phase, with >=50 stop trials; do not pool across conditions.")
+              "Inspect run-level QC before additional visits; follow existing speed/accuracy instructions. Pool structurally valid, complete runs within the same visit/phase, excluding invalid event/SSD information; apply behavioral gates and >=50-stop requirement to the pool. Preserve run warnings; do not pool across conditions.")
     issue("3_more_data_or_review", "Small incomplete within-participant sample and unknown condition key",
           f"{summary['n_experimental_candidate_participants']} candidate experimental IDs, {summary['n_experimental_candidate_visits']} visits; {summary['n_known_intended_task_sessions']} task-sessions have documented intended assignment.",
           "Efficacy inference and validated frequency-behavior correlations are premature.",

@@ -210,11 +210,17 @@ clinical cutoffs or an independent validation of this task. Run estimates with
 20–49 stop trials are explicitly provisional. Anticipatory RT counts (<100 ms)
 are reported for review. Failed gates emit `ssrt_ms` as missing with reasons.
 
-Visit estimates are recalculated by pooling substantively eligible runs of the
-same participant/visit/date/phase. Low-count-only runs can enter a pool that reaches
-the pooled count gate. Runs failing other gates are omitted from that SSRT pool;
-both included and excluded source lists, pool go/stop counts, P(respond), and mean
-SSD are exported. The other session descriptors use all selected runs. Their
+Visit estimates pool all structurally valid, complete runs selected by discovery
+within the same participant/visit/date/phase, excluding only runs with invalid
+event or SSD information (`event_or_ssd_inconsistency` or `invalid_ssd`). Behavioral
+gates—trial counts, stop response probability, go accuracy/omissions, race-model
+diagnostic and SSRT plausibility—are then applied to the pooled data. Failing a
+run-level behavioral gate does not remove that run from the session pool; its
+run-level warnings and withheld run estimate remain unchanged. Included/excluded
+source lists, source-specific JSON exclusion reasons, pool go/stop counts,
+P(respond), and mean SSD are exported. Discovery-level structural/incompleteness
+exclusions remain in the manifest/exclusion log. Other session descriptors use all
+selected runs, including those excluded from SSRT for invalid event/SSD data. Their
 denominators may consequently differ from the explicitly named `ssrt_pool_*` fields.
 Pre, active and post are never combined. No SSRT is treated as a trial-level datum.
 

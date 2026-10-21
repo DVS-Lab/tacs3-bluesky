@@ -69,6 +69,7 @@ explicit because Bandit RT is recorded in milliseconds and SST RT in seconds.
 | `ssrt_ms`, `ssrt_valid`, `ssrt_status` | Gated integration estimate; missing if withheld; run-level values explicitly provisional |
 | `ssrt_exclusion_reasons` | Count, accuracy, omission, probability, race-model, timing/event or plausibility failure(s) |
 | `ssrt_pool_source_files`, `ssrt_pool_excluded_source_files` | Included/excluded run sources for pooled visit estimate |
+| `ssrt_pool_exclusion_reasons` | JSON mapping excluded source files to invalid-event/SSD reasons; run-level behavioral warnings do not exclude runs from the session pool |
 | `ssrt_pool_n_go`, `ssrt_pool_n_stop`, `ssrt_pool_p_respond`, `ssrt_pool_ssd_mean_ms` | Exact pooled SSRT denominators/stop delay; session descriptions can use more runs |
 | `n_early_response_before_display`, `n_response_before_planned_stop` | Counts of distinct early flags; neither removes intended stops |
 | `n_missing_stop_signal`, `n_ssd_state_mismatch`, `n_ssd_timing_mismatch`, `n_invalid_events` | Run/pool QC contradiction counts |
