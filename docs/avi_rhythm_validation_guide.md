@@ -1,5 +1,7 @@
 # Avi: step-by-step review of the pilot rhythm validation
 
+**Which script produces `qc_summary.csv`?** Run `code/validate_rhythms.py`. The [codebook in the code folder](../code/README.md) explains the supporting scripts, functions, settings, and output fields.
+
 **Start with the browser review below. You do not need to install software or rerun the analysis to do this review.** The pilot analysis has already been completed, and automated tests plus a real-data smoke test passed on Windows and Linux. A local rerun is optional and described at the end.
 
 Your immediate job is to check the recording history and source files against what happened in the lab, document any discrepancies, and send David your findings. You are not being asked to choose scientific thresholds or approve individualized stimulation. No individualized estimate passed all the provisional QC rules; this does not establish that participants lack theta or beta rhythms.
