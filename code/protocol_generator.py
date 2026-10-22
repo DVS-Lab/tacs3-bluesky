@@ -14,6 +14,11 @@ TEMPLATE = Path(
     r"\stimulation\protocols\PROTOCOL_TEMPLATE.neprot"
 )
 
+SHAM_TEMPLATE = Path(
+    r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky"
+    r"\stimulation\protocols\PROTOCOL_SHAM_TEMPLATE.neprot"
+)
+
 DATA_FOLDER = Path(
     r"C:\Users\Public\LAB PROJECTS\smith-lab\tacs3-bluesky"
     r"\stimulation\calculated-theta-beta"
@@ -133,19 +138,20 @@ def replace_protocol_info(file_path, frequency, template_name, step_name):
     # Replace stimulation frequency
     # --------------------------------------------------------
 
-    text, frequency_replaced = re.subn(
-        r"<ftacsValue>.*?</ftacsValue>",
-        f"<ftacsValue>{frequency:.2f}</ftacsValue>",
-        text,
-        flags=re.DOTALL,
-    )
+    if frequency is not None:
 
-    if frequency_replaced == 0:
-        raise ValueError(
-            "Could not find <ftacsValue></ftacsValue> "
-            "in the protocol template."
+        text, frequency_replaced = re.subn(
+            r"<ftacsValue>.*?</ftacsValue>",
+            f"<ftacsValue>{frequency:.2f}</ftacsValue>",
+            text,
+            flags=re.DOTALL,
         )
 
+        if frequency_replaced == 0:
+            raise ValueError(
+                "Could not find <ftacsValue></ftacsValue> "
+                "in the protocol template."
+            )
     # --------------------------------------------------------
     # Replace TemplateName
     # --------------------------------------------------------
@@ -217,10 +223,12 @@ def create_protocol(subject_id, visit_number, counterbalance):
     frequencies = {
         "theta": theta,
         "beta": beta,
-        "sham": 0.0,
+        "sham": None,
     }
 
     frequency = frequencies[hidden_condition]
+
+    template_file = SHAM_TEMPLATE if hidden_condition == "sham" else TEMPLATE
 
     # --------------------------------------------------------
     # Create output directory
@@ -275,7 +283,7 @@ def create_protocol(subject_id, visit_number, counterbalance):
     ):
 
         shutil.copy(
-            TEMPLATE,
+            template_file,
             output_file,
         )
 
