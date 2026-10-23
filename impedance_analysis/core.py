@@ -121,11 +121,12 @@ def parse_export(path, root, threshold=20000, identities=None, data=None):
     return meta, rows, errors
 
 
-def metadata_record(path, root, identities=None):
+def metadata_record(path, root, identities=None, data=None):
     rel = path.relative_to(root).as_posix()
-    record = dict(source_file=rel, sha256=digest(path), kind="device_info" if path.suffix.lower() == ".info" else "protocol",
+    data = path.read_bytes() if data is None else data
+    record = dict(source_file=rel, sha256=hashlib.sha256(data).hexdigest(), kind="device_info" if path.suffix.lower() == ".info" else "protocol",
                   channels={}, steps=[], parse_issue="")
-    text = path.read_text(errors="replace")
+    text = data.decode("utf-8", errors="replace")
     if record["kind"] == "device_info":
         record.update(filename_fields(path.name, identities, rel))
         for field, pattern in [("nic_version", r"Software's version:\s*([^\n]+)"),
@@ -133,12 +134,32 @@ def metadata_record(path, root, identities=None):
                                ("device_id", r"Device ID:\s*([^\n]+)"), ("step_name", r"Step name:\s*([^\n]+)")]:
             match = re.search(pattern, text)
             record[field] = match[1].strip() if match else ""
+        for field, pattern in [
+            ("stimulation_channel_count", r"Number of stimulation channels:\s*(\d+)"),
+            ("stim_record_count", r"Number of records of Stimulation:\s*(\d+)"),
+            ("first_stim_timestamp", r"StartDate \(firstSTIMtimestamp\):\s*(\d+)"),
+            ("configured_duration_s", r"Stimulation configured duration \(s\):\s*([\d.]+)"),
+            ("ramp_up_s", r"Ramp up duration \(s\):\s*([\d.]+)"),
+            ("ramp_down_s", r"Ramp down duration \(s\):\s*([\d.]+)")]:
+            match = re.search(pattern, text)
+            record[field] = float(match[1]) if match else None
+        record["execution_evidence"] = ("zero_recorded_stimulation_samples_not_proof_no_diagnostic_current"
+            if record["stim_record_count"] == 0 else "recorded_stimulation_samples_require_delivery_review"
+            if record["stim_record_count"] is not None and record["stim_record_count"] > 0 else "not_established")
         block = text.partition("Stimulation parameters:")[2]
         for match in re.finditer(r"Channel (\d+):\s*\n(.*?)(?=\n\s*Channel \d+:|\Z)", block, re.S):
             position = re.search(r"Position:\s*([^\n]+)", match[2])
             role = re.search(r"Type:\s*([^\n]+)", match[2])
             record["channels"][match[1]] = dict(location=position[1].strip() if position else "",
                                                   configured_role=role[1].strip() if role else "")
+        for match in re.finditer(r"Channel (\d+):\s*\n(.*?)(?=\n\s*Channel \d+:|\Z)", block, re.S):
+            channel = record["channels"][match[1]]
+            for field, pattern in [("atdcs", r"Atdcs \(uA\):"), ("atacs", r"Atacs \(uA\):"),
+                                   ("ftacs", r"Ftacs \(Hz\):"), ("ptacs", r"Ptacs \([^)]*\):"),
+                                   ("atrns", r"Atrns \(uA\):")]:
+                value = re.search(pattern+r"\s*([-+\d.eE]+)", match[2])
+                try: channel[field] = float(value[1]) if value else None
+                except ValueError: channel[field] = None
         if not record["channels"]:
             montage = text.partition("EEG montage:")[2].partition("Accelerometer")[0]
             record["channels"] = {m[1]: dict(location=m[2].strip(), configured_role="EEG montage only")
@@ -149,8 +170,10 @@ def metadata_record(path, root, identities=None):
         try:
             xml = ET.fromstring(text)
             record["steps"] = [step.findtext("stepName", "") for step in xml.findall(".//Step")]
+            record["step_details"] = [dict(step_index=i, **{tag:step.findtext(tag, "") for tag in ["stepName", "stepType", "stimulationTime", "rampUp", "rampDown", "rampSham"]}) for i,step in enumerate(xml.findall(".//Step"),1)]
             record["channels"] = [dict(step=step.findtext("stepName", ""), index=c.findtext("index", ""),
-                                       location=c.findtext("location", ""), electrode_type=c.findtext("electrodeType", ""))
+                                       location=c.findtext("location", ""), electrode_type=c.findtext("electrodeType", ""),
+                                       **{tag:c.findtext(tag, "") for tag in ["atdcsValue", "atacsValue", "ftacsValue", "ptacsValue", "atrnsValue"]})
                                   for step in xml.findall(".//Step") for c in step.findall("Channel")]
         except ET.ParseError as exc:
             record["parse_issue"] = str(exc)
@@ -201,7 +224,10 @@ def load_config(path, inventory, metadata):
             locations = json.loads(row.get("channel_locations") or "{}")
             if not isinstance(locations, dict) or any(k not in [str(i) for i in range(1, 9)] or not isinstance(v, str) for k, v in locations.items()):
                 raise ValueError("channel_locations requires a JSON object with channel keys 1 through 8")
-            configs[rel] = dict(**row, connected=connected, active=active, locations=locations)
+            leads = json.loads(row.get("channel_leads") or "{}")
+            if not isinstance(leads, dict) or any(k not in [str(i) for i in range(1,9)] or not isinstance(v,str) for k,v in leads.items()):
+                raise ValueError("channel_leads requires a JSON object with channel keys 1 through 8")
+            configs[rel] = dict(**row, connected=connected, active=active, locations=locations, leads=leads)
     return configs
 
 

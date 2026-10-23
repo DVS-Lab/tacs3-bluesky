@@ -57,7 +57,8 @@ Default output: `impedance_analysis/outputs/latest/` (ignored by Git):
   software/input provenance. Keep this directory local.
 
 The share directory omits recruitment IDs, free-text operator evidence, device
-network IDs, source paths, protocol names and frequencies. It retains dates and
+network IDs, source paths, protocol names and participant-specific frequencies. The generic
+impedance-check template settings are included in the protocol audit. It retains dates and
 opaque export IDs for diagnostic use; it is identifier-minimized, not guaranteed
 anonymous. No private condition key is read. Generated results stay out of Git.
 
@@ -150,3 +151,28 @@ expected values or testboard calibration. Ask support to confirm:
 Use the private inventory to supply actual serial/device details through the lab's
 normal support channel. This package does not send a support request or authorize
 changes to experimental parameters.
+
+## Protocol/configuration audit (v0.2)
+
+Read [the technical assessment and targeted handoff](PROTOCOL_AUDIT.md). The existing
+command now adds a protocol-audit section and controlled-test decision table to
+`share/report.html`; no second pipeline or physical test is introduced.
+
+- `share/protocol_audit.json`: generic-template settings, reachable history counts,
+  aggregated impedance-labelled NIC configurations and F3/index occurrences.
+- `share/configuration_channel_summary.csv`: mode/context, channel, programmed
+  location, configured role/zero amplitude and documented connectivity remain
+  separate. Unknown standalone settings are not filled from nearby files.
+- `private/protocol_audit.json`: exact versioned XML/NIC evidence, hashes and paths.
+- `private/readings.csv`: adds `programmed_location`,
+  `documented_physical_location` and `documented_physical_lead`. The old `location`
+  field is retained for compatibility; use the explicit new fields for inference.
+- Optional private `channel_leads` accepts a JSON object such as
+  `{"1":"lead-A"}` in the existing hash-bound configuration log. This and
+  `channel_locations` are operator evidence; neither is inferred from XML.
+
+Only standard location/role categories enter share summaries. The generic
+impedance-check template's settings are now shown explicitly; participant-specific
+protocol frequencies, arbitrary labels, source paths and private notes remain
+excluded. No type/zero-amplitude field is interpreted as actual connection or
+verified delivery. `150000` remains categorical until the manufacturer clarifies it.

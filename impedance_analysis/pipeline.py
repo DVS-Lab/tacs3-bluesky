@@ -10,6 +10,7 @@ import pandas as pd
 
 from behavioral_analysis.identity import IdentityResolver
 from . import __version__
+from .protocol_audit import audit, zero_amplitudes
 from .core import digest, source_paths, parse_export, metadata_record, load_config, link_export, historical_exports
 
 
@@ -142,7 +143,14 @@ def run(root, output, configuration_log=None, aliases=None, threshold=20000, fig
         for row in rows_by_export.get(export["export_id"], []):
             ch = row["physical_channel"]
             channel_info = info["channels"].get(str(ch), {}) if info else {}
-            row.update(setup=export["setup"],
+            row.update(programmed_location=channel_info.get("location", ""),
+                       documented_physical_location=config.get("locations", {}).get(str(ch), ""),
+                       documented_physical_lead=config.get("leads", {}).get(str(ch), ""),
+                       channel_index_basis="export_column_1_to_8_device_mapping_to_confirm",
+                       configured_zero_amplitudes={True:"yes",False:"no",None:"unknown"}[zero_amplitudes(channel_info)],
+                       measurement_context=("standalone_check_mode_unverified" if export["export_type"]=="standalone" else
+                           "continuous_impedance_named_record" if export.get("step")=="Impedance Check Only" else "continuous_recording_export"),
+                       setup=export["setup"],
                        connected="unknown" if config.get("connected") is None else "yes" if ch in config["connected"] else "no",
                        active="unknown" if config.get("active") is None else "yes" if ch in config["active"] else "no",
                        location=config.get("locations", {}).get(str(ch), channel_info.get("location", "")),
@@ -154,7 +162,7 @@ def run(root, output, configuration_log=None, aliases=None, threshold=20000, fig
     values = pd.DataFrame(readings)
     # Empty or malformed-only datasets still retain inventory, errors and report.
     if values.empty:
-        values = pd.DataFrame(columns=["export_id", "export_type", "source_availability", "physical_channel", "row_number", "timestamp", "sample_utc", "epoch_ms", "raw_token", "value", "category", "structurally_valid", "row_issues", "setup", "connected", "active", "location", "location_evidence", "configured_role", "info_link_status", "nic_version", "firmware"])
+        values = pd.DataFrame(columns=["export_id", "export_type", "source_availability", "physical_channel", "row_number", "timestamp", "sample_utc", "epoch_ms", "raw_token", "value", "category", "structurally_valid", "row_issues", "setup", "connected", "active", "location", "location_evidence", "configured_role", "info_link_status", "nic_version", "firmware", "programmed_location", "documented_physical_location", "documented_physical_lead", "channel_index_basis", "configured_zero_amplitudes", "measurement_context"])
     summary = summaries(values)
     changes = sequences(inv, values)
     pattern_rows = []
@@ -172,16 +180,17 @@ def run(root, output, configuration_log=None, aliases=None, threshold=20000, fig
     # Blank, hash-bound private template for every export. No setup is filled by inference.
     template = inv[["source_file", "sha256"]].copy()
     template["setup"] = "unknown"
-    for name in ["connected_channels", "active_channels", "evidence", "info_file", "info_sha256", "protocol_file", "protocol_sha256", "channel_locations"]:
+    for name in ["connected_channels", "active_channels", "evidence", "info_file", "info_sha256", "protocol_file", "protocol_sha256", "channel_locations", "channel_leads"]:
         template[name] = ""
     save(template, private / "configuration_log_template.csv")
     public_columns = ["export_id", "export_type", "source_availability", "timestamp", "timestamp_basis", "n_rows", "n_malformed_rows", "file_issues", "setup", "nic_version", "firmware", "info_link_status", "protocol_link_status", "sha256", "identical_content_export_count"]
     save(inv[public_columns], share / "exports.csv")
-    save(values.drop(columns=["raw_token", "row_issues", "location", "location_evidence", "configured_role"]), share / "readings.csv")
+    save(values.drop(columns=["raw_token", "row_issues", "location", "location_evidence", "configured_role", "programmed_location", "documented_physical_location", "documented_physical_lead"]), share / "readings.csv")
     save(pd.DataFrame(errors, columns=["export_id", "row_number", "issues"]), share / "parse_errors.csv")
     save(summary, share / "channel_summary.csv")
     save(changes, share / "suspicious_sequences.csv")
     save(patterns, share / "pattern_hypotheses.csv")
+    protocol_audit = audit(root, metadata, inv, values, private, share)
     if private_inputs != {p: digest(p) for p in private_inputs}:
         raise RuntimeError("private input hash changed during analysis")
     if before != {p.relative_to(root).as_posix(): digest(p) for p in protected}:
@@ -214,5 +223,5 @@ def run(root, output, configuration_log=None, aliases=None, threshold=20000, fig
                   source_integrity_verified=True)
     (share / "summary.json").write_text(json.dumps(result, indent=2))
     from .report import build_report
-    build_report(share, inv, values, summary, changes, patterns, result, threshold, figures)
+    build_report(share, inv, values, summary, changes, patterns, result, threshold, figures, protocol_audit)
     return result

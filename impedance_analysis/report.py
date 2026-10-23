@@ -71,7 +71,7 @@ def plots(out, inventory, readings, threshold):
     return files
 
 
-def build_report(out, inv, values, summary, changes, patterns, result, threshold, figures):
+def build_report(out, inv, values, summary, changes, patterns, result, threshold, figures, protocol_audit=None):
     selected = inv[inv.export_type.eq("standalone")].sort_values("timestamp")
     priorities = selected[["export_id", "timestamp", "source_availability", "setup", "info_link_status"]].copy()
     for ch in range(1, 9):
@@ -113,7 +113,7 @@ def build_report(out, inv, values, summary, changes, patterns, result, threshold
             f"{result['n_channel_readings']} channel slots retained; {result['n_files_with_issues']} files have parse/filename issues. "
             f"{result['n_documented_configuration_exports']} exports have an operator configuration record. "
             f"{result['n_metadata_records']} metadata/protocol files inventoried; {result['n_metadata_parse_issues']} have parse/configuration warnings. "
-            "Source hashes were unchanged before/after analysis. No participant identifiers, assignment key, protocol frequency, source paths or device network identifier are included in this share directory.") + "</p>",
+            "Source hashes were unchanged before/after analysis. No participant identifiers, assignment key, participant-specific protocol frequency, source paths or device network identifier are included in this share directory.") + "</p>",
             "<h2>Strongest observations</h2><ul>" + "".join("<li>" + escape(x) + "</li>" for x in observations) + "</ul>",
             "<p>" + escape(transition_note + " " + pattern_note) + "</p>",
             "<h2>Competing explanations and decisive evidence</h2>",
@@ -127,14 +127,17 @@ def build_report(out, inv, values, summary, changes, patterns, result, threshold
             "<p>Documented-connected and documented-active denominators use only explicit operator evidence. A configured NIC role is not proof of a physical connection. With no configuration log, those denominators are zero and rates are undefined. Counts across all recorded channels must not be interpreted as hardware-fault rates.</p>",
             table(summary[summary.denominator_scope.eq("all_recorded_connection_unknown_or_known")] if len(summary) else summary),
             "<p>All connection-specific denominators are in <a href='channel_summary.csv'>channel_summary.csv</a>. The descriptive numeric threshold is " + escape(f"{threshold:g}") + "; if ordinary exports are in Ω, this is 20 kΩ at the default setting. It is not an operational acceptance rule. Exact 150000 is excluded from the separate 'above threshold other' category.</p>",
-            "<h2>Chronological plots</h2><p>Standalone heatmap rows are successive exports, not equally spaced time. † denotes a Git-history-only export. Red markers represent a category, not measured 150 kΩ. Channel numbers are physical indices; F3 must be established from the applicable configuration.</p>"]
+            "<h2>Chronological plots</h2><p>Standalone heatmap rows are successive exports, not equally spaced time. † denotes a Git-history-only export. Red markers represent a category, not measured 150 kΩ. Channel numbers retain export-column indices; device-index mapping needs confirmation, and a programmed F3 label does not establish physical wiring.</p>"]
+    if protocol_audit is not None:
+        from .handoff import section
+        body.insert(5, section(protocol_audit, table))
     body += [f"<figure><img src='{escape(f)}' alt='{escape(f)}'></figure>" for f in files]
     body += ["<h2>Suspicious sequences</h2><p>Adjacent standalone exports within the same preserved identity, visit and filename day, with gaps ≤2 hours. No cross-identity, overnight or continuous-sample joins. Unknown setup prevents a verified recovery claim.</p>",
              table(changes[changes.timestamp.str.startswith(("2026-10-20", "2026-10-22"))] if len(changes) else changes),
              "<details><summary>Testboard-like pattern table</summary><p>At least two structurally valid channel readings in 3500–4500 recorded units. This exploratory window is a pattern screen, not a testboard classifier; ordinary electrode readings can match it.</p>" + table(patterns) + "</details>",
              "<details><summary>Daily coverage, including continuous logs</summary><p>Each IMP row has eight values plus a Unix-millisecond time. Filename wall time and UTC sample time remain separate; their clock relation is unverified. Zero does not establish a usable impedance or a disconnected channel. Associated NIC versions/firmware are carried in exports/readings only where a run-name/time or operator link exists; no version is propagated to unlinked checks.</p>" + table(daily) + "</details>",
              "<h2>Files for Neuroelectrics</h2><ul>"]
-    for f in ["exports.csv", "standalone_checks.csv", "readings.csv", "channel_summary.csv", "suspicious_sequences.csv", "pattern_hypotheses.csv", "priority_checks.csv", "daily_summary.csv", "parse_errors.csv", "summary.json"]:
+    for f in ["exports.csv", "standalone_checks.csv", "readings.csv", "channel_summary.csv", "suspicious_sequences.csv", "pattern_hypotheses.csv", "priority_checks.csv", "daily_summary.csv", "parse_errors.csv", "summary.json", "protocol_audit.json", "configuration_channel_summary.csv"]:
         body.append(f"<li><a href='{f}'>{f}</a></li>")
     body += ["</ul><p>This directory minimizes identifiers but retains diagnostic dates. The sibling private directory contains source paths/hashes, recruitment identities, candidate links and the blank configuration-log template. Keep it local. Supply actual setup records via --configuration-log and rebuild; the share report never includes free-text operator evidence.</p>",
              "<h2>Manufacturer questions</h2><p>What do exact 150000 and zero encode for this StarStim-8/NIC/firmware combination? Are ImpVal and IMP values in Ω, with the same measurement method and reference? Which channels are measured in each mode? Can status/stale values persist across rechecks? What approved testboard values/tolerances and diagnostic records distinguish the device, flat cable, electrode cable and contact paths?</p>",
