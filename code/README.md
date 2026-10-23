@@ -8,7 +8,7 @@ From the repository root, with the validation environment installed:
 .\.venv\Scripts\python.exe code\validate_rhythms.py --subject 10034
 ```
 
-Remove `--subject 10034` to analyze all pilot recordings. The command prints the output folder, `validation_outputs/<timestamp>/`, which contains the new `qc_summary.csv`. The current saved reference is `validation/pilot_results_meanlogratio_v1_1`; `validation/pilot_results` preserves the historical v1.0 run. Neither is overwritten by a new run. See the [setup instructions](../docs/avi_rhythm_validation_guide.md#6-optional-reproduce-the-analysis-on-the-lab-windows-computer) if the environment is not installed.
+Remove `--subject 10034` to analyze all pilot recordings. The command prints the output folder, `validation_outputs/<timestamp>/`, which contains the new `qc_summary.csv`. The current saved reference is `validation/pilot_results_input_recovery`; `validation/pilot_results_meanlogratio_v1_1` and `validation/pilot_results` preserve earlier runs. None is overwritten by a new run. See the [setup instructions](../docs/avi_rhythm_validation_guide.md#6-optional-reproduce-the-analysis-on-the-lab-windows-computer) if the environment is not installed.
 
 ## What each script does
 
@@ -39,6 +39,8 @@ The main CSV fields are:
 - `bootstrap_detection_fraction`, `bootstrap_ci_hz`: how often resampling finds a qualifying feature and the frequency interval conditional on finding one.
 - `roi_channels`: the channels used for the region of interest.
 
+`chronological_split_unstable_or_missing` and `odd_even_split_unstable_or_missing` combine two different failures. Read `splits.<name>.difference_hz` for the numerical frequency change, and `splits.<name>.halves[].reasons` for feature/effect failures. A small frequency difference can still fail because a qualifying feature is missing; the label alone does not demonstrate a shifting frequency. Bootstrap frequency intervals are conditional on qualifying-feature detection, so a narrow interval with low detection is insufficient.
+
 `completion.json` records whether the batch completed. `provenance.json` records code/input provenance and the software environment; copied `config.json` and `manifest.json` identify the run settings and inputs.
 
 ## Relationship to the older scripts
@@ -50,3 +52,10 @@ For the scientific rationale and limitations, see the [audit](../docs/rhythm_est
 For the controlled 10034 pre comparison showing which choices move the beta minimum from 13 to 23 Hz, see the [method comparison and reproduction commands](../docs/10034_beta_method_comparison.md).
 
 The correction is now applied in v1.1. Read the [current validation and individualization decision](../docs/meanlogratio_validation_decision.md), including the pilot rerun and limitations of the acceptance criteria.
+
+## Follow-up experiments and input audit
+
+- [`calibrate_acceptance.py`](../validation/experiments/calibrate_acceptance.py): compares the default and experimental acceptance policies on separate development/held-out simulations, then on pilot data. `development` writes a source/configuration lock; `heldout` and `pilot` require it. It does not change the default policy or write `qc_summary.csv`.
+- [`audit_unresolved_inputs.py`](../validation/experiments/audit_unresolved_inputs.py): inventories candidate paths, hashes, identity fields, and available clock columns for unresolved recordings. It does not alter the manifest or infer clock offsets.
+
+See [the results and exact commands](../docs/acceptance_calibration_followup.md) and [the specific evidence requested from the lab](../docs/next_steps_for_jacob_avi.md). No experimental acceptance rule was promoted.

@@ -1,0 +1,10 @@
+{
+  "source_sha256": {
+    "validation/experiments/calibrate_acceptance.py": "aa493f0ad5d37aacfc80c83a7c7c0c4354e1192d80ea7329fe68592691e72da9",
+    "code/rhythm_validation_core.py": "a4d1f020d325fc358fe80624db580367371c1af492ba9d1cb0ecbd201fd7ab6f",
+    "code/rhythm_validation_config.json": "053324b950fe68b8bfcd81cdd4bb29ae4acae0d1b7ce501305684a588fa8e0e2"
+  },
+  "selected_policy": null,
+  "criterion": "Zero accepted development controls; no accepted known error >2 Hz beta/0.75 Hz theta; >=80% strong-signal acceptance; maximize known-signal acceptance among eligible policies. No eligible policy means no promotion.",
+  "deployment_authorized": false
+}

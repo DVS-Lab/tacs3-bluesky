@@ -1,5 +1,7 @@
 # Avi: step-by-step review of the pilot rhythm validation
 
+**The immediate handoff has been narrowed. Use [Jacob and Avi: the specific information we need](next_steps_for_jacob_avi.md).** The longer review below is optional background, not a new assignment. The [latest report](acceptance_calibration_followup.md) records 67 passing tests, one recovered input, and nine remaining unresolved recordings. Older expected counts and source lists below describe the earlier snapshot.
+
 **Current result:** [Corrected normalization validation and recommendation](meanlogratio_validation_decision.md). The current v1.1 workflow is for offline analysis; individualized stimulation is not supported by this validation.
 
 **Which script produces `qc_summary.csv`?** Run `code/validate_rhythms.py`. The [codebook in the code folder](../code/README.md) explains the supporting scripts, functions, settings, and output fields.

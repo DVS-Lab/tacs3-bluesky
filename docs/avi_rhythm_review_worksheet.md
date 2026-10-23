@@ -1,5 +1,7 @@
 # Avi: pilot rhythm review worksheet
 
+**Superseded as an assignment by [the shorter, specific input request](next_steps_for_jacob_avi.md).** You do not need to complete this whole worksheet. It remains historical reference; 10579 Bandit post has now been recovered and no longer needs investigation.
+
 **Current result:** [Corrected normalization validation and recommendation](meanlogratio_validation_decision.md). The current v1.1 workflow is for offline analysis; individualized stimulation is not supported by this validation.
 
 Copy this worksheet into your own document and return it to David through the approved lab sharing location. Follow the [step-by-step guide](avi_rhythm_validation_guide.md). No installation is required. Fill every item with confirmed, contradicted, unknown, found, or not found, plus the supporting detail. Do not put participant files or sensitive paths in public GitHub comments.

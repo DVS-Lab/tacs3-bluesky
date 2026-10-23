@@ -1,0 +1,1360 @@
+{
+  "search_roots": [
+    "data",
+    "behavioral-data",
+    "pilot_data",
+    "stimulation"
+  ],
+  "manifest_sha256": "045ec0b8f7a9b2a5a807e353797918844eb67a3f4f981e85c2a4444af16b5f78",
+  "script_sha256": "d80f75f79a92e1cf2420a4f4ae2efd1928cfd83ea2e7441f9fa04962cdc98c78",
+  "records": [
+    {
+      "recording_id": "10010_ses-1_sst_pre_20260904111037",
+      "eeg": "pilot_data/Pilot-G10010/20260904111037_10010-1_SST_pre-stim.easy",
+      "manifest_session": "1",
+      "candidate_files": [
+        {
+          "path": "behavioral-data/sub-10010/sub-10010_ses-1_run-01_task-SST_2026-09-04_11-32-29_events.csv",
+          "sha256": "c7f7764d27dff1f12200b91c09cfbf437708d7dc9e861ff6228897c5ef836ee2",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10010/sub-10010_ses-1_run-01_task-SST_2026-09-04_11-32-29_events.tsv",
+          "sha256": "a5162f1ec3ac3187f786c84d00a319574623000f48037e286f0c01f6ee219921",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10010_ses-001_run-01_task-SST_2026-09-04_11-09-08.csv",
+          "sha256": "ecc1d424517ac76ddfa875ef7be03eabcacf42394857555fe1eeac1e1ef02249",
+          "n_rows": 79,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10010_ses-001_run-01_task-SST_2026-09-04_11-46-11.csv",
+          "sha256": "71f32c59e34f91768a97722583b967ca6a27b4d6d623a15b5338f83157187b29",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "10010_ses-1_sst_post_20260904114750",
+      "eeg": "pilot_data/Pilot-G10010/20260904114750_10010-1_SST_post-stim.easy",
+      "manifest_session": "1",
+      "candidate_files": [
+        {
+          "path": "behavioral-data/sub-10010/sub-10010_ses-1_run-01_task-SST_2026-09-04_11-32-29_events.csv",
+          "sha256": "c7f7764d27dff1f12200b91c09cfbf437708d7dc9e861ff6228897c5ef836ee2",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10010/sub-10010_ses-1_run-01_task-SST_2026-09-04_11-32-29_events.tsv",
+          "sha256": "a5162f1ec3ac3187f786c84d00a319574623000f48037e286f0c01f6ee219921",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10010_ses-001_run-01_task-SST_2026-09-04_11-09-08.csv",
+          "sha256": "ecc1d424517ac76ddfa875ef7be03eabcacf42394857555fe1eeac1e1ef02249",
+          "n_rows": 79,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10010_ses-001_run-01_task-SST_2026-09-04_11-46-11.csv",
+          "sha256": "71f32c59e34f91768a97722583b967ca6a27b4d6d623a15b5338f83157187b29",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10010"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "10579_ses-1_sst_pre_20260903195950",
+      "eeg": "pilot_data/Pilot-G10579/20260903195950_10579-1_SST_pre-stim.easy",
+      "manifest_session": "1",
+      "candidate_files": [
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10579_ses-001_run-01_task-SST_2026-09-03_19-58-46.csv",
+          "sha256": "eb3009ea927978e61da70d0c21c757a0fca7f74e3f7e67a9ea82448ea1c8b147",
+          "n_rows": 72,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10579"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10579_ses-001_run-01_task-SST_2026-09-03_19-58-46.tsv",
+          "sha256": "cfac17361bf49bf545ea518debef98adcf3875d47b168a58fc7a339c884a6775",
+          "n_rows": 72,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10579"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "10890_ses-unverified_sst_pre_20260828130310",
+      "eeg": "pilot_data/Pilot-G10890/20260828130310_10890_SST_pre-stim.easy",
+      "manifest_session": "unverified",
+      "candidate_files": [
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-24-50_events.csv",
+          "sha256": "2d79d5a68e103647bb9e4d150dcf9be4f7c86cc73442ce0bf96f8572e988d566",
+          "n_rows": 14,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-24-50_events.tsv",
+          "sha256": "6a716cbb7e5864989238d63ff80eef8bd98cc49e904c796ddeac354ac19e3e7f",
+          "n_rows": 14,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-26-34_events.csv",
+          "sha256": "19e25bb7da50c9978da6d67eedaf6090ce1db3341d9f840d44640458a19316fb",
+          "n_rows": 68,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-26-34_events.tsv",
+          "sha256": "a0ea4436c3081464ee935225b51ba66c4b0a5c4559745a4e699ea273f3549dfa",
+          "n_rows": 68,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-01-48.csv",
+          "sha256": "a266a9601b605a141e76b48bc72af0c5324ce647b665b6b380fabf593bd7754a",
+          "n_rows": 69,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-01-48.tsv",
+          "sha256": "490b80f2cc48464565726231bc34b318c2669fd7cc5eceda89eddac6a99a47be",
+          "n_rows": 69,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-40-22.csv",
+          "sha256": "fde102e95375cbcf91cf8a3f175480088ffd22d6cb2ddd8ad1660fab3c7b007b",
+          "n_rows": 70,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-40-22.tsv",
+          "sha256": "e59ebb10ecc63b619ef616993b391789ff244bd7e7876ef34f2b68ab63675129",
+          "n_rows": 70,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "10890_ses-1_sst_pre_20260828134105",
+      "eeg": "pilot_data/Pilot-G10890/20260828134105_10890-1_SST_pre-stim.easy",
+      "manifest_session": "1",
+      "candidate_files": [
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-24-50_events.csv",
+          "sha256": "2d79d5a68e103647bb9e4d150dcf9be4f7c86cc73442ce0bf96f8572e988d566",
+          "n_rows": 14,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-24-50_events.tsv",
+          "sha256": "6a716cbb7e5864989238d63ff80eef8bd98cc49e904c796ddeac354ac19e3e7f",
+          "n_rows": 14,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-26-34_events.csv",
+          "sha256": "19e25bb7da50c9978da6d67eedaf6090ce1db3341d9f840d44640458a19316fb",
+          "n_rows": 68,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-10890/sub-10890_ses-1_run-01_task-SST_2026-08-28_13-26-34_events.tsv",
+          "sha256": "a0ea4436c3081464ee935225b51ba66c4b0a5c4559745a4e699ea273f3549dfa",
+          "n_rows": 68,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-01-48.csv",
+          "sha256": "a266a9601b605a141e76b48bc72af0c5324ce647b665b6b380fabf593bd7754a",
+          "n_rows": 69,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-01-48.tsv",
+          "sha256": "490b80f2cc48464565726231bc34b318c2669fd7cc5eceda89eddac6a99a47be",
+          "n_rows": 69,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-40-22.csv",
+          "sha256": "fde102e95375cbcf91cf8a3f175480088ffd22d6cb2ddd8ad1660fab3c7b007b",
+          "n_rows": 70,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-10890_ses-001_run-01_task-SST_2026-08-28_13-40-22.tsv",
+          "sha256": "e59ebb10ecc63b619ef616993b391789ff244bd7e7876ef34f2b68ab63675129",
+          "n_rows": 70,
+          "identity_fields": {
+            "subject_id": [
+              "sub-10890"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            },
+            "stop_onset": {
+              "unix_column_present": false,
+              "lsl_column_present": true
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "12193_ses-unverified_sst_pre_20260914112951",
+      "eeg": "pilot_data/Pilot-G12193/20260914112951_12193_SST_pre-stim.easy",
+      "manifest_session": "unverified",
+      "candidate_files": [
+        {
+          "path": "behavioral-data/sub-1219300000/sub-1219300000_ses-1_run-01_task-SST_2026-09-14_11-48-06_events.csv",
+          "sha256": "bbdc21efc08f80c455d8db1a87ce07623c301b0bd0fb15382f0a38f9320f3d37",
+          "n_rows": 109,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 83,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 31,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-1219300000/sub-1219300000_ses-1_run-01_task-SST_2026-09-14_11-48-06_events.tsv",
+          "sha256": "a39d5c64412981a25187a32460c52eede69f6abcea58092dba35a215d70e5ba1",
+          "n_rows": 109,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 83,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 31,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-1219300000_ses-001_run-01_task-SST_2026-09-14_11-29-11.csv",
+          "sha256": "635ae6079eb5754dcf2fe8d7fc0883829c52da9c8e66dd78a0873669e5c4fabf",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 61,
+              "within_recording": 50,
+              "overlap_fraction": 0.819672131147541
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 20,
+              "within_recording": 16,
+              "overlap_fraction": 0.8
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-1219300000_ses-001_run-01_task-SST_2026-09-14_11-29-11.tsv",
+          "sha256": "c97330bec894d4b2a39aa6d36625932f058efb1fc1f870e6e946eb2097a73d25",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 61,
+              "within_recording": 50,
+              "overlap_fraction": 0.819672131147541
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 20,
+              "within_recording": 16,
+              "overlap_fraction": 0.8
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193_ses-001_run-01_task-SST_2026-09-14_11-29-11.csv",
+          "sha256": "635ae6079eb5754dcf2fe8d7fc0883829c52da9c8e66dd78a0873669e5c4fabf",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 61,
+              "within_recording": 50,
+              "overlap_fraction": 0.819672131147541
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 20,
+              "within_recording": 16,
+              "overlap_fraction": 0.8
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193_ses-001_run-02_task-SST_2026-09-14_12-11-15.csv",
+          "sha256": "150a09ced68b8498bade7f735a1cb587e51b3ee18ecaf6064fedc8657ce02e8f",
+          "n_rows": 67,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-02"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 54,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 13,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "12193_ses-unverified_bandit_pre_20260914113817",
+      "eeg": "pilot_data/Pilot-G12193/20260914113817_12193_Bandit_pre-stim.easy",
+      "manifest_session": "unverified",
+      "candidate_files": [
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193-1_task-bandit_2026-09-14_11-36-55.csv",
+          "sha256": "e66f640696f58a00bd5a9920e861cd49a04e050d0f5e0a23e808fca0eab9ff38",
+          "n_rows": 120,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "1219300000-1"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 119,
+              "within_recording": 117,
+              "overlap_fraction": 0.9831932773109243
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 120,
+              "within_recording": 117,
+              "overlap_fraction": 0.975
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193-2_task-bandit_2026-09-14_12-18-08.csv",
+          "sha256": "9601b2649c9366e0ecf8691e3fc3ac11b91d8b2646c904efda4883564f79b68a",
+          "n_rows": 120,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-2"
+            ],
+            "run": [
+              "1219300000-2"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 118,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 120,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-1219300000-1_task-bandit_2026-09-14_11-36-55.csv",
+          "sha256": "e66f640696f58a00bd5a9920e861cd49a04e050d0f5e0a23e808fca0eab9ff38",
+          "n_rows": 120,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "1219300000-1"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 119,
+              "within_recording": 117,
+              "overlap_fraction": 0.9831932773109243
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 120,
+              "within_recording": 117,
+              "overlap_fraction": 0.975
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193_ses-001_run-01_task-bandit_2026-09-14_11-59-07.csv",
+          "sha256": "56ce41394b136cbe4d8f86fe1573cf2a18c453f31c88a9603ea1709687544f28",
+          "n_rows": 232,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 228,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 232,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "12193_ses-unverified_sst_post_20260914121139",
+      "eeg": "pilot_data/Pilot-G12193/20260914121139_12193_SST_post-stim.easy",
+      "manifest_session": "unverified",
+      "candidate_files": [
+        {
+          "path": "behavioral-data/sub-1219300000/sub-1219300000_ses-1_run-01_task-SST_2026-09-14_11-48-06_events.csv",
+          "sha256": "bbdc21efc08f80c455d8db1a87ce07623c301b0bd0fb15382f0a38f9320f3d37",
+          "n_rows": 109,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 83,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 31,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "behavioral-data/sub-1219300000/sub-1219300000_ses-1_run-01_task-SST_2026-09-14_11-48-06_events.tsv",
+          "sha256": "a39d5c64412981a25187a32460c52eede69f6abcea58092dba35a215d70e5ba1",
+          "n_rows": 109,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 83,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 31,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-1219300000_ses-001_run-01_task-SST_2026-09-14_11-29-11.csv",
+          "sha256": "635ae6079eb5754dcf2fe8d7fc0883829c52da9c8e66dd78a0873669e5c4fabf",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 61,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 20,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-1219300000_ses-001_run-01_task-SST_2026-09-14_11-29-11.tsv",
+          "sha256": "c97330bec894d4b2a39aa6d36625932f058efb1fc1f870e6e946eb2097a73d25",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 61,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 20,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193_ses-001_run-01_task-SST_2026-09-14_11-29-11.csv",
+          "sha256": "635ae6079eb5754dcf2fe8d7fc0883829c52da9c8e66dd78a0873669e5c4fabf",
+          "n_rows": 71,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 61,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 20,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193_ses-001_run-02_task-SST_2026-09-14_12-11-15.csv",
+          "sha256": "150a09ced68b8498bade7f735a1cb587e51b3ee18ecaf6064fedc8657ce02e8f",
+          "n_rows": 67,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-02"
+            ]
+          },
+          "timing": {
+            "response_onset": {
+              "unix_column_present": true,
+              "finite_events": 54,
+              "within_recording": 46,
+              "overlap_fraction": 0.8518518518518519
+            },
+            "stop_onset": {
+              "unix_column_present": true,
+              "finite_events": 13,
+              "within_recording": 12,
+              "overlap_fraction": 0.9230769230769231
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    },
+    {
+      "recording_id": "12193_ses-unverified_bandit_post_20260914121834",
+      "eeg": "pilot_data/Pilot-G12193/20260914121834_12193_Bandit_post-stim.easy",
+      "manifest_session": "unverified",
+      "candidate_files": [
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193-1_task-bandit_2026-09-14_11-36-55.csv",
+          "sha256": "e66f640696f58a00bd5a9920e861cd49a04e050d0f5e0a23e808fca0eab9ff38",
+          "n_rows": 120,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "1219300000-1"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 119,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 120,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193-2_task-bandit_2026-09-14_12-18-08.csv",
+          "sha256": "9601b2649c9366e0ecf8691e3fc3ac11b91d8b2646c904efda4883564f79b68a",
+          "n_rows": 120,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-2"
+            ],
+            "run": [
+              "1219300000-2"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 118,
+              "within_recording": 111,
+              "overlap_fraction": 0.940677966101695
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 120,
+              "within_recording": 113,
+              "overlap_fraction": 0.9416666666666667
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-1219300000-1_task-bandit_2026-09-14_11-36-55.csv",
+          "sha256": "e66f640696f58a00bd5a9920e861cd49a04e050d0f5e0a23e808fca0eab9ff38",
+          "n_rows": 120,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-1"
+            ],
+            "run": [
+              "1219300000-1"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 119,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 120,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        },
+        {
+          "path": "stimulation/pre-stimulation-participant-responses/sub-12193_ses-001_run-01_task-bandit_2026-09-14_11-59-07.csv",
+          "sha256": "56ce41394b136cbe4d8f86fe1573cf2a18c453f31c88a9603ea1709687544f28",
+          "n_rows": 232,
+          "identity_fields": {
+            "subject_id": [
+              "sub-1219300000"
+            ],
+            "session_id": [
+              "ses-001"
+            ],
+            "run": [
+              "run-01"
+            ]
+          },
+          "timing": {
+            "choice_onset": {
+              "unix_column_present": true,
+              "finite_events": 228,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            },
+            "feedback_onset": {
+              "unix_column_present": true,
+              "finite_events": 232,
+              "within_recording": 0,
+              "overlap_fraction": 0.0
+            }
+          }
+        }
+      ],
+      "status": "unresolved_no_manifest_change"
+    }
+  ]
+}

@@ -83,9 +83,12 @@ def validate_identity(job, rows):
     if task not in {'bandit', 'sst'} or phase not in {'pre', 'post'} or not job.get('run'):
         raise InputError('invalid_task_phase_or_missing_run')
     # An identity exception must be explicitly recorded; it is never guessed at runtime.
+    # Numeric participant labels may be zero-padded, as in the behavioral rows
+    # below. A trailing digit is never an equivalent identity (12193 != 1219300000).
+    subject_token = r'0*' + re.escape(subject.lstrip('0') or '0')
     for kind in ('eeg', 'events'):
         name = Path(job[kind]).name.lower()
-        if not re.search(rf'(?<!\d){re.escape(subject)}(?!\d)', name):
+        if not re.search(rf'(?<!\d){subject_token}(?!\d)', name):
             raise InputError(f'{kind}_participant_mismatch')
         if task not in name:
             raise InputError(f'{kind}_task_mismatch')
@@ -93,7 +96,7 @@ def validate_identity(job, rows):
             if f'{other}-stim' in name and other != phase:
                 raise InputError(f'{kind}_phase_mismatch')
     eeg_name = Path(job['eeg']).name
-    matched_session = re.search(rf'{re.escape(subject)}-(\d+)_', eeg_name)
+    matched_session = re.search(rf'(?<!\d){subject_token}-(\d+)_', eeg_name)
     if matched_session and int(matched_session[1]) != int(session):
         raise InputError('eeg_session_mismatch')
     event_session = re.search(r'_ses-(\d+)_', Path(job['events']).name)

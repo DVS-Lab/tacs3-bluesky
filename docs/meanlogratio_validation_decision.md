@@ -1,5 +1,7 @@
 # Decision after correcting normalization and rerunning validation
 
+**Follow-up:** [Expanded acceptance testing and recovered input](acceptance_calibration_followup.md) adds 540 simulations, documents newly exposed acceptance failures, and recovers 10579 Bandit post. The latest batch still has 0/95 accepted analyses; nine recordings remain unresolved. [Only these specific lab inputs are requested](next_steps_for_jacob_avi.md).
+
 **Recommendation: do not use this workflow's current individualized frequencies for participant stimulation.** The baseline correction is now implemented, but these pilot data do not establish usable individualized estimates, and the current acceptance rules are not sufficiently calibrated for deployment. This applies to the analyses tested here, not a claim that individualization is impossible.
 
 The immediate decision is complete: retain this as an offline analysis/validation workflow. Do not choose between 13 and 23 Hz for participant 10034. Task-specific targets remain a reasonable future design choice, conditional on reliable measurement; separate task labels cannot rescue unreliable estimates. Fixed-frequency fallback options remain a separate PI/protocol decision and were not assigned by this update.

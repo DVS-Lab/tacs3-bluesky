@@ -484,16 +484,16 @@
       "phase": "post",
       "run": "20260903201256",
       "eeg": "pilot_data/Pilot-G10579/20260903201256_10579-1_Bandit_post-stim.easy",
-      "events": null,
+      "events": "stimulation/pre-stimulation-participant-responses/sub-010579-1_task-bandit_2026-09-03_20-12-30.csv",
       "metadata": "stimulation/stimulation-data/20260903201256_010579-1_Bandit_pre-stim.info",
       "clock_domain": "unix",
       "event_unit": "ms",
       "sha256": {
         "eeg": "97173b63630856d69673155740809c8ab123d2f02859a1606cd8c9e7206d2c64",
-        "metadata": "7165d01bbac54593c6deb0cff98be5a242fd747faa458b1c3d45e96a5b2f687b"
+        "metadata": "7165d01bbac54593c6deb0cff98be5a242fd747faa458b1c3d45e96a5b2f687b",
+        "events": "be1cec8c2126b759c3b5d8750fe534bfc49ed864878db6077bc0a8e285037716"
       },
-      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
-      "unresolved_candidates": []
+      "match_evidence": "Numeric participant 010579 equals 10579 by leading-zero normalization; subject/session rows confirm 10579/session 1. Choice event overlap 118/119; feedback overlap 119/120 with the exact EEG timestamps. Post phase follows the pilot EEG filename. The original .info filename says pre-stim, but its start time and sample count identify this exact EEG; source filenames and data are preserved."
     },
     {
       "id": "10696_ses-1_sst_pre_20260930094329",

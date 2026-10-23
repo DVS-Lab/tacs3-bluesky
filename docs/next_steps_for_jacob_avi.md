@@ -1,0 +1,15 @@
+# Jacob and Avi: the specific information we need
+
+The normalization fix, software testing, and pilot rerun are complete. Please do not spend time installing software, rerunning analyses, or selecting thresholds. We also tested two acceptance policies on 540 new simulations; neither is ready to support individualized stimulation. We will handle further analysis and code changes.
+
+Please send David the following through the approved lab storage location. A file link and a brief explanation are enough; “not available” is also useful. Do not rename source files or repair timestamps yourself.
+
+1. **12193 identity/session confirmation.** Do the behavioral rows labeled `1219300000` belong to the EEG labeled `12193`? What are the actual session/run identities for the September 14 pre/post SST and Bandit recordings? The post-Bandit behavioral file says session 2 while post-SST says session 1. Please provide the session log or original export supporting the mapping, rather than inferring it from similar filenames.
+
+2. **Recorded timing evidence for the older SST files and 10037.** For 10010 (September 4 pre/post), 10579 (September 3 pre), and 10890 (August 28 recordings at 13:03 and 13:41), the candidate SST event files have LSL times while the EEG uses Unix time. Do you have an XDF recording with the relevant EEG/marker streams, an acquisition/synchronization log linking those clocks, or an original export containing Unix event times? For 10890, also identify which run/session each recording belongs to. For 10037 (September 16), please check for original timing logs, clock corrections, restarts, or truncated recordings: its pre-run Unix/LSL offsets vary by about 0.5–1 second, and several other runs only partly overlap the EEG. File-start timestamps alone are insufficient to repair these alignments.
+
+3. **Existing repeat recordings.** Are there two unstimulated recordings of the same task from the same participant, with matched EEG and behavior, that we can analyze independently? Please point us to any already collected data and acquisition notes. We are checking availability first, not asking you to collect new sessions. Pre/post recordings with stimulation between them do not provide the clean repeatability test we need.
+
+We recovered the 10579 post-Bandit file ourselves (`010579` was leading-zero padding), so that no longer needs investigation. The [machine-generated inventory](../validation/acceptance_calibration_followup/unresolved_input_inventory.json) lists the exact remaining candidate paths and fields. The [latest results](acceptance_calibration_followup.md) explain the software work and its limits.
+
+Once the available evidence is supplied, we can update verified pairings, rerun the affected analyses, and assess any independent repeats. We will not infer undocumented identities or clock offsets, and we are not asking you to choose between 13 and 23 Hz or authorize stimulation.
