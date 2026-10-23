@@ -51,5 +51,17 @@
     "code/rhythm_validation_carrier.py": "31c50a669435174c5122981382aca9083a13576ac2c3e39bb59508e88dc9eb9b",
     "code/rhythm_validation_config.json": "ce23ec2b3946cccf5956a53fd96213bc6ff9cd1a602332d421ecad30a8cd7df3"
   },
-  "ci_status": "pending"
+  "ci_status": "success",
+  "ci_run_url": "https://github.com/DVS-Lab/tacs3-bluesky/actions/runs/40014395871",
+  "validated_code_commit": "7a53c1c0741abf4ee4f4060ab3b7864088e031ee",
+  "ci_platforms": [
+    "ubuntu-latest",
+    "windows-latest"
+  ],
+  "ci_checks": [
+    "full pytest suite",
+    "actual EEG 10034 rerun",
+    "10034 output smoke assertions"
+  ],
+  "source_and_manifest_hashes_rechecked": true
 }

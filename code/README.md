@@ -26,6 +26,8 @@ To follow a CSV row through the code, start at `validate_rhythms.run()`, then fo
 - [`rhythm_validation_config.json`](rhythm_validation_config.json) contains the preprocessing settings, analysis windows, frequency ranges, artifact thresholds, and reliability thresholds used by this pipeline.
 - [`requirements-validation.txt`](../requirements-validation.txt) pins the analysis dependencies.
 
+The active carrier-location and selectivity settings are under `carrier_estimation`; `reliability` still supplies trial count, retention, bootstrap, and minimum task effect. Older contrast-width/prominence settings remain for historical comparison functions and do not govern v1.2 carrier selection.
+
 ## Reading the outputs
 
 Each `qc_summary.csv` row represents one recording and one analysis (`estimand`). The corresponding `<recording_id>/<estimand>/result.json` contains more detail, including input paths, timing diagnostics, and reliability results. When available, `events.csv` records trial selection and exclusion reasons, `spectrum.csv` contains the task-power spectrum, `carrier_spectrum.csv` contains the full-epoch PSD used for frequency selection, and `spectra_tfr.png` visualizes it. Input failures can prevent these additional files from being produced.

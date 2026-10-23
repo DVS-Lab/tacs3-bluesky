@@ -33,6 +33,8 @@ No threshold was tuned against native pilot acceptance. The original held-out re
 
 These results repair demonstrated software/quantification failures and test specified false positives. They do not validate every possible rhythm, weaker amplitudes, harmonics, reference artifacts, alternative windows, independence of overlapping epochs, across-day reliability, or stimulation efficacy. Theta/beta should remain task- and event-specific; cross-task equality is not an acceptance criterion. SST theta is not implemented here. No fallback is automatically assigned.
 
+**Software verification:** 86 tests passed locally, with one documented obsolete GUI-interface test skipped. Windows and Linux both passed the full tests and actual-EEG 10034 smoke checks at code commit `7a53c1c`: [CI run](https://github.com/DVS-Lab/tacs3-bluesky/actions/runs/40014395871).
+
 ## What remains for the lab
 
 The local estimation repair, validation, and complete available-data rerun are finished. Jacob and Avi do not need to install software, rerun scripts, choose thresholds, or reverse-engineer the normalization. Any next request should be limited to existing records we cannot infer: acquisition/reference/channel evidence for 10034; confirmed participant/session mapping for unresolved identity cases; synchronization evidence for unmatched clocks; and any existing independent unstimulated same-task repeat data. These may resolve inputs or help distinguish absent/weak rhythms from acquisition limitations. They do not justify adopting an unqualified frequency now. Keep the PR open for scientific review; merging the offline tools would not approve stimulation deployment.
