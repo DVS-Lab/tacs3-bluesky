@@ -9,5 +9,12 @@
   "matched_clean_controls": 66,
   "all_probe_fourier_peaks_within_tolerance": true,
   "production_method_changed": false,
-  "stimulation_authorized": false
+  "stimulation_authorized": false,
+  "source_code_commit": "a3bf721556e11ab315255c42eaf3b7bfc0ef1246",
+  "ci_status": "success",
+  "ci_run_url": "https://github.com/DVS-Lab/tacs3-bluesky/actions/runs/39992259146",
+  "ci_platforms": [
+    "ubuntu-latest",
+    "windows-latest"
+  ]
 }

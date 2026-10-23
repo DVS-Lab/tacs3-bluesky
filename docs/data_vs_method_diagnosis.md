@@ -64,3 +64,5 @@ python -m pytest tests -q
 ```
 
 Retained-epoch counts are checked against the saved input-recovery snapshot. Source/configuration/manifest hashes accompany the results. Diagnostic alternatives never authorize stimulation.
+
+Windows and Linux also passed the full tests and actual-data 10034 smoke checks at code commit `a3bf721`: [CI run](https://github.com/DVS-Lab/tacs3-bluesky/actions/runs/39992259146).
