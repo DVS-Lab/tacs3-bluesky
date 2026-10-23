@@ -20,5 +20,15 @@
     "code/rhythm_validation_io.py": "f1a1de475697740aae25d1942aaee54b990b702ef2ed830ddb6e5fc42db8ff0a",
     "validation/pilot_manifest.json": "045ec0b8f7a9b2a5a807e353797918844eb67a3f4f981e85c2a4444af16b5f78",
     "validation/experiments/audit_unresolved_inputs.py": "d80f75f79a92e1cf2420a4f4ae2efd1928cfd83ea2e7441f9fa04962cdc98c78"
-  }
+  },
+  "source_code_commit": "585e0707b225b1a2107cf6619b73dd066c007457",
+  "python": "3.11.17",
+  "packages": {
+    "numpy": "1.26.4",
+    "scipy": "1.14.1",
+    "pandas": "2.2.3",
+    "matplotlib": "3.9.4",
+    "pytest": "8.3.5"
+  },
+  "requirements_sha256": "d25d270327120ade97d034cf20829b6c2217994cc627ae36619fb00d9b3ebcee"
 }

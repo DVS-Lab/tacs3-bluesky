@@ -59,3 +59,9 @@ The correction is now applied in v1.1. Read the [current validation and individu
 - [`audit_unresolved_inputs.py`](../validation/experiments/audit_unresolved_inputs.py): inventories candidate paths, hashes, identity fields, and available clock columns for unresolved recordings. It does not alter the manifest or infer clock offsets.
 
 See [the results and exact commands](../docs/acceptance_calibration_followup.md) and [the specific evidence requested from the lab](../docs/next_steps_for_jacob_avi.md). No experimental acceptance rule was promoted.
+
+## Data versus method diagnostics
+
+[`diagnose_data_vs_method.py`](../validation/experiments/diagnose_data_vs_method.py) separates trial-yield limitations from candidate-estimation and acceptance failures using known signals added to retained epochs and matched clean controls. Its peak-first alternative is diagnostic only. [`audit_eeg_spatial_quality.py`](../validation/experiments/audit_eeg_spatial_quality.py) measures all EEG recordings independently of behavioral availability, including spatial similarity and residual amplitude after reference. [`plot_data_method_diagnostics.py`](../validation/experiments/plot_data_method_diagnostics.py) illustrates the clean-signal counterexamples.
+
+Read [the diagnosis and commands](../docs/data_vs_method_diagnosis.md), and use [diagnostic_summary.csv](../validation/data_method_diagnosis/diagnostic_summary.csv) alongside the ordinary QC summary. A failed peak does not establish poor EEG quality.

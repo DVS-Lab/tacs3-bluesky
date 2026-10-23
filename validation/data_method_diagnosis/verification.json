@@ -1,0 +1,13 @@
+{
+  "tests_passed": 72,
+  "tests_skipped": 1,
+  "analyses_triaged": 95,
+  "eeg_recordings_independently_inspected": 38,
+  "eligible_trial_counts_below_40": 27,
+  "native_analyses_with_probe_testing": 11,
+  "injected_real_eeg_datasets": 66,
+  "matched_clean_controls": 66,
+  "all_probe_fourier_peaks_within_tolerance": true,
+  "production_method_changed": false,
+  "stimulation_authorized": false
+}

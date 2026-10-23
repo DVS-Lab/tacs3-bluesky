@@ -1,0 +1,4011 @@
+{
+  "records": [
+    {
+      "recording_id": "10010_ses-1_sst_pre_20260904111037",
+      "subject": "10010",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "1af2d36a0305039b612bae45463b54db74fe5c671acc1d8e93083453b4adf603",
+        "metadata": "ffed68a8acef91a37d42f572303c5d3ca6812c4940335a1407210e5d4b366874"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1788534637.136,
+        "end_sec": 1788534937.134,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FCz",
+        "FT7",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "FCz"
+      ],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.3333333333333333,
+          "raw_std_uv": 97.5324291141584,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.76,
+          "raw_std_uv": 103.083378700281,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.06666666666666667,
+          "raw_std_uv": 54.70977061708208,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04,
+          "raw_std_uv": 141.23116136254632,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.34,
+          "raw_std_uv": 57.46682370168925,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 64.89303607368905,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02666666666666667,
+          "raw_std_uv": 115.66855487534839,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.7533333333333333,
+          "raw_std_uv": 175.82859936973304,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 4,
+        "n_roi_channels": 1,
+        "median_pairwise_correlation": 0.754360936652158,
+        "first_component_variance_fraction": 0.7957235132425415,
+        "effective_spatial_rank": 1.5180938100693857,
+        "median_roi_std_before_reference_uv": 18.281361115750787,
+        "median_roi_std_after_reference_uv": 6.8384577993975615,
+        "residual_std_fraction": 0.37406721283491895
+      }
+    },
+    {
+      "recording_id": "10010_ses-1_bandit_pre_20260904112036",
+      "subject": "10010",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "252865e40ae8a545ff2772cf9010765721f2091126d7f895343069e2b565973d",
+        "metadata": "e03866df6583f3d9ec00ba8ec1217eecf631a781111dfd4af95429ca94909efc",
+        "events": "dea9f6670bf8c2caca2c99008ca29c2a34fbd4149611264410bb9483f36d236f"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1788535236.185,
+        "end_sec": 1788535536.183,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.18666666666666668,
+          "raw_std_uv": 75.820883716905,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.9133333333333333,
+          "raw_std_uv": 72.1658847839114,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.06,
+          "raw_std_uv": 70.51553728823018,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04666666666666667,
+          "raw_std_uv": 176.56578193544837,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.17333333333333334,
+          "raw_std_uv": 59.96637647205873,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04,
+          "raw_std_uv": 113.16998452368013,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04666666666666667,
+          "raw_std_uv": 126.2032982672441,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.298161345203148,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7917466120376414,
+        "first_component_variance_fraction": 0.8148725418582056,
+        "effective_spatial_rank": 1.4799272407356843,
+        "median_roi_std_before_reference_uv": 19.805762557494635,
+        "median_roi_std_after_reference_uv": 8.73990564083434,
+        "residual_std_fraction": 0.44128094616216135
+      }
+    },
+    {
+      "recording_id": "10010_ses-1_sst_post_20260904114750",
+      "subject": "10010",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "d165d915ebc89ea2c475ba07db17755e906d9b4000a50b5d88af0b43a7222187",
+        "metadata": "ee731df2343000233e5659b1a98aba6086053ea6abe371fc0c806411e308e359"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1788536870.787,
+        "end_sec": 1788537170.785,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FCz",
+        "FT7",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "FCz"
+      ],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.31333333333333335,
+          "raw_std_uv": 271.0611678236062,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.9066666666666666,
+          "raw_std_uv": 321.82588180027096,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.08666666666666667,
+          "raw_std_uv": 195.4798109463526,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.05333333333333334,
+          "raw_std_uv": 947.4317228446423,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.3466666666666667,
+          "raw_std_uv": 219.61278311490383,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 270.1137112092161,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 236.82996281055742,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.44666666666666666,
+          "raw_std_uv": 4219.578332219611,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 4,
+        "n_roi_channels": 1,
+        "median_pairwise_correlation": 0.7409712001567363,
+        "first_component_variance_fraction": 0.7908421037204036,
+        "effective_spatial_rank": 1.5332915052315215,
+        "median_roi_std_before_reference_uv": 18.99898044492672,
+        "median_roi_std_after_reference_uv": 7.183540191211578,
+        "residual_std_fraction": 0.37810135191384925
+      }
+    },
+    {
+      "recording_id": "10034_ses-1_sst_pre_20260918103527",
+      "subject": "10034",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "0cf70d02c312f0bfed17f9880e1256eaeac180e2c2e0ed3b392e7b6c1eb0932b",
+        "metadata": "36fbb39c0458638912611b061348f60a0d619407ddd246c3d3474cb170f90821",
+        "events": "c28696dc1aaaad6b52a18ac4c5dbc3ec9d42472883fba9cab50e6070a15db3ee"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789742127.513,
+        "end_sec": 1789742427.511,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 379.57630111562895,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.6333333333333333,
+          "raw_std_uv": 461.149330772755,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 307.20476786618656,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 256.15374553411266,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 231.62628806337628,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 98.27384589915826,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 234.64231359637915,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.11333333333333333,
+          "raw_std_uv": 1387.1858477378955,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7557510291137213,
+        "first_component_variance_fraction": 0.8656272819486251,
+        "effective_spatial_rank": 1.322349236352215,
+        "median_roi_std_before_reference_uv": 14.481326160915048,
+        "median_roi_std_after_reference_uv": 4.880236023312126,
+        "residual_std_fraction": 0.337002009973633
+      }
+    },
+    {
+      "recording_id": "10034_ses-1_bandit_pre_20260918104411",
+      "subject": "10034",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "37766fa5d33c1f28768aeb7a70a72445241bc9d5680812c09c5e0945d2b9b750",
+        "metadata": "9aecff85e429704ab77255f92c971720ade00d33edeb17affb05ce7c184a49de",
+        "events": "a468eeb07b1937a0f2a466ef215f61f9d2655e805b72f6755fc7bdfb5001866a"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789742651.1,
+        "end_sec": 1789742951.098,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 16.889136027456026,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 16.940927174340317,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 16.965497669408585,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 17.03364698240927,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 16.96631559858681,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 16.97541542825059,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 16.994507340555998,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 16.910096456783897,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.9943913998736389,
+        "first_component_variance_fraction": 0.9951552007705091,
+        "effective_spatial_rank": 1.009755652131529,
+        "median_roi_std_before_reference_uv": 2.3750713165141093,
+        "median_roi_std_after_reference_uv": 0.16241740452851638,
+        "residual_std_fraction": 0.06838422214912532
+      }
+    },
+    {
+      "recording_id": "10034_ses-1_sst_post_20260918111616",
+      "subject": "10034",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "9011ba33655969dd5310f0c3a16d8bb53051868d8b5010ea2c8f9818e42af2bd",
+        "metadata": "f93105c6a0175cac5efb4e0c083d36159cfc2c8e41e5a388f36e1303626df727",
+        "events": "4e3bc8b9dd3511a89853cc8e2da4954232f2d3fdbf160b0a8c33a4430c1aeeb6"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789744576.881,
+        "end_sec": 1789744876.879,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02666666666666667,
+          "raw_std_uv": 7610.67138058699,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.18666666666666668,
+          "raw_std_uv": 12259.872826613018,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 9902.51799311884,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 6371.400528142291,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 5950.371644671406,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 9495.525969515495,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 9941.158633222305,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 28675.17638822511,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.5597735006407936,
+        "first_component_variance_fraction": 0.7146559931487658,
+        "effective_spatial_rank": 1.880540662199619,
+        "median_roi_std_before_reference_uv": 8.750483141101673,
+        "median_roi_std_after_reference_uv": 4.317078418666413,
+        "residual_std_fraction": 0.4933531496551057
+      }
+    },
+    {
+      "recording_id": "10034_ses-1_bandit_post_20260918112315",
+      "subject": "10034",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "5cdde32d22f5a02873c5ae0cdf6359c873f60869750e39f5940ba4638f42ba9d",
+        "metadata": "909d9f4994bd608bb408e91551fac302c694015baf6d758fb99891cc5adeec8d",
+        "events": "942e78151cc26658b43ea159237fcf859e4275abbf107d042c71953f285ddf02"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789744995.404,
+        "end_sec": 1789745295.402,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.4272615228765,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.41972052015605,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.387614242321744,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.365371693103969,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.370221146918079,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.39056104780264,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.401492286700904,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.364069629831025,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.9956218501868489,
+        "first_component_variance_fraction": 0.9961255754262481,
+        "effective_spatial_rank": 1.0077910145736808,
+        "median_roi_std_before_reference_uv": 2.7090576672378908,
+        "median_roi_std_after_reference_uv": 0.16392544251012156,
+        "residual_std_fraction": 0.060510134019131884
+      }
+    },
+    {
+      "recording_id": "10037_ses-1_sst_pre_20260916105202",
+      "subject": "10037",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "7676faf770ab6866e62e9f08adb9f8cb55c3b9fd83705107afcd3be18ce5ee8a",
+        "metadata": "aaf0f1c119c9efa29a2676634d2c6c50674332134ff17a1b122d35f7134e3a22",
+        "events": "44e5c9e0a15e8a4157d09a5ff38a859b4a7b94a612418549206f6468038d07ff"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789570322.261,
+        "end_sec": 1789570622.259,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 232.9061476621757,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.5266666666666666,
+          "raw_std_uv": 269.81286528641334,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 196.01727428428316,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 163.44202616719932,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 184.47677512805012,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 136.4719983856062,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 248.6072778637428,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.49333333333333335,
+          "raw_std_uv": 1238.0774462012673,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.740709386647427,
+        "first_component_variance_fraction": 0.8506858234419628,
+        "effective_spatial_rank": 1.3664798201397212,
+        "median_roi_std_before_reference_uv": 12.624608238308726,
+        "median_roi_std_after_reference_uv": 4.2363747127579,
+        "residual_std_fraction": 0.3355648454819246
+      }
+    },
+    {
+      "recording_id": "10037_ses-1_bandit_pre_20260916105944",
+      "subject": "10037",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "08bfc01b16d24dfb85b7a8137f8c76fdbb0c4a167c6c047599ef4c2aa45d5645",
+        "metadata": "093ec2cecf7c906bddf97892317f2a13b696ca537a6e2046a8b19305c9ce2282",
+        "events": "594b4dff0dea4d6ada3a0eb6e76070785e3ae45aacee44d9dc7607e205cedf8b"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789570784.88,
+        "end_sec": 1789571084.878,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.56978154289935,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.563537230413893,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.595164780356104,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 107.3880086298976,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.629859908989,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.620575954024225,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.64164059101139,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 24.58967768552264,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.9949534736927428,
+        "first_component_variance_fraction": 0.9394045376997231,
+        "effective_spatial_rank": 1.1286435259411984,
+        "median_roi_std_before_reference_uv": 2.6594142310920175,
+        "median_roi_std_after_reference_uv": 1.1697992997370315,
+        "residual_std_fraction": 0.4398710385394473
+      }
+    },
+    {
+      "recording_id": "10037_ses-1_sst_post_20260916113150",
+      "subject": "10037",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "ba574b8c066b315f6cdfd928548c78449dbe3082ba01496c6055ac4f78c4565f",
+        "metadata": "67eceac8c1338c788a125b9cfa26573c659dc5136e11d96ac8366b92fdb676f3",
+        "events": "8b5bbc476f31804cf794d6c0ef4a541cd4fe6b16179a97de3f88c7d93bc2db9f"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789572710.402,
+        "end_sec": 1789573010.4,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 1399.9092924892045,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.2,
+          "raw_std_uv": 5892.814627056964,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 2688.6118107479347,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 875.0176903274034,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 2712.9461047588898,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 2000.4029606308811,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 2830.4741602470485,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.14,
+          "raw_std_uv": 17180.58104218467,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7171331761110301,
+        "first_component_variance_fraction": 0.7852680162558552,
+        "effective_spatial_rank": 1.5742264373593575,
+        "median_roi_std_before_reference_uv": 8.252758700644403,
+        "median_roi_std_after_reference_uv": 2.888288269225595,
+        "residual_std_fraction": 0.34997851918293305
+      }
+    },
+    {
+      "recording_id": "10037_ses-1_bandit_post_20260916113955",
+      "subject": "10037",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "e658548122baacf262cba8bc0bcbd64b4ec1e1388043e69e4817db1d9a1ea34b",
+        "metadata": "76345dca5c35b38baf564c564b77f66d7e51e3d5e53eff1bb3dc608cae5928ae",
+        "events": "e6077b9b5ba8355cc91307d83fd7172082779f26d457c299d1972de435478f21"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789573195.18,
+        "end_sec": 1789573495.178,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 6.402113716677805,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 6.3011263911922395,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 6.2783470879775765,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 29.756239357531516,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 6.285826386128923,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 6.29054356704394,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 6.284474787924835,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 6.274247371967749,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.9967651268733724,
+        "first_component_variance_fraction": 0.9705169325178378,
+        "effective_spatial_rank": 1.0607571442006671,
+        "median_roi_std_before_reference_uv": 3.32958149024554,
+        "median_roi_std_after_reference_uv": 1.1729047771516814,
+        "residual_std_fraction": 0.35226792934423284
+      }
+    },
+    {
+      "recording_id": "10052_ses-1_sst_pre_20260917144340",
+      "subject": "10052",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "42348c719cdd84c2c90592800d784b7625398f0a1652e2738bff500825dd4302",
+        "metadata": "010bf4479b32e2c3fd66496046ac527976de1c81ac9c1dd8498d74006b65977b",
+        "events": "d6ad2811e0fdb5f3b8a7e0a8f99d1051c23a4f92c37035b48310cda38c0ce698"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789670620.872,
+        "end_sec": 1789670920.87,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.16666666666666666,
+          "raw_std_uv": 224.398239636341,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.4066666666666667,
+          "raw_std_uv": 209.8453283805581,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.1,
+          "raw_std_uv": 134.95226353510384,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 727.5433648497533,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.14,
+          "raw_std_uv": 297.082363595838,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 192.94120007714852,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 133.5029788601899,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows",
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.2733333333333333,
+          "raw_std_uv": 2753.5551697790715,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.834885783500442,
+        "first_component_variance_fraction": 0.9043694761196259,
+        "effective_spatial_rank": 1.217256667938049,
+        "median_roi_std_before_reference_uv": 18.957756193976888,
+        "median_roi_std_after_reference_uv": 6.274174846019937,
+        "residual_std_fraction": 0.3309555615032817
+      }
+    },
+    {
+      "recording_id": "10052_ses-1_bandit_pre_20260917145125",
+      "subject": "10052",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "b032496eb1deb59f19770ec5a8f8750383da3aaa23dacba0ad1231b979148948",
+        "metadata": "c706eda32dbab81e2539d34069e4680894cb34fff443ca8cfc332a5cab66e8d1",
+        "events": "fcf39f2c05c11f8154353249e9dc42ad47fb1ee2a9591f6d429bd1634b607973"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789671085.362,
+        "end_sec": 1789671385.36,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.09333333333333334,
+          "raw_std_uv": 171.1908370626683,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.25333333333333335,
+          "raw_std_uv": 500.2787248396725,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 111.50317589908258,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02666666666666667,
+          "raw_std_uv": 376.48093514687883,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.08666666666666667,
+          "raw_std_uv": 136.3801766178439,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02666666666666667,
+          "raw_std_uv": 56.230770760798244,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.03333333333333333,
+          "raw_std_uv": 147.34777181437298,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 129.2802072583523,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.6988863268604396,
+        "first_component_variance_fraction": 0.8284955362142639,
+        "effective_spatial_rank": 1.4350060687611188,
+        "median_roi_std_before_reference_uv": 14.773770818583488,
+        "median_roi_std_after_reference_uv": 6.922842749598835,
+        "residual_std_fraction": 0.46859010029388004
+      }
+    },
+    {
+      "recording_id": "10052_ses-1_sst_post_20260917154536",
+      "subject": "10052",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "dec4e91f22c14d4c7eb0ff9fe308f584c8582f2ced9ccb740f6c840212feb337",
+        "metadata": "8ed0390ac4f0f90e0ad28b5e62f67e4ac9ae98f2d4dd5fd2b005eaf3ed924943",
+        "events": "ced37b0c783a1e29e633317206844311a831f36ff33631711369613952670b3d"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 149909,
+        "start_sec": 1789674336.678,
+        "end_sec": 1789674636.494,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.0000000254469,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FCz",
+        "FT7",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "FCz"
+      ],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.2550335570469799,
+          "raw_std_uv": 450.1565941498927,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.5771812080536913,
+          "raw_std_uv": 270.5633731899589,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.1476510067114094,
+          "raw_std_uv": 277.84618595518134,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.040268456375838924,
+          "raw_std_uv": 295.8776726951784,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.21476510067114093,
+          "raw_std_uv": 249.2478209863882,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006711409395973154,
+          "raw_std_uv": 309.8676432704264,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006711409395973154,
+          "raw_std_uv": 242.84090211146048,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.1476510067114094,
+          "raw_std_uv": 12087.315540282334,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 4,
+        "n_roi_channels": 1,
+        "median_pairwise_correlation": 0.8660815802945743,
+        "first_component_variance_fraction": 0.8873722782280331,
+        "effective_spatial_rank": 1.2582721807317925,
+        "median_roi_std_before_reference_uv": 19.378291059207157,
+        "median_roi_std_after_reference_uv": 6.802280622665584,
+        "residual_std_fraction": 0.35102582585235936
+      }
+    },
+    {
+      "recording_id": "10052_ses-1_bandit_post_20260917155223",
+      "subject": "10052",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "1bfc757140b641d65e7db96d2b04116f74821701c03e08dcd0de2d8be1ef82b2",
+        "metadata": "e6af1d77edd7b8366309f7a88c6d1a846fb86b6a879580b2c08b055f54bddc73",
+        "events": "5d6905227901c58f3d1ef035ba41f572e00e2d4ab06e29ac811a84da68f2dda6"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789674743.719,
+        "end_sec": 1789675043.717,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.18,
+          "raw_std_uv": 276.78616912449934,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.5133333333333333,
+          "raw_std_uv": 167.90498763497368,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.11333333333333333,
+          "raw_std_uv": 190.4099822223877,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.03333333333333333,
+          "raw_std_uv": 147.99527607117915,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.15333333333333332,
+          "raw_std_uv": 168.4722562359859,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04,
+          "raw_std_uv": 229.80749358747548,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04666666666666667,
+          "raw_std_uv": 136.82631018481663,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 65.45555808293106,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.8529078977026988,
+        "first_component_variance_fraction": 0.8920889307722754,
+        "effective_spatial_rank": 1.2493311933679538,
+        "median_roi_std_before_reference_uv": 17.826678566957277,
+        "median_roi_std_after_reference_uv": 5.627875114586425,
+        "residual_std_fraction": 0.3156995899964225
+      }
+    },
+    {
+      "recording_id": "10085_ses-1_sst_pre_20260921182620",
+      "subject": "10085",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "41a1a7f618fe4d53fea3d50646b1560165deef2446a78e340643ee055b542021",
+        "metadata": "f0d81dea5eaad129ce532c95045aede2a1430cf104a7dba3a4b258ee23a16c57",
+        "events": "7fce61e4a0dc1f280e70ffdd993d982c0d5f819c28c889df367b69099e9cba0a"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790029580.269,
+        "end_sec": 1790029880.267,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "P4"
+      ],
+      "roi_channels": [],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.6066666666666667,
+          "raw_std_uv": 397.446066680819,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.9333333333333333,
+          "raw_std_uv": 460.7194358229037,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.2866666666666667,
+          "raw_std_uv": 532.8428436230053,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.37333333333333335,
+          "raw_std_uv": 412.0649660660849,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.32666666666666666,
+          "raw_std_uv": 358.45665462049743,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.09333333333333334,
+          "raw_std_uv": 374.4973380004005,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.24,
+          "raw_std_uv": 348.56166880112403,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.19333333333333333,
+          "raw_std_uv": 584.7395540931434,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 1,
+        "n_roi_channels": 0
+      }
+    },
+    {
+      "recording_id": "10085_ses-1_bandit_pre_20260921183508",
+      "subject": "10085",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "8945fecd8e4daae5f05824d4d7e7a46cdb5d4a7e7f624bccf9bff1b0c824c2d3",
+        "metadata": "7a5e00e43471ab8c31ae86e1798069caad5100321bab606a257a09126e20b2ef",
+        "events": "bf0f02f173bec461db8270acc651b575cf17a9a7b8ce0be9c9b43b71ebb424d6"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790030108.439,
+        "end_sec": 1790030408.437,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FCz",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.42,
+          "raw_std_uv": 335.78787799928676,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.96,
+          "raw_std_uv": 238.5616729807307,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.16,
+          "raw_std_uv": 330.96568454457037,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.3,
+          "raw_std_uv": 295.36724858688103,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.15333333333333332,
+          "raw_std_uv": 247.71507762502884,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.03333333333333333,
+          "raw_std_uv": 342.87523080691784,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.15333333333333332,
+          "raw_std_uv": 373.1336708152708,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 138.6309959688852,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 4,
+        "n_roi_channels": 2,
+        "median_pairwise_correlation": 0.8307550489544154,
+        "first_component_variance_fraction": 0.8662443796265807,
+        "effective_spatial_rank": 1.3126887394400242,
+        "median_roi_std_before_reference_uv": 17.83822077357135,
+        "median_roi_std_after_reference_uv": 6.251766081506645,
+        "residual_std_fraction": 0.3504702717195372
+      }
+    },
+    {
+      "recording_id": "10085_ses-1_sst_post_20260921190735",
+      "subject": "10085",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "53380770eb49812d26da5f1854fbd2301ff7b3d7de1cb951e0c35c93e7e473c6",
+        "metadata": "bab71f3fb635c339e258bdf563f5a46b288719c23d0405a55536c51521bdfe39",
+        "events": "db3f01c600551e08ff8b9f495938fad87c7a847293bdac2d081b41cb06df8835"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790032055.348,
+        "end_sec": 1790032355.346,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.19333333333333333,
+          "raw_std_uv": 361.0445756738297,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.36666666666666664,
+          "raw_std_uv": 623.3394043878956,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.12,
+          "raw_std_uv": 342.3347692360753,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.12666666666666668,
+          "raw_std_uv": 384.9156168959716,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.14,
+          "raw_std_uv": 464.6382928781519,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.05333333333333334,
+          "raw_std_uv": 439.01265288144117,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.1,
+          "raw_std_uv": 437.28341359790403,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.06,
+          "raw_std_uv": 16767.42021883497,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7858734137114599,
+        "first_component_variance_fraction": 0.8038900882517138,
+        "effective_spatial_rank": 1.5169721440070947,
+        "median_roi_std_before_reference_uv": 19.992452851987554,
+        "median_roi_std_after_reference_uv": 8.273955362034224,
+        "residual_std_fraction": 0.41385393894835004
+      }
+    },
+    {
+      "recording_id": "10085_ses-1_bandit_post_20260921191436",
+      "subject": "10085",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "9d63c0fe2e5e235d7b80e7d7e8b7eb51cec5c9c4c370eba6a5509fa3bc207dec",
+        "metadata": "6bc9d773d9ef53936fe68999c679b9a4dd5b3efd23a45410fd8be2c87cebf89b",
+        "events": "2e78fe78d164ab756d3c0cd40478eb06f129cd9fab5533ef3f5ac8ed948dd167"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790032476.742,
+        "end_sec": 1790032776.74,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.18,
+          "raw_std_uv": 385.7899565014332,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 88.10194605004097,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.05333333333333334,
+          "raw_std_uv": 160.08939041126195,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.08666666666666667,
+          "raw_std_uv": 213.14014562998554,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.07333333333333333,
+          "raw_std_uv": 96.78455833943087,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 91.01964479436685,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.06666666666666667,
+          "raw_std_uv": 132.14109825411145,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 88.56377744022892,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7236188612021366,
+        "first_component_variance_fraction": 0.77373924969809,
+        "effective_spatial_rank": 1.6240796111900595,
+        "median_roi_std_before_reference_uv": 17.211453209214184,
+        "median_roi_std_after_reference_uv": 7.635768392154846,
+        "residual_std_fraction": 0.44364460684046264
+      }
+    },
+    {
+      "recording_id": "10383_ses-1_sst_pre_20260924145734",
+      "subject": "10383",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "70471e068bc43461b165cf94a4b8f8b3e3d03166894525773d8035eecb0a68e4",
+        "metadata": "56f9d9cf5d65646a5e32ab87604a4c55a3cf410d2a0d756ed45339029f931662",
+        "events": "4ef1841cea244ad0640c442cfa2b208df16a3dd92d030bde11445cb997e8b38f"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790276254.573,
+        "end_sec": 1790276554.571,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02666666666666667,
+          "raw_std_uv": 297.836276847123,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.7466666666666667,
+          "raw_std_uv": 349.5044818664193,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 185.68623195918514,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 341.04856359854347,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 240.13149049406354,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 339.95244959488946,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 196.54621625235256,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.08666666666666667,
+          "raw_std_uv": 184.55951030508524,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.763494958853381,
+        "first_component_variance_fraction": 0.8898776707814282,
+        "effective_spatial_rank": 1.2523256777294347,
+        "median_roi_std_before_reference_uv": 16.86028975497633,
+        "median_roi_std_after_reference_uv": 5.04378654789757,
+        "residual_std_fraction": 0.2991518307927592
+      }
+    },
+    {
+      "recording_id": "10383_ses-1_bandit_pre_20260924150555",
+      "subject": "10383",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "6d374fb4bfb7292e834a2cc0d06f3821faa118c3745e3ae8408af446f2efede1",
+        "metadata": "b4096c4b568502983692e182b5edb48798166810a7fff3fff0e5cc58b4d264bf",
+        "events": "f2025f4f0a2b901f6227dad8afd812889550dbf8758fabb16474eb90b683cf8a"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790276755.49,
+        "end_sec": 1790277055.488,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 255.99796540189354,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.9533333333333334,
+          "raw_std_uv": 178.79873457256278,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 172.7195171844973,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 268.44940845608835,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 264.6568896017089,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 261.91204872335624,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 145.8249156834846,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 125.60867904526697,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.8311016437951511,
+        "first_component_variance_fraction": 0.9257813018551302,
+        "effective_spatial_rank": 1.1631351363723297,
+        "median_roi_std_before_reference_uv": 18.392875526677937,
+        "median_roi_std_after_reference_uv": 5.22957560365799,
+        "residual_std_fraction": 0.2843261564007626
+      }
+    },
+    {
+      "recording_id": "10383_ses-1_sst_post_20260924153806",
+      "subject": "10383",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "2024bf97732ac694fce1d3fbb306e084c5057883c81f8d9c3a92a3042fb9ea01",
+        "metadata": "f1920aca273104a91e734b43f2403768aa073135fb4403d34f5477e61346973e",
+        "events": "d0b23b63196cef016cfe101329c56a3ad20457362eb610995de41cd93a32ab94"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790278686.091,
+        "end_sec": 1790278986.089,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.09333333333333334,
+          "raw_std_uv": 256.13927172015224,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.8133333333333334,
+          "raw_std_uv": 361.2891374923493,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 203.29681823804736,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 284.2012270957544,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.09333333333333334,
+          "raw_std_uv": 238.91603204434495,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 244.88106767043567,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 231.91857151017118,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.07333333333333333,
+          "raw_std_uv": 2897.232500100428,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7451006973444083,
+        "first_component_variance_fraction": 0.8830829154558071,
+        "effective_spatial_rank": 1.270455907296843,
+        "median_roi_std_before_reference_uv": 21.46819025771927,
+        "median_roi_std_after_reference_uv": 7.210635655287304,
+        "residual_std_fraction": 0.3358753378242766
+      }
+    },
+    {
+      "recording_id": "10383_ses-1_bandit_post_20260924154547",
+      "subject": "10383",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "74b5cb69e61c136435786bcf71488267a25650be6fa9dadaf3cd32b6013e794a",
+        "metadata": "b0d3753988a7697a033f515c42acb5f1e5f720244e45e958d4ad519cf5b22ed6",
+        "events": "6dcd44c2b40a3ca0dc936135c7f5479560cdf1c90e39d2c392952502b0fe9e19"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790279146.986,
+        "end_sec": 1790279446.984,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 319.59182723907855,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 1.0,
+          "raw_std_uv": 192.99942644008425,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 197.9889867173884,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 443.30694664335493,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 166.6262900025654,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 204.27048934859602,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 161.12494391422527,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 59.688475961515486,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7992551423042228,
+        "first_component_variance_fraction": 0.9152219944231879,
+        "effective_spatial_rank": 1.1888161698311739,
+        "median_roi_std_before_reference_uv": 20.55218639520829,
+        "median_roi_std_after_reference_uv": 6.267728237559404,
+        "residual_std_fraction": 0.3049664944173879
+      }
+    },
+    {
+      "recording_id": "10579_ses-1_bandit_pre_20260903195254",
+      "subject": "10579",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "e21399b8c15764adc1cec14e26fd52040111b13f0a12f5e51da0d20590fde06f",
+        "metadata": "a462747c2f60b498d7cc36dca744f2ec74bb306d88151034e7b1b1afe65e619b",
+        "events": "2da0286d0ac75bf13e527a625a35617183ca97d5b5032a4bea8020628f249826"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1788479574.359,
+        "end_sec": 1788479874.357,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 88.4590262337867,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.8466666666666667,
+          "raw_std_uv": 96.38304903018587,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 146.7577940372175,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 144.0252104868987,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 56.5742874587173,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 76.13880604398962,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 71.9188366931386,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 137.76876791138184,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7701577904304625,
+        "first_component_variance_fraction": 0.8722171928004838,
+        "effective_spatial_rank": 1.300799538286897,
+        "median_roi_std_before_reference_uv": 13.295015696251095,
+        "median_roi_std_after_reference_uv": 3.8939108320442015,
+        "residual_std_fraction": 0.29288501202312983
+      }
+    },
+    {
+      "recording_id": "10579_ses-1_sst_pre_20260903195950",
+      "subject": "10579",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "68df4e6c19a9a9fcda77c2c3fbe9e1b1760baf240c112fb9cd48cb8189e878fc",
+        "metadata": "dde7b0aecf3f8e46b993dff7222d77ffd39443243789b935d73a3941eb727212"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1788479990.868,
+        "end_sec": 1788480290.866,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 92.83824788241222,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.6666666666666666,
+          "raw_std_uv": 137.25631390185637,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 108.31398479616824,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 99.1511432840454,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 90.45689041140123,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 180.92816757790837,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 124.04161241554598,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 14157.11041043875,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7002869053145447,
+        "first_component_variance_fraction": 0.8292928060736058,
+        "effective_spatial_rank": 1.4225029883817477,
+        "median_roi_std_before_reference_uv": 11.66788224191059,
+        "median_roi_std_after_reference_uv": 3.8351912083296633,
+        "residual_std_fraction": 0.32869642740769206
+      }
+    },
+    {
+      "recording_id": "10579_ses-1_bandit_post_20260903201256",
+      "subject": "10579",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "97173b63630856d69673155740809c8ab123d2f02859a1606cd8c9e7206d2c64",
+        "metadata": "7165d01bbac54593c6deb0cff98be5a242fd747faa458b1c3d45e96a5b2f687b",
+        "events": "be1cec8c2126b759c3b5d8750fe534bfc49ed864878db6077bc0a8e285037716"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1788480776.548,
+        "end_sec": 1788481076.546,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 74.40187329879538,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 74.38218676022692,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 148.2412454684194,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 140.2765667533185,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 133.13408555063307,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 143.1454827235184,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 170.67775400358977,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 74.32043730076026,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7422231258400639,
+        "first_component_variance_fraction": 0.8226208106317426,
+        "effective_spatial_rank": 1.4446621413960348,
+        "median_roi_std_before_reference_uv": 12.053773632151167,
+        "median_roi_std_after_reference_uv": 5.017903992954033,
+        "residual_std_fraction": 0.4162931996308377
+      }
+    },
+    {
+      "recording_id": "10696_ses-1_sst_pre_20260930094329",
+      "subject": "10696",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "6c0ebd8f644462b086ebb83873edac69cd716807fed5c7a4bc97dd91a605ea44",
+        "metadata": "b23abb59caad20e7ef1758e99af0bc3794629427921d42952931a0313f404bb2",
+        "events": "17c85cbd906ece958ce0bed36530bbe1695a5fcf9dc3f9700296ab3d10291b37"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790775809.734,
+        "end_sec": 1790776109.732,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.14666666666666667,
+          "raw_std_uv": 297.8509436913269,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.9466666666666667,
+          "raw_std_uv": 197.49025595438243,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 53.35335759359287,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 579.4456135853885,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.26666666666666666,
+          "raw_std_uv": 507.09301525756365,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 169.4721853115951,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 76.7757315723577,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows",
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.32,
+          "raw_std_uv": 82.49036425206903,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 5,
+        "n_roi_channels": 2,
+        "median_pairwise_correlation": 0.8006059594685728,
+        "first_component_variance_fraction": 0.8543259903320596,
+        "effective_spatial_rank": 1.3482731293861885,
+        "median_roi_std_before_reference_uv": 20.797784549234606,
+        "median_roi_std_after_reference_uv": 8.881091013404593,
+        "residual_std_fraction": 0.42702101237660106
+      }
+    },
+    {
+      "recording_id": "10696_ses-1_bandit_pre_20260930095124",
+      "subject": "10696",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "e98842ce44cc8c556dbbb566d6682c750ad3230b534fb9391a16671022369414",
+        "metadata": "1e87d0d78b925477c35c5fb418b342a51a828ce1d1707453e342edff9414dd9c",
+        "events": "64993d76fe60aff77ae715e0ce81c43e583fcf8eccfb1dc54a449e12e05d65d3"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790776284.397,
+        "end_sec": 1790776584.395,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04,
+          "raw_std_uv": 74.42103993497147,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 1.0,
+          "raw_std_uv": 121.23872006066873,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 203.5690294959523,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 116.67438260021702,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.1,
+          "raw_std_uv": 111.8814948172744,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 117.40359583723688,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 178.36206407947648,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 15.235436611074407,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7569821289540919,
+        "first_component_variance_fraction": 0.8736574485949343,
+        "effective_spatial_rank": 1.298909967213635,
+        "median_roi_std_before_reference_uv": 23.841043124896753,
+        "median_roi_std_after_reference_uv": 11.40479772382429,
+        "residual_std_fraction": 0.4783682351513585
+      }
+    },
+    {
+      "recording_id": "10696_ses-1_sst_post_20260930102851",
+      "subject": "10696",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "f12f47f2eb538c146a8e4f4ae4e85893318cbe8910f297f246a75f672ca86538",
+        "metadata": "c03e51ec9ebbc4052f70e66bc8d34d5d20acc4635a35123f2acaacba1b060762",
+        "events": "2153b6ebf2e6a692bd25e94698f3a674b02b0f98d9781492c789a0b5c583c098"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790778531.233,
+        "end_sec": 1790778831.231,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 212.87662643171765,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.9466666666666667,
+          "raw_std_uv": 157.2747368616225,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 189.3964317329787,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 207.25604015913265,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04666666666666667,
+          "raw_std_uv": 93.30592848678587,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 120.80548000111479,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 134.588108449056,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 55.61610544734613,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.6930404196241166,
+        "first_component_variance_fraction": 0.8166387929918771,
+        "effective_spatial_rank": 1.4683805745299885,
+        "median_roi_std_before_reference_uv": 18.768558936126336,
+        "median_roi_std_after_reference_uv": 9.100810703870588,
+        "residual_std_fraction": 0.4848966153897436
+      }
+    },
+    {
+      "recording_id": "10696_ses-1_bandit_post_20260930103544",
+      "subject": "10696",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "790fa1d21b8ea16e61f3513e65aa92589d8d4197d05efc7a3a2b4c678b91e309",
+        "metadata": "828ff86d730be26e94d78b21d9796152ff86ae063e841aa17a1f4324aa0c7ca8",
+        "events": "bd56a5846bbf99fb087d88e76dc77db8b8fa2eb73b050df13a0faf363e1c7dcb"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1790778944.565,
+        "end_sec": 1790779244.563,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 175.7895315788757,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.9933333333333333,
+          "raw_std_uv": 388.01540025972787,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 112.64708045222241,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 200.342744123336,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 106.00172979422905,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 86.83949683895625,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 83.18708500457751,
+          "role": "scalp"
+        },
+        "EXT": {
+          "bad": true,
+          "reasons": [
+            "external_channel_not_scalp"
+          ],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 70.51361193570978,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.6606099295770668,
+        "first_component_variance_fraction": 0.7987244836366294,
+        "effective_spatial_rank": 1.5276505132016684,
+        "median_roi_std_before_reference_uv": 18.443483139000847,
+        "median_roi_std_after_reference_uv": 9.009596528598232,
+        "residual_std_fraction": 0.4884975609377392
+      }
+    },
+    {
+      "recording_id": "10890_ses-unverified_sst_pre_20260828130310",
+      "subject": "10890",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "8cc685d67ac63c834926cdfc7154842ba14ed5a921d00e665d8669944603425b",
+        "metadata": "d2b6663b98ccd7961f0c4e028cf0ba6617d72f5e084c3554d56990906b3cd29a"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1787936590.653,
+        "end_sec": 1787936890.651,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FT7",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.49333333333333335,
+          "raw_std_uv": 84.37765713371236,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.5466666666666666,
+          "raw_std_uv": 485.2891234802973,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.3933333333333333,
+          "raw_std_uv": 129.98384231208632,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 233.64527466754114,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.44,
+          "raw_std_uv": 105.72900656073334,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 284.0378706344564,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 188.03279112374884,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.5066666666666667,
+          "raw_std_uv": 850.0113226746565,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 3,
+        "n_roi_channels": 0,
+        "median_pairwise_correlation": 0.5479709635763034,
+        "first_component_variance_fraction": 0.7595545680449228,
+        "effective_spatial_rank": 1.5996646471563118
+      }
+    },
+    {
+      "recording_id": "10890_ses-1_bandit_pre_20260828131138",
+      "subject": "10890",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "0d28ee18c7b026c50bb847238671e9e6bbdeed56beaaaebdad37ce334849e93c",
+        "metadata": "d97b5973cf322450ea41b32afdb0683ed8ac73def37a18532ed3e1868e08ab42",
+        "events": "dca8733301827e60279d4cd6d774fa53a86439d63c6425358b8727b1304a0fb0"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1787937098.019,
+        "end_sec": 1787937398.017,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.3933333333333333,
+          "raw_std_uv": 49.99913034158818,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.8,
+          "raw_std_uv": 236.89144422505623,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 113.0735731398663,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 145.35787405847967,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 60.71044231304862,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 462.4806613919829,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 418.50477578605813,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 249.8177992231868,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 5,
+        "n_roi_channels": 2,
+        "median_pairwise_correlation": 0.057672239074800014,
+        "first_component_variance_fraction": 0.6583420242666347,
+        "effective_spatial_rank": 1.9248718362497144,
+        "median_roi_std_before_reference_uv": 17.262815467725304,
+        "median_roi_std_after_reference_uv": 10.312526055847808,
+        "residual_std_fraction": 0.5973837856940653
+      }
+    },
+    {
+      "recording_id": "10890_ses-1_sst_pre_20260828134105",
+      "subject": "10890",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "fe4d4e5bdcb0014af2e0ce77877418f1e2a4a90796f87f90497d42bd99a20259",
+        "metadata": "02b0b064b4763700b970ad1f3478013d4d954c9a51aa1bbf1fce93ee1a2f3ee3"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1787938864.892,
+        "end_sec": 1787939164.89,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FT7",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.4066666666666667,
+          "raw_std_uv": 2167.264282365934,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.4666666666666667,
+          "raw_std_uv": 1532.5820345569718,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.2866666666666667,
+          "raw_std_uv": 1838.2804693629669,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04,
+          "raw_std_uv": 1631.360206185528,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.30666666666666664,
+          "raw_std_uv": 1648.9462083612693,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 1320.1390761650446,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 1308.816768853746,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.20666666666666667,
+          "raw_std_uv": 15847.54763246482,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 3,
+        "n_roi_channels": 0,
+        "median_pairwise_correlation": 0.4530342712080734,
+        "first_component_variance_fraction": 0.7305206055405964,
+        "effective_spatial_rank": 1.6847217195450235
+      }
+    },
+    {
+      "recording_id": "10890_ses-1_bandit_post_20260828134750",
+      "subject": "10890",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": true,
+      "input_sha256": {
+        "eeg": "3f10d3ee9ac88b0ed67d7100bea5d4ee9f69ad07e93e5895e7c30ed169f3ab2d",
+        "metadata": "a262203b6e9c410092e3e1915750db05aead139165eb223d458bb404c3e7f31d",
+        "events": "25bed45315eb63b556a7cf0f3f9b0bb309a454de4853320b99de96326b6b8737"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1787939270.288,
+        "end_sec": 1787939570.286,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.42,
+          "raw_std_uv": 83.32976171659688,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.7266666666666667,
+          "raw_std_uv": 295.48904368793006,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.06666666666666667,
+          "raw_std_uv": 43.389071977335426,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 387.8982153911216,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.14,
+          "raw_std_uv": 62.38057452906767,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 237.0224600356978,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 182.4689335411481,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 116.35295626411059,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 5,
+        "n_roi_channels": 2,
+        "median_pairwise_correlation": 0.1175493601784439,
+        "first_component_variance_fraction": 0.7050882547621464,
+        "effective_spatial_rank": 1.8076524774752818,
+        "median_roi_std_before_reference_uv": 18.469404544460595,
+        "median_roi_std_after_reference_uv": 10.258086644687186,
+        "residual_std_fraction": 0.5554097112331553
+      }
+    },
+    {
+      "recording_id": "12193_ses-unverified_sst_pre_20260914112951",
+      "subject": "12193",
+      "task": "sst",
+      "phase": "pre",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "3b498c0c2efff2343218523e3c0089fcb428527208504244959b37419274e307",
+        "metadata": "c709d29c129a266e836746f6275e3bdf99d6c9975af63cb1a4c45a06722d172d"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789399791.427,
+        "end_sec": 1789400091.425,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04666666666666667,
+          "raw_std_uv": 58.70085392364333,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": true,
+          "reasons": [
+            "excess_bad_windows"
+          ],
+          "bad_window_fraction": 0.46,
+          "raw_std_uv": 329.81579176881525,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 195.79898808167158,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 190.69708835591442,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04,
+          "raw_std_uv": 359.80287664643697,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 168.33893856068389,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 202.3778161413091,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.09333333333333334,
+          "raw_std_uv": 193.17125130193475,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.7237910654966389,
+        "first_component_variance_fraction": 0.81050881848113,
+        "effective_spatial_rank": 1.4948508908674654,
+        "median_roi_std_before_reference_uv": 15.869346444022927,
+        "median_roi_std_after_reference_uv": 6.682055552330895,
+        "residual_std_fraction": 0.42106683951358576
+      }
+    },
+    {
+      "recording_id": "12193_ses-unverified_bandit_pre_20260914113817",
+      "subject": "12193",
+      "task": "bandit",
+      "phase": "pre",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "671281c6d1deceeec70154dbdf9522b4d15470c5fe234a9755ca917d16181d6c",
+        "metadata": "bc9b81ee4ce0befcd5ab8fe4bc527cd40d7766ea454d2b8cba1b2d1ce4d94424"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789400297.52,
+        "end_sec": 1789400597.518,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 307.9881620676452,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.446365752687791,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 348.58422499305846,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 289.81330949751884,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.156170074663667,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.165957214592757,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.189245321574047,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 12.119955820810729,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.911785798331791,
+        "first_component_variance_fraction": 0.8944159677589538,
+        "effective_spatial_rank": 1.240996394660118,
+        "median_roi_std_before_reference_uv": 10.817387059854068,
+        "median_roi_std_after_reference_uv": 5.467803634709513,
+        "residual_std_fraction": 0.5054643607051699
+      }
+    },
+    {
+      "recording_id": "12193_ses-unverified_sst_post_20260914121139",
+      "subject": "12193",
+      "task": "sst",
+      "phase": "post",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "2cc5c1e9c9e0518eb5f37209871e6c79ce6a3ea25a34a5f42270f016438a2497",
+        "metadata": "3fa0044a6fb648d05195bd95ea75179579ae7117bdc099c9604995ca82d8c14a"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789402299.596,
+        "end_sec": 1789402599.594,
+        "nominal_hz": 500.0,
+        "empirical_hz": 499.9999997584009,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 2039.662435668644,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.12,
+          "raw_std_uv": 9775.743370063186,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.04666666666666667,
+          "raw_std_uv": 761.4098788860207,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02666666666666667,
+          "raw_std_uv": 734.6061164816718,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02,
+          "raw_std_uv": 6866.866027906539,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 4650.712533386806,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 4543.472052782637,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.013333333333333334,
+          "raw_std_uv": 18296.805725949944,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.6796963375050278,
+        "first_component_variance_fraction": 0.7488878231978782,
+        "effective_spatial_rank": 1.722398339724435,
+        "median_roi_std_before_reference_uv": 9.075554327139834,
+        "median_roi_std_after_reference_uv": 4.465943205436177,
+        "residual_std_fraction": 0.4920848958042237
+      }
+    },
+    {
+      "recording_id": "12193_ses-unverified_bandit_post_20260914121834",
+      "subject": "12193",
+      "task": "bandit",
+      "phase": "post",
+      "behavior_matched": false,
+      "input_sha256": {
+        "eeg": "2dbedf90c7142bec1f5765871c91bac4ff8c744bfa0973a4ba200c0231c777b1",
+        "metadata": "f39573e26bda8cb441c5324fb98fb85ba9bb46de9778b8140bdb966996c17905"
+      },
+      "eeg_status": "readable_units_and_sampling_verified",
+      "timing": {
+        "n_samples": 150000,
+        "start_sec": 1789402714.865,
+        "end_sec": 1789403014.863,
+        "nominal_hz": 500.0,
+        "empirical_hz": 500.00000015576785,
+        "irregular_fraction": 0.0,
+        "max_interval_sec": 0.002000093460083008
+      },
+      "reference_channels": [
+        "F3",
+        "FCz",
+        "FT7",
+        "F4",
+        "P4",
+        "P3"
+      ],
+      "roi_channels": [
+        "F3",
+        "FCz",
+        "F4"
+      ],
+      "channels": {
+        "F3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 17.467039544373083,
+          "role": "scalp"
+        },
+        "Fp1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 17.468240408763826,
+          "role": "ocular_only"
+        },
+        "FCz": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.02666666666666667,
+          "raw_std_uv": 339.3946611325277,
+          "role": "scalp"
+        },
+        "FT7": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.006666666666666667,
+          "raw_std_uv": 230.64362844585386,
+          "role": "scalp"
+        },
+        "F4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 17.471723930911224,
+          "role": "scalp"
+        },
+        "P4": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 17.457365894223308,
+          "role": "scalp"
+        },
+        "P3": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 17.471732820966515,
+          "role": "scalp"
+        },
+        "EOG1": {
+          "bad": false,
+          "reasons": [],
+          "bad_window_fraction": 0.0,
+          "raw_std_uv": 17.477579884071098,
+          "role": "scalp"
+        }
+      },
+      "spatial": {
+        "n_reference_channels": 6,
+        "n_roi_channels": 3,
+        "median_pairwise_correlation": 0.9163583351546539,
+        "first_component_variance_fraction": 0.8449563108314075,
+        "effective_spatial_rank": 1.3614083959345595,
+        "median_roi_std_before_reference_uv": 2.826128200372793,
+        "median_roi_std_after_reference_uv": 2.5049902383377973,
+        "residual_std_fraction": 0.8863682256195473
+      }
+    }
+  ],
+  "source_sha256": {
+    "validation/experiments/audit_eeg_spatial_quality.py": "3a4c0044a4eeb7d9bfe8471cfb65d57c7ef645dbad5c6666d9d99ee1dde8a102",
+    "code/rhythm_validation_core.py": "a4d1f020d325fc358fe80624db580367371c1af492ba9d1cb0ecbd201fd7ab6f",
+    "code/rhythm_validation_io.py": "f1a1de475697740aae25d1942aaee54b990b702ef2ed830ddb6e5fc42db8ff0a",
+    "code/rhythm_validation_config.json": "053324b950fe68b8bfcd81cdd4bb29ae4acae0d1b7ce501305684a588fa8e0e2",
+    "validation/pilot_manifest.json": "045ec0b8f7a9b2a5a807e353797918844eb67a3f4f981e85c2a4444af16b5f78"
+  },
+  "interpretation": "Descriptive acquisition/spatial diagnostics, not validated exclusion thresholds. Very similar channels with little residual after reference warrant acquisition/reference review; they do not identify the cause or prove unusable EEG. No behavioral identity or stimulation approval follows from this EEG-only read."
+}

@@ -1,6 +1,6 @@
 # Jacob and Avi: the specific information we need
 
-The normalization fix, software testing, and pilot rerun are complete. Please do not spend time installing software, rerunning analyses, or selecting thresholds. We also tested two acceptance policies on 540 new simulations; neither is ready to support individualized stimulation. We will handle further analysis and code changes.
+The normalization fix, software testing, and pilot rerun are complete. Additional known-signal tests demonstrate a frequency-estimation limitation independent of participant EEG; artifact screening also needs validation. Please do not install software, rerun analyses, choose thresholds, or interpret every failed estimate as bad EEG. We will handle further analysis and code changes. [Latest data-versus-method diagnosis](data_vs_method_diagnosis.md).
 
 Please send David the following through the approved lab storage location. A file link and a brief explanation are enough; “not available” is also useful. Do not rename source files or repair timestamps yourself.
 
@@ -9,6 +9,8 @@ Please send David the following through the approved lab storage location. A fil
 2. **Recorded timing evidence for the older SST files and 10037.** For 10010 (September 4 pre/post), 10579 (September 3 pre), and 10890 (August 28 recordings at 13:03 and 13:41), the candidate SST event files have LSL times while the EEG uses Unix time. Do you have an XDF recording with the relevant EEG/marker streams, an acquisition/synchronization log linking those clocks, or an original export containing Unix event times? For 10890, also identify which run/session each recording belongs to. For 10037 (September 16), please check for original timing logs, clock corrections, restarts, or truncated recordings: its pre-run Unix/LSL offsets vary by about 0.5–1 second, and several other runs only partly overlap the EEG. File-start timestamps alone are insufficient to repair these alignments.
 
 3. **Existing repeat recordings.** Are there two unstimulated recordings of the same task from the same participant, with matched EEG and behavior, that we can analyze independently? Please point us to any already collected data and acquisition notes. We are checking availability first, not asking you to collect new sessions. Pre/post recordings with stimulation between them do not provide the clean repeatability test we need.
+
+4. **10034 acquisition/reference records.** For the September 18 Bandit pre/post recordings, do you have the acquisition montage/reference settings, channel-integrity or impedance logs, or notes about cap/connection changes? These channels are almost identical to one another and leave little differential signal after rereferencing. We need that context to distinguish acquisition issues from reference/analysis effects; this finding alone does not establish bad EEG. Please point to existing records rather than recollecting data.
 
 We recovered the 10579 post-Bandit file ourselves (`010579` was leading-zero padding), so that no longer needs investigation. The [machine-generated inventory](../validation/acceptance_calibration_followup/unresolved_input_inventory.json) lists the exact remaining candidate paths and fields. The [latest results](acceptance_calibration_followup.md) explain the software work and its limits.
 

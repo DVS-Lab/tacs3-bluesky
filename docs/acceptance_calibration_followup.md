@@ -1,5 +1,7 @@
 # Follow-up: what we resolved ourselves and what the lab needs to supply
 
+**Latest diagnosis:** [Separate EEG limitations from estimation/acceptance failures](data_vs_method_diagnosis.md). New native-rate known-signal checks demonstrate a candidate-frequency limitation even with clean signals; 0/95 passing must not be interpreted as bad EEG.
+
 **Decision: the normalization fix is retained; individualized stimulation is still not supported.** We completed a larger, frozen-policy comparison and recovered one previously excluded recording. Jacob and Avi do not need to debug normalization, run the pipeline, or choose acceptance thresholds. The remaining lab request is for specific identity/timing evidence and any existing independent repeat recordings, listed in [the short handoff](next_steps_for_jacob_avi.md).
 
 ## Work completed
