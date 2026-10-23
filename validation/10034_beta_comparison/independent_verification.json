@@ -1,0 +1,16 @@
+{
+  "analysis_window_only": {
+    "frequency_hz": 22.5,
+    "effect_db": 0.06892886212693758
+  },
+  "trialwise_db_only": {
+    "frequency_hz": 23.0,
+    "effect_db": -0.6207461869598327
+  },
+  "equal_trial_ratios_then_db": {
+    "frequency_hz": 24.0,
+    "effect_db": 0.3308981886474102
+  },
+  "method": "Original morlet_tfr, baseline_correct_db, beta_analysis and find_peak functions; no comparison-harness transforms used.",
+  "tolerance_db": 1e-10
+}

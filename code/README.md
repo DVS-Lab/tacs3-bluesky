@@ -46,3 +46,5 @@ The main CSV fields are:
 `calculate_theta_beta.py`, `run_rhythm_estimation.py`, and `rhythm_estimator.py` are historical estimation interfaces, not the entry point for this QC summary. The report module uses historical code separately for comparison; those historical frequencies do not determine the revised CSV estimates. Experimental task, acquisition, and protocol-generation scripts are outside this offline workflow.
 
 For the scientific rationale and limitations, see the [audit](../docs/rhythm_estimation_audit.md). For expected pilot results, see the [pilot report](../docs/pilot_rhythm_validation_report.md).
+
+For the controlled 10034 pre comparison showing which choices move the beta minimum from 13 to 23 Hz, see the [method comparison and reproduction commands](../docs/10034_beta_method_comparison.md).
