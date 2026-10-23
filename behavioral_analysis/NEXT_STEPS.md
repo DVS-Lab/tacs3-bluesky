@@ -1,8 +1,27 @@
 # Prioritized next analyses
 
+Updated 2026-10-23; see [SCIENTIFIC_STATUS.md](SCIENTIFIC_STATUS.md) for the
+current evidence and [TEAM_HANDOFF.md](TEAM_HANDOFF.md) for a shareable note.
+
+**Immediate device handoff:** send the locally generated impedance `share/` bundle
+to Neuroelectrics through the lab's normal support process. Have the operator
+complete the private, hash-bound configuration log for the October 19/20/22 checks,
+including connected/active channels, assembly/cable identity, handling and check
+mode. Exact 150000 has unconfirmed meaning. Do not diagnose faults on unused
+channels or infer a testboard setup from ~4 kΩ values. Review the approved device
+workflow with the PI/authorized operator; this analysis changes no parameters.
+
+**Versioned protocol reconciliation:** main's `6b10b90` now uses a separate all-EEG,
+zero-amplitude template for the generator's sham branch and overwrites four old
+generated files. Retrieve the exact imported historical version/hash and NIC
+execution records rather than treating the current working-tree file as the past
+session's protocol. Neither the old 0-Hz convention nor the newer file establishes
+an approved sham envelope or retrospective delivery.
+
+
 1. **Before more visits:** coordinator/PI reconciliation of intended assignment,
    selected protocol and documented delivery; review historical frequency reports
-   with zero epochs, mismatched EEG/task pairing, conflicting ID variants, boundary
+   with zero epochs, mismatched EEG/task pairing, unreconciled report/protocol versions, boundary
    extrema or wrong-sign beta. See the generated warning report and existing rhythm
    PR. This analysis does not decide a replacement stimulation procedure.
 2. **After every visit:** run the one-command pipeline. Review newly excluded files,

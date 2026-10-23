@@ -80,12 +80,18 @@ def scan_metadata(root, identities=None):
         try:
             xml = ET.parse(path)
             hz = sorted({float(node.text) for node in xml.findall(".//ftacsValue") if node.text})
+            step_types = ";".join(sorted({n.text for n in xml.findall(".//stepType") if n.text}))
+            electrode_types = ";".join(sorted({n.text for n in xml.findall(".//electrodeType") if n.text}))
+            amps = [float(n.text) for tag in ["atdcsValue", "atacsValue", "atrnsValue"] for n in xml.findall(".//" + tag) if n.text]
+            zero_amplitudes = all(x == 0 for x in amps) if amps else None
             error = ""
         except (ET.ParseError, ValueError) as exc:
             hz, error = [], str(exc)
+            step_types, electrode_types, zero_amplitudes = "", "", None
         stimulation.append(dict(**identities.fields(match[1], str(path.relative_to(root))), raw_participant=match[1], session=int(match[2]),
                                 task=(match[3] or "unknown").lower(), run=int(match[4]) if match[4] else np.nan,
-                                record_kind="generated_protocol", frequency_hz=hz[0] if len(hz) == 1 else np.nan,
+                                record_kind="generated_protocol", protocol_step_types=step_types,
+                                protocol_electrode_types=electrode_types, all_programmed_amplitudes_zero=zero_amplitudes, frequency_hz=hz[0] if len(hz) == 1 else np.nan,
                                 frequency_values=";".join(map(str, hz)), delivery_status="generation_only",
                                 stim_record_count=np.nan, first_stim_timestamp=np.nan,
                                 source_file=str(path.relative_to(root)), sha256=digest(path), qc_flags=error))

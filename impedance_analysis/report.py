@@ -72,11 +72,13 @@ def plots(out, inventory, readings, threshold):
 
 
 def build_report(out, inv, values, summary, changes, patterns, result, threshold, figures):
-    selected = inv[inv.export_type.eq("standalone") & inv.timestamp.str.startswith(("2026-10-19", "2026-10-20", "2026-10-22"))].sort_values("timestamp")
+    selected = inv[inv.export_type.eq("standalone")].sort_values("timestamp")
     priorities = selected[["export_id", "timestamp", "source_availability", "setup", "info_link_status"]].copy()
     for ch in range(1, 9):
         lookup = values[values.physical_channel.eq(ch) & values.row_number.eq(1)].set_index("export_id").value
         priorities[f"ch{ch}"] = priorities.export_id.map(lookup)
+    priorities.to_csv(out / "standalone_checks.csv", index=False)
+    priorities = priorities[priorities.timestamp.str.startswith(("2026-10-19", "2026-10-20", "2026-10-22"))]
     priorities.to_csv(out / "priority_checks.csv", index=False)
     observations = []
     for date in ["2026-10-19", "2026-10-20", "2026-10-22"]:
@@ -129,10 +131,10 @@ def build_report(out, inv, values, summary, changes, patterns, result, threshold
     body += [f"<figure><img src='{escape(f)}' alt='{escape(f)}'></figure>" for f in files]
     body += ["<h2>Suspicious sequences</h2><p>Adjacent standalone exports within the same preserved identity, visit and filename day, with gaps ≤2 hours. No cross-identity, overnight or continuous-sample joins. Unknown setup prevents a verified recovery claim.</p>",
              table(changes[changes.timestamp.str.startswith(("2026-10-20", "2026-10-22"))] if len(changes) else changes),
-             "<h2>Testboard-like patterns</h2><p>At least two structurally valid channel readings in 3500–4500 recorded units. This exploratory window is a pattern screen, not a testboard classifier; ordinary electrode readings can match it.</p>" + table(patterns),
-             "<h2>Continuous-log coverage</h2><p>Each IMP row has eight values plus a Unix-millisecond time. Filename wall time and UTC sample time remain separate; their clock relation is unverified. Zero does not establish a usable impedance or a disconnected channel. Associated NIC versions/firmware are carried in exports/readings only where a run-name/time or operator link exists; no version is propagated to unlinked checks.</p>" + table(daily),
+             "<details><summary>Testboard-like pattern table</summary><p>At least two structurally valid channel readings in 3500–4500 recorded units. This exploratory window is a pattern screen, not a testboard classifier; ordinary electrode readings can match it.</p>" + table(patterns) + "</details>",
+             "<details><summary>Daily coverage, including continuous logs</summary><p>Each IMP row has eight values plus a Unix-millisecond time. Filename wall time and UTC sample time remain separate; their clock relation is unverified. Zero does not establish a usable impedance or a disconnected channel. Associated NIC versions/firmware are carried in exports/readings only where a run-name/time or operator link exists; no version is propagated to unlinked checks.</p>" + table(daily) + "</details>",
              "<h2>Files for Neuroelectrics</h2><ul>"]
-    for f in ["exports.csv", "readings.csv", "channel_summary.csv", "suspicious_sequences.csv", "pattern_hypotheses.csv", "priority_checks.csv", "daily_summary.csv", "parse_errors.csv", "summary.json"]:
+    for f in ["exports.csv", "standalone_checks.csv", "readings.csv", "channel_summary.csv", "suspicious_sequences.csv", "pattern_hypotheses.csv", "priority_checks.csv", "daily_summary.csv", "parse_errors.csv", "summary.json"]:
         body.append(f"<li><a href='{f}'>{f}</a></li>")
     body += ["</ul><p>This directory minimizes identifiers but retains diagnostic dates. The sibling private directory contains source paths/hashes, recruitment identities, candidate links and the blank configuration-log template. Keep it local. Supply actual setup records via --configuration-log and rebuild; the share report never includes free-text operator evidence.</p>",
              "<h2>Manufacturer questions</h2><p>What do exact 150000 and zero encode for this StarStim-8/NIC/firmware combination? Are ImpVal and IMP values in Ω, with the same measurement method and reference? Which channels are measured in each mode? Can status/stale values persist across rechecks? What approved testboard values/tolerances and diagnostic records distinguish the device, flat cable, electrode cable and contact paths?</p>",

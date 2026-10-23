@@ -34,7 +34,8 @@ Full Git history is required to reproduce the history appendix; shallow clones
 can only recover reachable commits. A non-Git dataset reports history unavailable.
 `--root PATH` selects the source repository; `--output PATH` selects a dedicated
 external output directory or `impedance_analysis/outputs/`. `--threshold 20000`
-sets a descriptive raw-value threshold. `--no-plots` is for smoke tests.
+sets a descriptive raw-value threshold. Private configuration/alias inputs must
+be outside the chosen output tree so a rebuild cannot overwrite them. `--no-plots` is for smoke tests.
 
 Default output: `impedance_analysis/outputs/latest/` (ignored by Git):
 
@@ -42,6 +43,8 @@ Default output: `impedance_analysis/outputs/latest/` (ignored by Git):
   CSVs. Send the **whole share directory** (or zip), so plots and links work.
 - `share/exports.csv`: every export, including empty/problematic files, opaque
   export ID, timestamp, availability, input hash and issue/status fields.
+- `share/standalone_checks.csv`: all standalone exports in chronological wide
+  format, eight recorded values per check. `priority_checks.csv` is the date subset.
 - `share/readings.csv`: every row × eight physical channel slots; continuous
   Unix-ms and UTC timestamps are separate from unverified filename wall time.
 - `share/channel_summary.csv`: mode × availability × channel × denominator scope.

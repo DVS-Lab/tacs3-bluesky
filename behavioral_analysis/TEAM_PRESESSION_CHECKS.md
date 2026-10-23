@@ -1,5 +1,30 @@
 # TACS-3: frequency provenance and delivery checks before the next session
 
+## Current check-in — 2026-10-23
+
+Use [SCIENTIFIC_STATUS.md](SCIENTIFIC_STATUS.md) for current analysis readiness and
+[TEAM_HANDOFF.md](TEAM_HANDOFF.md) for the short team note. The detailed October 20
+audit below is retained as a historical record; these updates supersede its
+statements about the current generator and current generated-file contents.
+
+Before the next device session, the PI and authorized operator should retain:
+
+| Check | Record needed |
+|---|---|
+| Device diagnostics | Operator-confirmed setup for each impedance check: testboard/flat cable, electrode cable, headcap or other assembly; connected/active physical channels, reference connections, substitutions/handling times, NIC/firmware/device and AC/DC mode. Complete the private hash-bound log and rerun the [impedance analysis](../impedance_analysis/README.md). Exact 150000 is not yet decoded by Neuroelectrics. |
+| Exact protocol version | The authorized imported protocol's path/hash/version and NIC settings, reconciled with the original private visit assignment. Main commit `6b10b90` introduces a separate all-EEG/zero-amplitude template and replaces four historical files. Do not use a current file as evidence of an earlier import. |
+| Approved control implementation | PI/protocol-administrator confirmation of whether the study-approved control is native NIC sham, EEG-only/no-current or another documented implementation, and how the exact file executes in the installed NIC version. The historical 0-Hz files and later all-EEG template are distinct. |
+| Frequency reliability | PI decision under the existing approved policy for unavailable/unreliable individualized estimates; review unmerged [PR #1](https://github.com/DVS-Lab/tacs3-bluesky/pull/1). This branch does not deploy its estimator or select replacements. |
+| Execution and restarts | Operator log mapping each retained behavioral run to device start/end, pauses/aborts, completion/current evidence and any restart; retain a prospective audit trail. Resolve device suitability through the approved lab/manufacturer process. |
+| Identity and access | Preserve G/R strings. Supply confirmed legacy aliases and roster locally; keep assignment and parameter details within the study's existing authorized access. |
+
+Historical gaps may remain explicitly unresolved. No retrospective assignment,
+physical wiring, dose or successful stimulation is inferred from an impedance
+trace, EEG artifact, filename prefix or current generated protocol.
+
+## Historical October 20 audit
+
+
 Reviewed 2026-10-20 against analysis commit `144e48a` and the available repository
 records. This is a coordination note for the PI and authorized stimulation staff.
 It contains parameter information that could reveal assignment; use the study's

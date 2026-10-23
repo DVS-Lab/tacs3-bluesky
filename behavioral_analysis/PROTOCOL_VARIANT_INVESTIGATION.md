@@ -1,5 +1,37 @@
 # G11450 / 11450 protocol investigation
 
+## Current-main update — 2026-10-23
+
+The investigation below is a **historical October 20 snapshot**. It is preserved
+so the original findings remain auditable; its statements about the “current”
+generator and file contents apply to that snapshot, not to today's main.
+
+Main commit [`6b10b90`](https://github.com/DVS-Lab/tacs3-bluesky/commit/6b10b90bbaf67c15da2d95c7b6e3444cd8f98be0)
+(October 22) introduced `PROTOCOL_SHAM_TEMPLATE.neprot` and selects it for the sham
+branch. That template records `stepType=7`, `electrodeType=1` on all eight channels
+and zero programmed current amplitudes. Its physical index mapping also places F3
+at channel 6 and P4 at channel 1. These are XML observations and the source author's
+stated all-EEG intent, not independently verified NIC semantics or wiring.
+The four **unprefixed** visit-2 files originally containing 4.5 Hz were overwritten
+with this new template. The prefixed G files retain their older active-style 0-Hz
+configuration. No analysis change made here generated or modified these files.
+
+Thus the original 4.5-vs-0 comparison must be reproduced from its recorded Git
+revisions. Current files containing 0 Hz are not interchangeable. A later generated
+file cannot establish what NIC imported or executed on October 19/20, and does not
+retroactively resolve approved sham versus EEG-only control. Retain exact file
+hash/version, original private assignment, operator confirmation, installed NIC
+semantics and execution/current-envelope evidence. The G/R recruitment namespace
+is appropriate throughout; no alias is inferred from a matching numeric suffix.
+
+See [SCIENTIFIC_STATUS.md](SCIENTIFIC_STATUS.md) and the
+[impedance diagnostic methods](../impedance_analysis/README.md) for the updated
+handoff. No acquisition, generator, timing, protocol or raw data was changed by
+this analysis branch.
+
+## Historical October 20 investigation
+
+
 Reviewed 2026-10-20. Scope: read-only Git/source/XML investigation and offline
 reproduction in disposable workspace files. No experimental script, executable,
 protocol, frequency report, condition key or device setting was changed. This note

@@ -1,5 +1,22 @@
 # TACS-3 offline behavioral analysis
 
+
+**2026-10-23 consolidation:** start with [SCIENTIFIC_STATUS.md](SCIENTIFIC_STATUS.md)
+for current sample sizes, comparison coverage, rhythm-validation limitations and
+remaining records/decisions. [TEAM_HANDOFF.md](TEAM_HANDOFF.md) is the short team
+message. The [impedance diagnostic package](../impedance_analysis/README.md)
+provides the device-focused report and support CSVs. Participant-level outputs
+and private setup/assignment/alias records remain local.
+
+The rebuilt report adds `comparison_coverage.csv` (available vs eligible active
+visit and pre/post pairs), `descriptive_longitudinal_pairs.csv` (local descriptive
+contrasts), and `protocol_configuration_coverage.csv` (current XML configurations,
+separate from intended assignment and actual delivery). The existing behavioral
+scoring, SSRT pooling and eligibility rules are unchanged. Zero Hz alone cannot
+distinguish historical active-style files from newer all-EEG/zero-amplitude files;
+see the dated update in [PROTOCOL_VARIANT_INVESTIGATION.md](PROTOCOL_VARIANT_INVESTIGATION.md).
+
+
 This directory is independent of the acquisition programs. It never imports or
 changes task presentation, REDCap, EEG collection, protocol generation or frequency
 selection. All new code, tests, documentation, ignore rules and local outputs live

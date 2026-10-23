@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from .common import write_csv
+from .design import descriptive_comparisons
 
 
 def table(frame, columns=None):
@@ -18,6 +19,16 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
     ps = sessions[sessions.cohort.eq("experimental_candidate") & sessions.phase.eq("active")]
     bandit = ps[ps.task.eq("bandit") & ps.behavior_valid.eq(True)]
     sst = ps[ps.task.eq("sst")]
+    comparison_coverage, descriptive_pairs = descriptive_comparisons(sessions)
+    write_csv(comparison_coverage, out / "comparison_coverage.csv")
+    write_csv(descriptive_pairs, out / "descriptive_longitudinal_pairs.csv")
+    protocol_rows = stimulation[stimulation.record_kind.eq("generated_protocol")] if len(stimulation) else stimulation
+    configuration_columns = ["record_kind", "protocol_step_types", "protocol_electrode_types", "all_programmed_amplitudes_zero"]
+    if len(protocol_rows) and set(configuration_columns) <= set(protocol_rows):
+        protocol_coverage = protocol_rows.groupby(configuration_columns, dropna=False).size().rename("n_files").reset_index()
+    else:
+        protocol_coverage = pd.DataFrame(columns=configuration_columns + ["n_files"])
+    write_csv(protocol_coverage, out / "protocol_configuration_coverage.csv")
     summary = dict(n_behavioral_files=len(manifest), n_selected_files=int(manifest.selected.sum()),
                    n_excluded_or_duplicate_files=int((~manifest.selected).sum()),
                    n_experimental_candidate_participants=int(primary.participant.nunique()),
@@ -119,7 +130,10 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
         "No condition is inferred from a numeric frequency or from a generated file. No historical estimate is promoted to reliable by this analysis. "
         "The unmerged rhythm-validation PR reports no reliable primary estimates; no frequency-behavior correlation is calculated. "
         "Fields describing programmed device settings do not establish actual delivered current. A private local condition key may document intended "
-        "assignment and independently verified delivery. The generated 0-Hz value alone is not proof of an intended or delivered sham session."
+        "assignment and independently verified delivery. The generated 0-Hz value alone is not proof of an intended or delivered sham session. "
+        "Main commit 6b10b90 introduced a separate all-EEG, zero-amplitude template and replaced four generated files. "
+        "Current snapshots cannot establish what was imported or executed in earlier sessions. Step/electrode-type values "
+        "are recorded XML fields, not independently verified NIC semantics or measured physical current."
     )
     roadmap = ["Reconcile private roster, visit labels, protocol selection and delivery evidence; investigate urgent frequency/report pairing flags.",
                "Review SST exclusion reasons and observed/reconstructed SSD residuals after every new visit; retain source hashes and restart logs.",
@@ -131,6 +145,11 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
             "<h1>TACS-3 behavioral QC and initial results</h1><p class='note'>Developmental descriptive analysis. Source data are read-only. Candidate study IDs, pilots and tests are separated. No efficacy claim is supported.</p>",
             "<h2>Current sample</h2><p>" + escape(narrative) + "</p>" + table(cohorts),
             "<h2>Active behavioral findings</h2><p>" + escape(behavior_text) + "</p><p>" + escape(sst_text) + "</p>" + table(ps, session_columns),
+            "<h2>Available descriptive comparisons</h2><p>Only IDs with selected active study data are included. Visit 2 minus visit 1 and post minus pre retain exact namespaces. "
+            "Missing or ambiguous pairs are not reconstructed from numeric suffixes. These comparisons combine time, practice, order and uncertain delivery; they do not estimate a stimulation effect. "
+            "The pre/post SST count gate is applied within each phase, without pooling across pre/post.</p>" + table(comparison_coverage),
+            "<h2>Current protocol-file configurations</h2><p>Current generated snapshots; no condition is inferred from these fields. "
+            "Different configurations can all contain 0 Hz. Historical selection/import requires versioned files and operator records.</p>" + table(protocol_coverage),
             "<h2>Timestamp-derived task sequence</h2>" + table(pseq, ["participant", "session", "task_order", "chronological_task_sequence", "cross_run_overlap"]),
             "<h2>Data-collection warnings</h2>" + table(warnings),
             "<h2>Frequency and condition coverage</h2><p>" + escape(frequency_text) + "</p>",
@@ -141,12 +160,13 @@ def build_reports(out, manifest, runs, sessions, frequencies, stimulation, order
     html += ["<h2>Next steps</h2><ol>" + "".join("<li>" + escape(x) + "</li>" for x in roadmap) + "</ol>",
              "<h2>Reproduction and detailed outputs</h2><p>From the repository root: <code>python -m behavioral_analysis</code>. "
              "Methods and variable definitions are in behavioral_analysis/README.md and VARIABLE_DICTIONARY.md.</p><ul>"]
-    for filename in ["manifest.csv", "identity_resolution.csv", "identity_aliases.csv", "participant_session_qc.csv", "run_metrics.csv", "session_metrics.csv", "exclusion_log.csv", "trial_qc_log.csv", "sst_trials.csv", "frequency_estimates.csv", "stimulation_records.csv", "collection_warnings.csv", "analysis_readiness.json", "provenance.json"]:
+    for filename in ["comparison_coverage.csv", "descriptive_longitudinal_pairs.csv", "protocol_configuration_coverage.csv", "manifest.csv", "identity_resolution.csv", "identity_aliases.csv", "participant_session_qc.csv", "run_metrics.csv", "session_metrics.csv", "exclusion_log.csv", "trial_qc_log.csv", "sst_trials.csv", "frequency_estimates.csv", "stimulation_records.csv", "collection_warnings.csv", "analysis_readiness.json", "provenance.json"]:
         html.append(f"<li><a href='{filename}'>{filename}</a></li>")
     html += ["</ul><p>SSRT reference: <a href='https://elifesciences.org/articles/46323'>Verbruggen et al., 2019 consensus guide</a>. "
              "Frequency validation: <a href='https://github.com/DVS-Lab/tacs3-bluesky/pull/1'>PR #1 (unmerged, read-only review)</a>.</p></html>"]
     (out / "report.html").write_text("\n".join(html))
     text = "TACS-3 INITIAL BEHAVIORAL REPORT\n\n" + narrative + "\n\n" + behavior_text + "\n\n" + sst_text + "\n\n" + frequency_text + "\n\n"
+    text += "AVAILABLE DESCRIPTIVE COMPARISONS\n" + comparison_coverage.to_string(index=False) + "\n\nCURRENT PROTOCOL CONFIGURATIONS\n" + protocol_coverage.to_string(index=False) + "\n\n"
     text += ps.reindex(columns=session_columns).to_string(index=False) + "\n\nNEXT STEPS\n" + "\n".join(f"{i}. {x}" for i, x in enumerate(roadmap, 1)) + "\n"
     (out / "initial_results.txt").write_text(text)
     warning_text = "TACS-3 DATA-COLLECTION WARNINGS\n\n"

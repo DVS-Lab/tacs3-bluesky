@@ -1,5 +1,6 @@
 """Read-only orchestration and explicit diagnostic denominators."""
 import json
+import math
 import importlib.metadata
 import platform
 import subprocess
@@ -84,12 +85,19 @@ def run(root, output, configuration_log=None, aliases=None, threshold=20000, fig
     root, output = Path(root).resolve(), Path(output).resolve()
     if not root.is_dir():
         raise ValueError("root must be an existing repository directory")
-    if threshold <= 0 or threshold >= 150000:
+    if not math.isfinite(threshold) or threshold <= 0 or threshold >= 150000:
         raise ValueError("threshold must be positive and below the separately flagged 150000 value")
     # Outputs may be outside root, or solely inside the package's ignored outputs.
     allowed = root / "impedance_analysis/outputs"
     if output == root or output in root.parents or (root in output.parents and allowed not in [output, *output.parents]):
         raise ValueError("output overlaps repository sources; use impedance_analysis/outputs or an external directory")
+    private_inputs = {}
+    for supplied in [configuration_log, aliases]:
+        if supplied is not None:
+            supplied = Path(supplied).resolve()
+            if supplied == output or output in supplied.parents:
+                raise ValueError("configuration/alias inputs must be outside the output tree")
+            private_inputs[supplied] = digest(supplied)
     paths = source_paths(root)
     exports = [p for p in paths if p.name.lower().endswith(("_impval.txt", "_imp.txt"))]
     metadata_paths = [p for p in paths if p.suffix.lower() in {".info", ".neprot"}]
@@ -174,6 +182,8 @@ def run(root, output, configuration_log=None, aliases=None, threshold=20000, fig
     save(summary, share / "channel_summary.csv")
     save(changes, share / "suspicious_sequences.csv")
     save(patterns, share / "pattern_hypotheses.csv")
+    if private_inputs != {p: digest(p) for p in private_inputs}:
+        raise RuntimeError("private input hash changed during analysis")
     if before != {p.relative_to(root).as_posix(): digest(p) for p in protected}:
         raise RuntimeError("source hash changed during analysis")
     # Detect addition/deletion of raw input files as well as changed bytes.

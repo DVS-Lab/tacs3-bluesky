@@ -179,3 +179,22 @@ def test_full_real_inventory_and_source_integrity(tmp_path):
     summary = pd.read_csv(tmp_path / "out/share/channel_summary.csv")
     assert summary.loc[summary.denominator_scope.eq("documented_connected"), "n_eligible_positive_readings"].eq(0).all()
     assert (tmp_path / "out/share/timeseries_2026-10-22.png").exists()
+
+
+@pytest.mark.parametrize("threshold", [float("nan"), float("inf"), 0, 150000])
+def test_invalid_threshold_is_rejected(tmp_path, threshold):
+    export(tmp_path)
+    with pytest.raises(ValueError, match="threshold"):
+        run(tmp_path, tmp_path.parent / (tmp_path.name + "-out"), threshold=threshold)
+
+
+def test_private_operator_log_cannot_be_overwritten_by_output(tmp_path):
+    root, out = tmp_path / "repo", tmp_path / "out"
+    export(root)
+    out.mkdir()
+    log = out / "configuration_log.csv"
+    log.write_text("PRIVATE source input")
+    before = digest(log)
+    with pytest.raises(ValueError, match="outside the output"):
+        run(root, out, configuration_log=log)
+    assert digest(log) == before

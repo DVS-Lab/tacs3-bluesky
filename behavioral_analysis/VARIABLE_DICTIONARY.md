@@ -95,3 +95,22 @@ explicit because Bandit RT is recorded in milliseconds and SST RT in seconds.
 
 Missing estimates are blank/NaN, never zero. Zero Hz in a protocol/device record is
 a recorded parameter, not a missing-value code or independently assigned condition.
+
+
+## Comparison coverage and current protocol configurations
+
+| Variables / output | Meaning |
+|---|---|
+| `comparison_coverage.csv` | Bandit and SST available/eligible visit pairs, restricted to IDs with selected active study data |
+| `comparison` | `visit2_minus_visit1_active` or `post_minus_pre`; descriptive, separate from intended-condition contrasts |
+| `n_available_visit_pairs`, `n_ids_with_available_pairs` | Unique matched phase/visit rows and exact preserved IDs before outcome eligibility |
+| `n_eligible_visit_pairs`, `n_ids_with_eligible_pairs` | Both sides pass Bandit behavioral or pooled-phase SSRT gates |
+| `descriptive_longitudinal_pairs.csv` | Private ID-level `before`, `after`, `difference=after-before`, `metric` and pair label; no stimulation-effect assertion |
+| `protocol_step_types`, `protocol_electrode_types` | Sorted distinct literal XML values in current generated files; not independently verified NIC semantics |
+| `all_programmed_amplitudes_zero` | All parsed atDCS/atACS/atRNS amplitude values equal zero; unknown if absent/unparseable. Does not establish physical output or approved sham |
+| `protocol_configuration_coverage.csv` | Counts of current generated files by those XML fields, independent of condition and delivery |
+
+Visit contrasts require one row per nominal visit/task; repeated-date ambiguity
+prevents a pair. Pre/post requires the same exact participant/visit/date. No
+namespace is stripped, and no phase is substituted to complete a pair. Distinct
+metrics from a single pair do not increase its sample size.
