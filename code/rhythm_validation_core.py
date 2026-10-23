@@ -7,6 +7,8 @@ from scipy import signal
 
 from rhythm_validation_io import InputError, number
 
+POWER_NORMALIZATION = 'per_trial_meanlogratio'
+
 
 def mask(times, window):
     return (times >= window[0] - 1e-8) & (times < window[1] - 1e-8)
@@ -112,9 +114,11 @@ def epoch_data(clean, filtered, t, fs, names, roi, refs, logs, spec, cfg):
 
 
 def spectra(epochs, times, fs, spec):
-    """Per-trial dB ratios after power averaging across channels (no cancellation).
+    """Mean-log-ratio contrasts after power averaging across channels.
 
-    Convolve real padded epochs, normalize each trial to its own baseline.
+    Subtract each trial's mean baseline log power from its log power.
+    Using log(mean baseline power) instead introduces a downward Jensen gap.
+    Arithmetic baseline/active power is retained for absolute-power checks.
     Retain the trial dimension for uncertainty; never bootstrap frequency bins.
     """
     low, high, step = spec['grid_hz']
@@ -140,7 +144,8 @@ def spectra(epochs, times, fs, spec):
         baseline = power[:, base_mask].mean(axis=1)
         active[:, j] = power[:, active_mask].mean(axis=1)
         base[:, j] = baseline
-        db = 10 * np.log10(np.maximum(power, 1e-30) / np.maximum(baseline[:, None], 1e-30))
+        log_power = 10 * np.log10(np.maximum(power, 1e-30))
+        db = log_power - log_power[:, base_mask].mean(axis=1, keepdims=True)
         contrasts[:, j] = db[:, active_mask].mean(axis=1)
         tf[j] = db[:, plot_idx].mean(axis=0)
     return freqs, contrasts, base, active, times[plot_idx], tf

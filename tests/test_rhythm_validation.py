@@ -53,6 +53,35 @@ def test_known_time_domain_signals(config,key,freq):
     assert result['approved_stimulation_frequency_hz'] is None
 
 
+@pytest.mark.parametrize('key',['response_beta_erd','feedback_theta_enhancement'])
+def test_baseline_compared_with_itself_has_zero_contrast(config,key):
+    """A self-comparison cannot constitute suppression, even with noisy baselines."""
+    spec=copy.deepcopy(config['estimands'][key])
+    spec['analysis_sec']=spec['baseline_sec']
+    rng=np.random.default_rng(314159)
+    fs=100
+    times=np.arange(round(np.diff(spec['epoch_sec'])[0]*fs))/fs+spec['epoch_sec'][0]
+    epochs=rng.normal(size=(60,3,len(times)))
+    epochs*=rng.lognormal(0,1.5,(60,1,1))
+    _,trials,base,active,_,_=spectra(epochs,times,fs,spec)
+    np.testing.assert_allclose(trials,0,atol=1e-12)
+    np.testing.assert_array_equal(base,active)
+
+
+@pytest.mark.parametrize('key',['response_beta_erd','feedback_theta_enhancement'])
+def test_stationary_noise_does_not_create_mean_suppression(config,key):
+    spec=config['estimands'][key]
+    rng=np.random.default_rng(112358)
+    fs=100
+    times=np.arange(round(np.diff(spec['epoch_sec'])[0]*fs))/fs+spec['epoch_sec'][0]
+    epochs=rng.normal(size=(600,3,len(times)))
+    f,trials,base,active,_,_=spectra(epochs,times,fs,spec)
+    band=(f>=spec['band_hz'][0])&(f<=spec['band_hz'][1])
+    assert abs(trials[:,band].mean())<0.12
+    absolute=base if spec['direction']<0 else active
+    assert not assess(f,trials,absolute,spec,config,len(epochs),3)['reliable']
+
+
 @pytest.mark.parametrize('kind',['flat','broadband','monotonic','boundary','wrong_sign','broad','ambiguous','nan'])
 def test_unidentifiable_spectra(config,kind):
     spec=config['estimands']['response_beta_erd'];f=np.arange(8,40.5,.5)

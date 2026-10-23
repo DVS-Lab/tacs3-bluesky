@@ -14,5 +14,9 @@ beta = summary[summary.estimand == 'response_beta_erd']
 assert sorted(beta.n_eligible.tolist()) == [47, 53, 119, 120], 'EEG/event loading or selection changed'
 pre = beta[(beta.task == 'bandit') & (beta.phase == 'pre')].iloc[0]
 assert pre.n_retained == 115, 'Known clean Bandit epochs were not analyzed'
+assert abs(pre.effect_db - (-0.06508836339709226)) < 1e-8, 'Mean-log-ratio regression'
+result = json.loads((out / pre.recording_id / 'response_beta_erd' / 'result.json').read_text())
+assert result['power_normalization'] == 'per_trial_meanlogratio'
+assert result['analysis_version'] == 'offline-rhythm-validation-1.1'
 assert beta.individualized_frequency_hz.isna().all(), 'Pilot reliability conclusions changed'
 print('Real-data smoke verified: 4 recordings, 10 analyses, expected selection/retention and no approved candidates.')

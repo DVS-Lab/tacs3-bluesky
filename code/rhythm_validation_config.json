@@ -1,5 +1,5 @@
 {
-  "analysis_version": "offline-rhythm-validation-1.0",
+  "analysis_version": "offline-rhythm-validation-1.1",
   "seed": 112358,
   "preprocessing": {
     "highpass_hz": 1.0,

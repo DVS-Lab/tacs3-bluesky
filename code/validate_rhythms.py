@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from rhythm_validation_io import InputError, alignment_qc, load_pair, resolve, select_events, sha256, validate_identity
-from rhythm_validation_core import estimate, preprocess, preview
+from rhythm_validation_core import POWER_NORMALIZATION, estimate, preprocess, preview
 from rhythm_validation_report import legacy_replay, plot_channels, plot_result, summarize, theta_secondary, write_json
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,6 +90,7 @@ def run(root, manifest_path, config_path, subject=None, output_name=None, replay
             result={k:job[k] for k in ['subject','session','task','phase','run']}
             result.update(recording_id=job['id'],estimand=estimand,
                           analysis_version=cfg['analysis_version'],config_sha256=cfg_hash,
+                          power_normalization=POWER_NORMALIZATION,
                           input_paths={k:job.get(k) for k in ['eeg','events','metadata']},input_sha256=job['sha256'],
                           intended_use='offline_validation_only',approved_stimulation_frequency_hz=None,
                           legacy_reproduction=replay_result if estimand=='response_beta_erd' else [])
