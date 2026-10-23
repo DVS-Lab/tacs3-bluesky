@@ -48,3 +48,5 @@ The main CSV fields are:
 For the scientific rationale and limitations, see the [audit](../docs/rhythm_estimation_audit.md). For expected pilot results, see the [pilot report](../docs/pilot_rhythm_validation_report.md).
 
 For the controlled 10034 pre comparison showing which choices move the beta minimum from 13 to 23 Hz, see the [method comparison and reproduction commands](../docs/10034_beta_method_comparison.md).
+
+The subsequent [normalization check](../docs/10034_normalization_check.md) documents downward log-ratio bias and a candidate correction. This correction has not been applied to the primary estimator.

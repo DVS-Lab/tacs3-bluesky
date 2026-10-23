@@ -1,5 +1,7 @@
 # What drives the 13-to-23-Hz change in 10034 Bandit pre?
 
+**Follow-up:** The [normalization check](10034_normalization_check.md) finds that centering baseline and response consistently in log power retains the 23-Hz minimum but reduces its effect from −0.753 to −0.065 dB. The strong negative value below should not be interpreted as established physiological suppression.
+
 **The analysis window and the order of trial normalization/averaging are the principal drivers in this recording.** Either change alone moves the original minimum into the 22.5–23-Hz range. The retained trials are identical. The effects interact, so the 10-Hz total shift cannot be divided into independent additive contributions.
 
 This is a controlled comparison of `pilot_data/frequency_analysis.py` and the offline rhythm-validation pipeline for `10034_ses-1_bandit_pre_20260918104411`, completed October 23, 2026. These are diagnostic spectral minima, not established individualized frequencies.
