@@ -22,11 +22,12 @@ def plot_result(out, result, arrays, spec):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     f, trials = arrays['freqs'], arrays['trials']
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.1), layout='constrained')
+    fig, axes = plt.subplots(1, 3, figsize=(15, 4.1), layout='constrained')
     if len(trials):
         mean = trials.mean(0)
         se = trials.std(0, ddof=1) / np.sqrt(len(trials)) if len(trials)>1 else np.zeros(len(f))
         axes[0].plot(f, mean, color='#245b80')
+        axes[2].plot(arrays['psd_freqs'], 10*np.log10(np.maximum(arrays['psds'].mean(0), 1e-30)), color='#245b80')
         axes[0].fill_between(f, mean-se, mean+se, alpha=.18, color='#245b80', label='±1 trial SE (descriptive)')
         im = axes[1].pcolormesh(arrays['times'], f, arrays['tfr'], shading='auto', cmap='RdBu_r', vmin=-3, vmax=3)
         fig.colorbar(im, ax=axes[1], label='Mean-log-ratio change (dB)')
@@ -37,17 +38,20 @@ def plot_result(out, result, arrays, spec):
     for edge in spec['band_hz']:
         axes[0].axvline(edge, color='gray', ls='--', lw=.8)
         axes[1].axhline(edge, color='gray', ls='--', lw=.8)
+        axes[2].axvline(edge, color='gray', ls='--', lw=.8)
     candidate = result.get('candidate_hz')
     if candidate is not None:
         color = '#00845a' if result['reliable'] else '#b64232'
         axes[0].axvline(candidate, color=color, label=f"Candidate {candidate:g} Hz ({result['qc']})")
         axes[1].axhline(candidate, color=color)
+        axes[2].axvline(candidate, color=color)
     axes[1].axvline(0, color='black', lw=.8)
     for window,color in [(spec['baseline_sec'],'gray'), (spec['analysis_sec'],'gold')]:
         axes[1].axvspan(*window, color=color, alpha=.14)
     axes[0].set(xlabel='Frequency (Hz)', ylabel='Mean-log-ratio change (dB)', title='Baseline-corrected spectrum')
     if len(trials):axes[0].legend(fontsize=7)
     axes[1].set(xlabel='Time from event (s)', ylabel='Frequency (Hz)', title='Time-frequency power')
+    axes[2].set(xlabel='Frequency (Hz)', ylabel='PSD (dB re 1 µV²/Hz)', title='Full-epoch carrier spectrum')
     fig.suptitle(f"{result['subject']} · {result['task']} {result['phase']} · {result['estimand']}\n{result['n_retained']}/{result['n_eligible']} retained · {result['qc']}",fontsize=10)
     fig.savefig(out / 'spectra_tfr.png', dpi=130)
     plt.close(fig)
@@ -134,7 +138,9 @@ def theta_secondary(epochs, times, fs, clean, names, channel_qc, cfg):
 def summarize(out, results, fixture):
     columns=['recording_id','subject','session','task','phase','run','estimand','analysis_version','power_normalization','qc','status','candidate_hz',
              'individualized_frequency_hz','effect_db','n_eligible','n_retained','retention_fraction',
-             'bootstrap_detection_fraction','bootstrap_ci_hz','roi_channels','failure_reasons','warnings']
+             'bootstrap_detection_fraction','bootstrap_ci_hz','roi_channels','failure_reasons','warnings',
+             'estimator','contrast_extremum_hz_descriptive','selective_modulation_fraction',
+             'data_adequacy_reasons','target_identifiability_reasons','analysis_limiting_stage']
     rows=[{key:json.dumps(r.get(key)) if isinstance(r.get(key),(dict,list)) else r.get(key) for key in columns} for r in results]
     pd.DataFrame(rows,columns=columns).to_csv(out/'qc_summary.csv',index=False)
     beta=[r for r in results if r['estimand']=='response_beta_erd']

@@ -1,5 +1,7 @@
 # Distinguishing EEG limitations from analysis limitations
 
+**Historical evidence. The completed estimator repair and current pilot rerun are in [the v1.2 report](carrier_estimator_validation.md).**
+
 **A failed individualized estimate is not a verdict that the EEG is bad.** We found a frequency-estimation limitation, separate acceptance-policy limitations, and separate recording/reference concerns. The earlier 0/95 passing result cannot distinguish these by itself or justify discarding the data.
 
 The [new diagnostic summary](../validation/data_method_diagnosis/diagnostic_summary.csv) separates input/timing status, trial counts, artifact-threshold sensitivity, spatial signal measurements, and known-signal recovery. It supplements `qc_summary.csv` without changing stimulation decisions.

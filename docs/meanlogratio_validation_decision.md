@@ -1,5 +1,7 @@
 # Decision after correcting normalization and rerunning validation
 
+**Historical evidence. The completed estimator repair and current pilot rerun are in [the v1.2 report](carrier_estimator_validation.md).**
+
 **Latest diagnosis:** [Separate EEG limitations from estimation/acceptance failures](data_vs_method_diagnosis.md). New native-rate known-signal checks demonstrate a candidate-frequency limitation even with clean signals; 0/95 passing must not be interpreted as bad EEG.
 
 **Follow-up:** [Expanded acceptance testing and recovered input](acceptance_calibration_followup.md) adds 540 simulations, documents newly exposed acceptance failures, and recovers 10579 Bandit post. The latest batch still has 0/95 accepted analyses; nine recordings remain unresolved. [Only these specific lab inputs are requested](next_steps_for_jacob_avi.md).

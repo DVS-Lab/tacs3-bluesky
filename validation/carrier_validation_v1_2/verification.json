@@ -1,0 +1,55 @@
+{
+  "local_tests": "86 passed, 1 documented obsolete GUI test skipped; 14 third-party Matplotlib warnings",
+  "pilot": {
+    "recordings": 38,
+    "analyses": 95,
+    "accepted": 0,
+    "unchanged_trial_count_pairs": 95,
+    "unchanged_event_logs": 70,
+    "first_limiting_stages": {
+      "input_or_timing_unresolved": 44,
+      "channel_or_retained_trial_yield_limited": 29,
+      "too_few_eligible_trials_before_artifact_screening": 13,
+      "no_qualified_task_related_carrier": 9
+    }
+  },
+  "heldout": {
+    "criteria": ">=85% moderate/strong accepted; no wrong accepted known frequencies; <=5% unsuitable controls accepted",
+    "moderate_strong_acceptance": 1.0,
+    "wrong_accepted_known": 0,
+    "control_acceptance": 0.0,
+    "passed": true
+  },
+  "control_false_acceptance_95_percent_interval": [
+    0,
+    0.04452026245632174
+  ],
+  "probe_summary": [
+    {
+      "background": "clean_1uv_noise",
+      "datasets": 66,
+      "recovered": 66,
+      "accepted": 66,
+      "wrong_accepted": 0,
+      "previous_recovered": 15,
+      "correct_recovery_rejected": 0
+    },
+    {
+      "background": "retained_real_eeg",
+      "datasets": 66,
+      "recovered": 64,
+      "accepted": 56,
+      "wrong_accepted": 0,
+      "previous_recovered": 42,
+      "correct_recovery_rejected": 8
+    }
+  ],
+  "post_validation_reporting_fix": "Missing split location is no longer labeled numerical instability; no-eligible-event failures categorized as trial scarcity. Release repeats have exactly identical candidate frequencies, effects, acceptance, and errors for all 135 heldout and 132 probe cases.",
+  "source_sha256": {
+    "validation/experiments/validate_carrier_estimator.py": "6115027104c1ebf00dcb6088e5f72408e2689d1a8471c5c934a450b985fbeadf",
+    "code/rhythm_validation_core.py": "adf598e9b533ee63733d4934cf31257403e6688276e523183ef0ff3f4f3a8efc",
+    "code/rhythm_validation_carrier.py": "31c50a669435174c5122981382aca9083a13576ac2c3e39bb59508e88dc9eb9b",
+    "code/rhythm_validation_config.json": "ce23ec2b3946cccf5956a53fd96213bc6ff9cd1a602332d421ecad30a8cd7df3"
+  },
+  "ci_status": "pending"
+}

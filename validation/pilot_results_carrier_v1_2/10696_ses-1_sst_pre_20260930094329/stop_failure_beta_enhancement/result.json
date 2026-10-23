@@ -1,0 +1,131 @@
+{
+  "subject": "10696",
+  "session": "1",
+  "task": "sst",
+  "phase": "pre",
+  "run": "20260930094329",
+  "recording_id": "10696_ses-1_sst_pre_20260930094329",
+  "estimand": "stop_failure_beta_enhancement",
+  "analysis_version": "offline-rhythm-validation-1.2",
+  "config_sha256": "ce23ec2b3946cccf5956a53fd96213bc6ff9cd1a602332d421ecad30a8cd7df3",
+  "power_normalization": "per_trial_meanlogratio",
+  "input_paths": {
+    "eeg": "pilot_data/Pilot-G10696/20260930094329_10696-1_SST_pre-stim.easy",
+    "events": "pilot_data/Pilot-G10696/sub-10696-1_task-SST_pre-stim_2026-09-30_09-43-13.csv",
+    "metadata": "stimulation/stimulation-data/20260930094329_10696-1_SST_pre-stim.info"
+  },
+  "input_sha256": {
+    "eeg": "6c0ebd8f644462b086ebb83873edac69cd716807fed5c7a4bc97dd91a605ea44",
+    "metadata": "b23abb59caad20e7ef1758e99af0bc3794629427921d42952931a0313f404bb2",
+    "events": "17c85cbd906ece958ce0bed36530bbe1695a5fcf9dc3f9700296ab3d10291b37"
+  },
+  "intended_use": "offline_validation_only",
+  "approved_stimulation_frequency_hz": null,
+  "legacy_reproduction": [],
+  "timestamp_diagnostics": {
+    "n_samples": 150000,
+    "start_sec": 1790775809.734,
+    "end_sec": 1790776109.732,
+    "nominal_hz": 500.0,
+    "empirical_hz": 499.9999997584009,
+    "irregular_fraction": 0.0,
+    "max_interval_sec": 0.002000093460083008,
+    "clock_domain": "unix",
+    "event_overlap_fraction": 1.0,
+    "unix_lsl_max_offset_residual_sec": 0.0014243125915527344,
+    "synchronization": "software_timestamps_only_no_hardware_latency_validation"
+  },
+  "candidate_hz": null,
+  "absolute_peak_hz": null,
+  "prominence_db": null,
+  "width_hz": null,
+  "competing_peaks_hz": [],
+  "reasons": [
+    "no_retained_epochs",
+    "wrong_direction_or_small_effect",
+    "no_selective_oscillatory_modulation"
+  ],
+  "effect_db": null,
+  "selective_modulation_fraction": null,
+  "carrier_reasons": [
+    "no_retained_epochs"
+  ],
+  "estimator": "full_epoch_hann_carrier_with_separate_task_modulation",
+  "reliable": false,
+  "failure_reasons": [
+    "bootstrap_carrier_frequency_uncertain",
+    "bootstrap_carrier_often_missing",
+    "effect_direction_uncertain",
+    "insufficient_epochs",
+    "low_retention",
+    "no_retained_epochs",
+    "no_selective_oscillatory_modulation",
+    "selective_modulation_uncertain",
+    "within_epoch_carrier_not_assessed",
+    "wrong_direction_or_small_effect"
+  ],
+  "data_adequacy_reasons": [
+    "insufficient_epochs",
+    "low_retention"
+  ],
+  "target_identifiability_reasons": [
+    "bootstrap_carrier_frequency_uncertain",
+    "bootstrap_carrier_often_missing",
+    "effect_direction_uncertain",
+    "no_retained_epochs",
+    "no_selective_oscillatory_modulation",
+    "selective_modulation_uncertain",
+    "within_epoch_carrier_not_assessed",
+    "wrong_direction_or_small_effect"
+  ],
+  "status": "unreliable_no_individualized_frequency",
+  "individualized_frequency_hz": null,
+  "fallback_option_hz": 20,
+  "n_eligible": 5,
+  "n_retained": 0,
+  "retention_fraction": 0.0,
+  "splits": {},
+  "within_epoch_carriers": [],
+  "crossfit_modulation": [],
+  "bootstrap_detection_fraction": 0.0,
+  "bootstrap_joint_acceptance_fraction": 0.0,
+  "bootstrap_ci_hz": null,
+  "effect_ci_db": null,
+  "selective_modulation_ci": null,
+  "bootstrap_valid_iterations": 0,
+  "qc": "FAIL",
+  "warnings": [
+    "below_recommended_epoch_count",
+    "software_timestamp_latency_unvalidated",
+    "sparse_frontal_montage_not_motor_cortex"
+  ],
+  "contrast_extremum_hz_descriptive": null,
+  "resolution_psd": {
+    "bin_spacing_hz": 0.2631578947368421,
+    "window": "hann",
+    "epoch_duration_sec": 3.8,
+    "interpretation": "full-epoch carrier, not response-only PSD; interpolation is not independent resolution"
+  },
+  "exclusions": {
+    "not_failed_stop": 63,
+    "ocular_artifact_spreads_to_roi": 4,
+    "artifact:F3": 1
+  },
+  "roi_channels": [
+    "F3",
+    "FCz"
+  ],
+  "reference_channels": [
+    "F3",
+    "FCz",
+    "FT7",
+    "P4",
+    "P3"
+  ],
+  "resolution": {
+    "grid_step_hz": 0.5,
+    "wavelet_power_fwhm_hz_at_candidate": null,
+    "interpretation": "grid spacing is not independent frequency resolution"
+  },
+  "analysis_limiting_stage": "too_few_eligible_trials_before_artifact_screening"
+}

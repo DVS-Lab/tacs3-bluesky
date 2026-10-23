@@ -268,14 +268,23 @@ def estimate(clean, filtered, timestamps, fs, names, roi, refs, logs, spec, conf
     epochs, times, logs = epoch_data(clean, filtered, timestamps, fs, names, roi, refs, logs, spec, config['preprocessing'])
     freqs, trials, base, active, plot_times, tf = spectra(epochs, times, fs, spec)
     absolute = base if spec['direction'] < 0 else active
-    result = assess(freqs, trials, absolute, spec, config, sum(x['eligible'] for x in logs), len(roi))
+    from rhythm_validation_carrier import carrier_spectra, assess_carrier, temporal_carrier_spectra
+    psd_freqs, psds = carrier_spectra(epochs, fs, spec)
+    result = assess_carrier(freqs, trials, base, active, psd_freqs, psds, spec, config,
+                            sum(x['eligible'] for x in logs), len(roi),
+                            temporal=temporal_carrier_spectra(epochs, fs, spec))
+    result['contrast_extremum_hz_descriptive'] = None
+    if len(trials):
+        band_idx = np.flatnonzero((freqs >= spec['band_hz'][0]) & (freqs <= spec['band_hz'][1]))
+        result['contrast_extremum_hz_descriptive'] = float(freqs[band_idx[np.argmax(spec['direction']*trials.mean(0)[band_idx])]])
+    result['resolution_psd'] = dict(bin_spacing_hz=fs/epochs.shape[-1], window='hann', epoch_duration_sec=epochs.shape[-1]/fs, interpretation='full-epoch carrier, not response-only PSD; interpolation is not independent resolution')
     result['exclusions'] = dict(Counter(x['reason'] for x in logs if x['reason']))
     result['roi_channels'] = [names[i] for i in roi]
     result['reference_channels'] = [names[i] for i in refs]
     result['resolution'] = dict(grid_step_hz=spec['grid_hz'][2],
                                 wavelet_power_fwhm_hz_at_candidate=(1.665 * result['candidate_hz'] / spec['cycles']) if result['candidate_hz'] else None,
                                 interpretation='grid spacing is not independent frequency resolution')
-    return result, dict(freqs=freqs, trials=trials, base=base, active=active, times=plot_times, tfr=tf), epochs, times
+    return result, dict(freqs=freqs, trials=trials, base=base, active=active, times=plot_times, tfr=tf, psd_freqs=psd_freqs, psds=psds), epochs, times
 
 
 def preview(result):

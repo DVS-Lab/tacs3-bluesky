@@ -1,0 +1,196 @@
+"""Carrier-first offline estimator; spectral location and task effect are separate.
+
+The Hann periodogram uses the entire padded, retained epoch. It locates an
+ongoing narrow spectral component, not a peak confined to the response window.
+Morlet mean-log-ratio at that location measures the task effect. Thresholds are
+provisional engineering acceptance criteria, not validated stimulation criteria.
+"""
+from __future__ import annotations
+import numpy as np
+from scipy import signal
+
+ESTIMATOR = 'full_epoch_hann_carrier_with_separate_task_modulation'
+
+
+def carrier_spectra(epochs, fs, spec):
+    n = epochs.shape[-1]
+    f = np.fft.rfftfreq(n, 1/fs)
+    keep = (f >= spec['grid_hz'][0]) & (f <= spec['grid_hz'][1])
+    if not len(epochs):
+        return f[keep], np.empty((0, keep.sum()))
+    _, power = signal.periodogram(epochs, fs=fs, window='hann', detrend='constant', axis=-1)
+    return f[keep], power.mean(axis=1)[:, keep]
+
+
+def temporal_carrier_spectra(epochs, fs, spec):
+    """Nonoverlapping early/late epoch PSDs screen within-trial frequency drift."""
+    middle = epochs.shape[-1]//2
+    return [carrier_spectra(epochs[..., sl], fs, spec) for sl in (slice(None,middle),slice(middle,None))]
+
+
+def locate(freqs, power, spec, policy):
+    """Local absolute PSD maximum; no contrast extremum or forced band minimum.
+
+    A robust log-log line supplies only descriptive background and width checks.
+    Peak location is measured on the original PSD, not on the detrended curve.
+    Width is linear excess-power FWHM, not log-contrast width. Interpolation does
+    not increase independent resolution, which remains limited by epoch length.
+    """
+    out = dict(candidate_hz=None, prominence_db=None, width_hz=None,
+               absolute_peak_hz=None, reasons=[], competing_peaks_hz=[])
+    if len(freqs) < 5 or not np.isfinite(power).all() or np.max(power) <= 0:
+        out['reasons'] = ['missing_or_nonfinite_carrier_spectrum']; return out
+    lp = 10*np.log10(np.maximum(power, 1e-30))
+    x = np.log10(freqs)
+    use = np.ones(len(x), dtype=bool)
+    for _ in range(4):
+        fit = np.polyval(np.polyfit(x[use], lp[use], 1), x)
+        use = lp-fit < policy['background_upper_clip_db']
+        if use.sum() < 5:
+            use[:] = True; break
+    background = 10**(fit/10)
+    excess = np.maximum(power-background, 0)
+    peaks, props = signal.find_peaks(lp, prominence=policy['min_carrier_prominence_db'])
+    band = (freqs[peaks] >= spec['band_hz'][0] - (freqs[1]-freqs[0])) & (freqs[peaks] <= spec['band_hz'][1] + (freqs[1]-freqs[0]))
+    peaks = peaks[band]; prominence = props['prominences'][band]
+    if not len(peaks):
+        out['reasons'] = ['no_resolved_carrier_peak']; return out
+    p = int(peaks[np.argmax(excess[peaks])])
+    # Three-bin log-parabolic interpolation around an observed local maximum.
+    den = lp[p-1]-2*lp[p]+lp[p+1]
+    offset = .5*(lp[p-1]-lp[p+1])/den if den else 0.
+    freq = float(freqs[p]+np.clip(offset, -.5, .5)*(freqs[1]-freqs[0]))
+    # Use the original peak's linear-power half-height crossings. Background
+    # subtraction can move a discrete maximum, so do not call peak_widths there.
+    half = excess[p]/2
+    left = p
+    while left > 0 and excess[left] > half: left -= 1
+    right = p
+    while right < len(freqs)-1 and excess[right] > half: right += 1
+    lo = np.interp(half, excess[left:left+2], freqs[left:left+2])
+    hi = np.interp(half, excess[right-1:right+1][::-1], freqs[right-1:right+1][::-1])
+    width = float(hi-lo)
+    out.update(candidate_hz=freq, absolute_peak_hz=freq,
+               prominence_db=float(prominence[list(peaks).index(p)]), width_hz=width)
+    margin = policy['boundary_margin_hz']
+    if not spec['band_hz'][0]+margin < freq < spec['band_hz'][1]-margin:
+        out['reasons'].append('carrier_at_or_near_band_boundary')
+    if width > policy['max_carrier_width_hz'] or left == 0 or right == len(freqs)-1:
+        out['reasons'].append('carrier_broad_or_unresolved')
+    competitors = [int(q) for q in peaks if q != p and excess[q] >= policy['competing_power_fraction']*excess[p]]
+    out['competing_peaks_hz'] = [float(freqs[q]) for q in competitors]
+    if competitors: out['reasons'].append('ambiguous_competing_carriers')
+    return out
+
+
+def modulation(freq, freqs, trials, base, active, spec):
+    """Effect at the carrier plus a local absolute-power modulation check.
+
+    The latter subtracts a line interpolated between CWT flanks two f/cycles
+    away. It is a specificity diagnostic, not an aperiodic model. Each trial is
+    scaled by its mean baseline grid power before averaging to prevent high-
+    amplitude trials dominating this auxiliary check. No clipping of effects.
+    """
+    if freq is None or not len(trials): return None, None
+    effect = float(np.interp(freq, freqs, trials.mean(0)))
+    scale = np.maximum(base.mean(axis=1, keepdims=True), 1e-30)
+    b, a = (base/scale).mean(0), (active/scale).mean(0)
+    flanks = np.clip([freq-2*freq/spec['cycles'], freq+2*freq/spec['cycles']], freqs[0], freqs[-1])
+    def residual(values):
+        return np.interp(freq, freqs, values)-np.interp(freq, flanks, np.interp(flanks, freqs, values))
+    ref = residual(b if spec['direction'] < 0 else a)
+    selective = spec['direction']*residual(a-b)/ref if ref > 1e-12 else None
+    return effect, float(selective) if selective is not None else None
+
+
+def assess_carrier(freqs, trials, base, active, psd_freqs, psds, spec, cfg, n_eligible, n_roi, temporal=None):
+    n = len(trials)
+    theta = spec['band_hz'][1] <= 8
+    policy = {**cfg['carrier_estimation']['common'], **cfg['carrier_estimation']['theta' if theta else 'beta']}
+    thresholds = cfg['reliability']
+    def evaluate(indices):
+        loc = locate(psd_freqs, psds[indices].mean(0), spec, policy) if len(indices) else dict(
+            candidate_hz=None, absolute_peak_hz=None, prominence_db=None, width_hz=None,
+            competing_peaks_hz=[], reasons=['no_retained_epochs'])
+        effect, selective = modulation(loc['candidate_hz'], freqs, trials[indices], base[indices], active[indices], spec)
+        loc.update(effect_db=effect, selective_modulation_fraction=selective)
+        # Keep carrier-location and task-effect failures separately interpretable.
+        loc['carrier_reasons'] = list(loc['reasons'])
+        if effect is None or spec['direction']*effect < thresholds['min_effect_db']:
+            loc['reasons'].append('wrong_direction_or_small_effect')
+        if selective is None or selective < policy['min_selective_modulation_fraction']:
+            loc['reasons'].append('no_selective_oscillatory_modulation')
+        return loc
+    found = evaluate(np.arange(n))
+    reasons = list(found['reasons']); retention = n/n_eligible if n_eligible else 0
+    data_reasons = []
+    if n < thresholds['min_epochs']: data_reasons.append('insufficient_epochs')
+    if retention < thresholds['min_retention']: data_reasons.append('low_retention')
+    if n_roi < cfg['preprocessing']['min_roi_channels']: data_reasons.append('insufficient_roi_channels')
+    reasons += data_reasons
+    temporal_results = []
+    if n and temporal is not None and len(temporal) == 2:
+        for tf, tp in temporal:
+            loc = locate(tf, tp.mean(0), spec, policy)
+            temporal_results.append(loc)
+        if any(x['candidate_hz'] is None for x in temporal_results):
+            reasons.append('within_epoch_carrier_missing')
+        elif found['candidate_hz'] is None or any(
+                abs(x['candidate_hz']-found['candidate_hz']) > policy['max_split_hz']
+                for x in temporal_results):
+            reasons.append('within_epoch_carrier_frequency_unstable')
+    else:
+        reasons.append('within_epoch_carrier_not_assessed')
+    splits = {}; boot = []; effects = []; selective_boot = []; detections = 0
+    if n >= 4:
+        for label, halves in [('chronological', (np.arange(n//2), np.arange(n//2,n))), ('odd_even', (np.arange(0,n,2), np.arange(1,n,2)))]:
+            hh = [evaluate(h) for h in halves]
+            difference = abs(hh[0]['candidate_hz']-hh[1]['candidate_hz']) if all(h['candidate_hz'] is not None for h in hh) else None
+            splits[label] = dict(halves=hh, difference_hz=difference)
+            if any(h['carrier_reasons'] for h in hh): reasons.append(label+'_carrier_not_reproducible')
+            if difference is not None and difference > policy['max_split_hz']:
+                reasons.append(label+'_carrier_frequency_unstable')
+            if any(h['effect_db'] is None or spec['direction']*h['effect_db'] <= 0 for h in hh): reasons.append(label+'_effect_direction_not_reproduced')
+            if any(h['selective_modulation_fraction'] is None or h['selective_modulation_fraction'] < policy['min_selective_modulation_fraction'] for h in hh): reasons.append(label+'_selective_modulation_not_reproduced')
+        rng = np.random.default_rng(cfg['seed']); block = min(thresholds['bootstrap_block_epochs'], n)
+        for _ in range(thresholds['bootstrap_iterations']):
+            starts = rng.integers(0,n,size=int(np.ceil(n/block)))
+            ix = ((starts[:,None]+np.arange(block))%n).ravel()[:n]
+            r = evaluate(ix)
+            if not r['carrier_reasons']: boot.append(r['candidate_hz'])
+            if not r['reasons']: detections += 1
+            # Fixed full-sample carrier for effect uncertainty, independent of
+            # bootstrap location-gate success. Selection-aware held-out-half
+            # effects below give a separate check on reuse of the same trials.
+            e, s = modulation(found['candidate_hz'], freqs, trials[ix], base[ix], active[ix], spec)
+            if e is not None: effects.append(e)
+            if s is not None: selective_boot.append(s)
+    ci = np.percentile(boot,[2.5,97.5]).tolist() if boot else None
+    eci = np.percentile(effects,[2.5,97.5]).tolist() if effects else None
+    sci = np.percentile(selective_boot,[2.5,97.5]).tolist() if selective_boot else None
+    detection = len(boot)/thresholds['bootstrap_iterations']
+    if detection < thresholds['min_bootstrap_detection_fraction']: reasons.append('bootstrap_carrier_often_missing')
+    if ci is None or ci[1]-ci[0] > policy['max_ci_hz']: reasons.append('bootstrap_carrier_frequency_uncertain')
+    if eci is None or (eci[1] >= 0 if spec['direction'] < 0 else eci[0] <= 0): reasons.append('effect_direction_uncertain')
+    if sci is None or sci[0] < policy['min_selective_modulation_fraction']: reasons.append('selective_modulation_uncertain')
+    # Cross-fit candidate location on one chronological half, test task effect
+    # at that fixed location in the other half; then reverse. Descriptive checks,
+    # not an independent second recording or a claim of a calibrated p-value.
+    cross = []
+    if n >= 4:
+        halves = [np.arange(n//2), np.arange(n//2,n)]
+        for k in range(2):
+            loc = splits['chronological']['halves'][k]['candidate_hz']; ix = halves[1-k]
+            e,s = modulation(loc,freqs,trials[ix],base[ix],active[ix],spec)
+            cross.append(dict(training_half=k+1,test_half=2-k,candidate_hz=loc,effect_db=e,selective_modulation_fraction=s))
+        if any(x['effect_db'] is None or spec['direction']*x['effect_db'] < thresholds['min_effect_db'] or x['selective_modulation_fraction'] is None or x['selective_modulation_fraction'] < policy['min_selective_modulation_fraction'] for x in cross): reasons.append('crossfit_task_modulation_not_reproduced')
+    reasons = sorted(set(reasons)); reliable = not reasons
+    return dict(**found, estimator=ESTIMATOR, reliable=reliable, failure_reasons=reasons,
+        data_adequacy_reasons=data_reasons, target_identifiability_reasons=[r for r in reasons if r not in data_reasons],
+        status='reliable_candidate_requires_pi_approval' if reliable else 'unreliable_no_individualized_frequency',
+        individualized_frequency_hz=found['candidate_hz'] if reliable else None, approved_stimulation_frequency_hz=None,
+        fallback_option_hz=spec['fallback_option_hz'],n_eligible=n_eligible,n_retained=n,retention_fraction=retention,
+        splits=splits,within_epoch_carriers=temporal_results,crossfit_modulation=cross,bootstrap_detection_fraction=detection,
+        bootstrap_joint_acceptance_fraction=detections/thresholds['bootstrap_iterations'],
+        bootstrap_ci_hz=ci,effect_ci_db=eci,selective_modulation_ci=sci,bootstrap_valid_iterations=len(boot),
+        qc='PASS' if reliable else 'FAIL',warnings=['below_recommended_epoch_count'] if n < thresholds['recommended_epochs'] else [])

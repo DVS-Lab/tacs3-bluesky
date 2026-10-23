@@ -1,0 +1,255 @@
+{
+  "subject": "10034",
+  "session": "1",
+  "task": "bandit",
+  "phase": "post",
+  "run": "20260918112315",
+  "recording_id": "10034_ses-1_bandit_post_20260918112315",
+  "estimand": "response_beta_erd",
+  "analysis_version": "offline-rhythm-validation-1.2",
+  "config_sha256": "ce23ec2b3946cccf5956a53fd96213bc6ff9cd1a602332d421ecad30a8cd7df3",
+  "power_normalization": "per_trial_meanlogratio",
+  "input_paths": {
+    "eeg": "pilot_data/Pilot-G10034/20260918112315_10034-1_Bandit_post-stim.easy",
+    "events": "pilot_data/Pilot-G10034/sub-10034-1_task-bandit_post-stim_2026-09-18_11-22-49.csv",
+    "metadata": "stimulation/stimulation-data/20260918112315_10034-1_Bandit_post-stim.info"
+  },
+  "input_sha256": {
+    "eeg": "5cdde32d22f5a02873c5ae0cdf6359c873f60869750e39f5940ba4638f42ba9d",
+    "metadata": "909d9f4994bd608bb408e91551fac302c694015baf6d758fb99891cc5adeec8d",
+    "events": "942e78151cc26658b43ea159237fcf859e4275abbf107d042c71953f285ddf02"
+  },
+  "intended_use": "offline_validation_only",
+  "approved_stimulation_frequency_hz": null,
+  "legacy_reproduction": [],
+  "timestamp_diagnostics": {
+    "n_samples": 150000,
+    "start_sec": 1789744995.404,
+    "end_sec": 1789745295.402,
+    "nominal_hz": 500.0,
+    "empirical_hz": 500.00000015576785,
+    "irregular_fraction": 0.0,
+    "max_interval_sec": 0.002000093460083008,
+    "clock_domain": "unix",
+    "event_overlap_fraction": 0.957983193277311,
+    "unix_lsl_max_offset_residual_sec": 0.005889177322387695,
+    "synchronization": "software_timestamps_only_no_hardware_latency_validation"
+  },
+  "candidate_hz": null,
+  "prominence_db": null,
+  "width_hz": null,
+  "absolute_peak_hz": null,
+  "reasons": [
+    "no_resolved_carrier_peak",
+    "wrong_direction_or_small_effect",
+    "no_selective_oscillatory_modulation"
+  ],
+  "competing_peaks_hz": [],
+  "effect_db": null,
+  "selective_modulation_fraction": null,
+  "carrier_reasons": [
+    "no_resolved_carrier_peak"
+  ],
+  "estimator": "full_epoch_hann_carrier_with_separate_task_modulation",
+  "reliable": false,
+  "failure_reasons": [
+    "bootstrap_carrier_frequency_uncertain",
+    "bootstrap_carrier_often_missing",
+    "chronological_carrier_not_reproducible",
+    "chronological_effect_direction_not_reproduced",
+    "chronological_selective_modulation_not_reproduced",
+    "crossfit_task_modulation_not_reproduced",
+    "effect_direction_uncertain",
+    "no_resolved_carrier_peak",
+    "no_selective_oscillatory_modulation",
+    "odd_even_carrier_not_reproducible",
+    "odd_even_effect_direction_not_reproduced",
+    "odd_even_selective_modulation_not_reproduced",
+    "selective_modulation_uncertain",
+    "within_epoch_carrier_missing",
+    "wrong_direction_or_small_effect"
+  ],
+  "data_adequacy_reasons": [],
+  "target_identifiability_reasons": [
+    "bootstrap_carrier_frequency_uncertain",
+    "bootstrap_carrier_often_missing",
+    "chronological_carrier_not_reproducible",
+    "chronological_effect_direction_not_reproduced",
+    "chronological_selective_modulation_not_reproduced",
+    "crossfit_task_modulation_not_reproduced",
+    "effect_direction_uncertain",
+    "no_resolved_carrier_peak",
+    "no_selective_oscillatory_modulation",
+    "odd_even_carrier_not_reproducible",
+    "odd_even_effect_direction_not_reproduced",
+    "odd_even_selective_modulation_not_reproduced",
+    "selective_modulation_uncertain",
+    "within_epoch_carrier_missing",
+    "wrong_direction_or_small_effect"
+  ],
+  "status": "unreliable_no_individualized_frequency",
+  "individualized_frequency_hz": null,
+  "fallback_option_hz": 20,
+  "n_eligible": 119,
+  "n_retained": 114,
+  "retention_fraction": 0.957983193277311,
+  "splits": {
+    "chronological": {
+      "halves": [
+        {
+          "candidate_hz": null,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": null,
+          "reasons": [
+            "no_resolved_carrier_peak",
+            "wrong_direction_or_small_effect",
+            "no_selective_oscillatory_modulation"
+          ],
+          "competing_peaks_hz": [],
+          "effect_db": null,
+          "selective_modulation_fraction": null,
+          "carrier_reasons": [
+            "no_resolved_carrier_peak"
+          ]
+        },
+        {
+          "candidate_hz": null,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": null,
+          "reasons": [
+            "no_resolved_carrier_peak",
+            "wrong_direction_or_small_effect",
+            "no_selective_oscillatory_modulation"
+          ],
+          "competing_peaks_hz": [],
+          "effect_db": null,
+          "selective_modulation_fraction": null,
+          "carrier_reasons": [
+            "no_resolved_carrier_peak"
+          ]
+        }
+      ],
+      "difference_hz": null
+    },
+    "odd_even": {
+      "halves": [
+        {
+          "candidate_hz": null,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": null,
+          "reasons": [
+            "no_resolved_carrier_peak",
+            "wrong_direction_or_small_effect",
+            "no_selective_oscillatory_modulation"
+          ],
+          "competing_peaks_hz": [],
+          "effect_db": null,
+          "selective_modulation_fraction": null,
+          "carrier_reasons": [
+            "no_resolved_carrier_peak"
+          ]
+        },
+        {
+          "candidate_hz": null,
+          "prominence_db": null,
+          "width_hz": null,
+          "absolute_peak_hz": null,
+          "reasons": [
+            "no_resolved_carrier_peak",
+            "wrong_direction_or_small_effect",
+            "no_selective_oscillatory_modulation"
+          ],
+          "competing_peaks_hz": [],
+          "effect_db": null,
+          "selective_modulation_fraction": null,
+          "carrier_reasons": [
+            "no_resolved_carrier_peak"
+          ]
+        }
+      ],
+      "difference_hz": null
+    }
+  },
+  "within_epoch_carriers": [
+    {
+      "candidate_hz": null,
+      "prominence_db": null,
+      "width_hz": null,
+      "absolute_peak_hz": null,
+      "reasons": [
+        "no_resolved_carrier_peak"
+      ],
+      "competing_peaks_hz": []
+    },
+    {
+      "candidate_hz": null,
+      "prominence_db": null,
+      "width_hz": null,
+      "absolute_peak_hz": null,
+      "reasons": [
+        "no_resolved_carrier_peak"
+      ],
+      "competing_peaks_hz": []
+    }
+  ],
+  "crossfit_modulation": [
+    {
+      "training_half": 1,
+      "test_half": 2,
+      "candidate_hz": null,
+      "effect_db": null,
+      "selective_modulation_fraction": null
+    },
+    {
+      "training_half": 2,
+      "test_half": 1,
+      "candidate_hz": null,
+      "effect_db": null,
+      "selective_modulation_fraction": null
+    }
+  ],
+  "bootstrap_detection_fraction": 0.0,
+  "bootstrap_joint_acceptance_fraction": 0.0,
+  "bootstrap_ci_hz": null,
+  "effect_ci_db": null,
+  "selective_modulation_ci": null,
+  "bootstrap_valid_iterations": 0,
+  "qc": "FAIL",
+  "warnings": [
+    "software_timestamp_latency_unvalidated",
+    "sparse_frontal_montage_not_motor_cortex"
+  ],
+  "contrast_extremum_hz_descriptive": 26.0,
+  "resolution_psd": {
+    "bin_spacing_hz": 0.2631578947368421,
+    "window": "hann",
+    "epoch_duration_sec": 3.8,
+    "interpretation": "full-epoch carrier, not response-only PSD; interpolation is not independent resolution"
+  },
+  "exclusions": {
+    "no_bandit_choice": 1,
+    "event_outside_recording_or_alignment_error": 5
+  },
+  "roi_channels": [
+    "F3",
+    "FCz",
+    "F4"
+  ],
+  "reference_channels": [
+    "F3",
+    "FCz",
+    "FT7",
+    "F4",
+    "P4",
+    "P3"
+  ],
+  "resolution": {
+    "grid_step_hz": 0.5,
+    "wavelet_power_fwhm_hz_at_candidate": null,
+    "interpretation": "grid spacing is not independent frequency resolution"
+  },
+  "analysis_limiting_stage": "no_qualified_task_related_carrier"
+}

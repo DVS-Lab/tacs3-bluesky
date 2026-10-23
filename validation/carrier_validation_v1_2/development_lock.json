@@ -1,0 +1,1361 @@
+{
+  "source_sha256": {
+    "validation/experiments/validate_carrier_estimator.py": "6115027104c1ebf00dcb6088e5f72408e2689d1a8471c5c934a450b985fbeadf",
+    "code/rhythm_validation_core.py": "adf598e9b533ee63733d4934cf31257403e6688276e523183ef0ff3f4f3a8efc",
+    "code/rhythm_validation_carrier.py": "31c50a669435174c5122981382aca9083a13576ac2c3e39bb59508e88dc9eb9b",
+    "code/rhythm_validation_config.json": "ce23ec2b3946cccf5956a53fd96213bc6ff9cd1a602332d421ecad30a8cd7df3"
+  },
+  "heldout_cases": [
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 18.35,
+      "seed": 9700001,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 18.35,
+      "seed": 9700002,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 18.35,
+      "seed": 9700003,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 24.65,
+      "seed": 9700004,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 24.65,
+      "seed": 9700005,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 24.65,
+      "seed": 9700006,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 18.35,
+      "seed": 9700007,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 18.35,
+      "seed": 9700008,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 18.35,
+      "seed": 9700009,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 24.65,
+      "seed": 9700010,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 24.65,
+      "seed": 9700011,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 24.65,
+      "seed": 9700012,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 18.35,
+      "seed": 9700013,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 18.35,
+      "seed": 9700014,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 18.35,
+      "seed": 9700015,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 24.65,
+      "seed": 9700016,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 24.65,
+      "seed": 9700017,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 24.65,
+      "seed": 9700018,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700019,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700020,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700021,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700022,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700023,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700024,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700025,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700026,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700027,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700028,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700029,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700030,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700031,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700032,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700033,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700034,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700035,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700036,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700037,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700038,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700039,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700040,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700041,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700042,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700043,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700044,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "response_beta_erd",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700045,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 18.35,
+      "seed": 9700046,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 18.35,
+      "seed": 9700047,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 18.35,
+      "seed": 9700048,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 24.65,
+      "seed": 9700049,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 24.65,
+      "seed": 9700050,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 24.65,
+      "seed": 9700051,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 18.35,
+      "seed": 9700052,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 18.35,
+      "seed": 9700053,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 18.35,
+      "seed": 9700054,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 24.65,
+      "seed": 9700055,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 24.65,
+      "seed": 9700056,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 24.65,
+      "seed": 9700057,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 18.35,
+      "seed": 9700058,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 18.35,
+      "seed": 9700059,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 18.35,
+      "seed": 9700060,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 24.65,
+      "seed": 9700061,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 24.65,
+      "seed": 9700062,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 24.65,
+      "seed": 9700063,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700064,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700065,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700066,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700067,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700068,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700069,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700070,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700071,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700072,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700073,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700074,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700075,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700076,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700077,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700078,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700079,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700080,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700081,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700082,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700083,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700084,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700085,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700086,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700087,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700088,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700089,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "stop_success_beta_enhancement",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 21,
+      "seed": 9700090,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 5.35,
+      "seed": 9700091,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 5.35,
+      "seed": 9700092,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 5.35,
+      "seed": 9700093,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 6.65,
+      "seed": 9700094,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 6.65,
+      "seed": 9700095,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "weak",
+      "amplitude": 1.3,
+      "frequency_hz": 6.65,
+      "seed": 9700096,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 5.35,
+      "seed": 9700097,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 5.35,
+      "seed": 9700098,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 5.35,
+      "seed": 9700099,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 6.65,
+      "seed": 9700100,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 6.65,
+      "seed": 9700101,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "moderate",
+      "amplitude": 2,
+      "frequency_hz": 6.65,
+      "seed": 9700102,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 5.35,
+      "seed": 9700103,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 5.35,
+      "seed": 9700104,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 5.35,
+      "seed": 9700105,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 6.65,
+      "seed": 9700106,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 6.65,
+      "seed": 9700107,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "known",
+      "strength": "strong",
+      "amplitude": 5,
+      "frequency_hz": 6.65,
+      "seed": 9700108,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700109,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700110,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "noise",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700111,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700112,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700113,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700114,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700115,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700116,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "broadband",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700117,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700118,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700119,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "broadband_stationary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700120,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700121,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700122,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "switch",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700123,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700124,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700125,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "boundary",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700126,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700127,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700128,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "transient",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700129,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700130,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700131,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "chirp",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700132,
+      "n_trials": 120,
+      "rep": 2
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700133,
+      "n_trials": 40,
+      "rep": 0
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700134,
+      "n_trials": 80,
+      "rep": 1
+    },
+    {
+      "estimand": "feedback_theta_enhancement",
+      "scenario": "competing",
+      "strength": null,
+      "amplitude": 5,
+      "frequency_hz": 6,
+      "seed": 9700135,
+      "n_trials": 120,
+      "rep": 2
+    }
+  ],
+  "criteria": ">=85% moderate/strong accepted; no wrong accepted known frequencies; <=5% unsuitable controls accepted"
+}

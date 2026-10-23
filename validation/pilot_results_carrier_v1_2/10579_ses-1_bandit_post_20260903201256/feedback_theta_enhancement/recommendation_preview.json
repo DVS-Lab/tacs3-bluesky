@@ -1,0 +1,37 @@
+{
+  "schema": "rhythm-recommendation-preview-v1",
+  "mode": "dry_run_only",
+  "subject": "10579",
+  "session": "1",
+  "task": "bandit",
+  "phase": "post",
+  "run": "20260903201256",
+  "estimand": "feedback_theta_enhancement",
+  "candidate_frequency_hz": null,
+  "approved_stimulation_frequency_hz": null,
+  "fallback_option_hz": 6,
+  "requires_pi_approval": true,
+  "failure_reasons": [
+    "bootstrap_carrier_frequency_uncertain",
+    "bootstrap_carrier_often_missing",
+    "chronological_carrier_not_reproducible",
+    "chronological_effect_direction_not_reproduced",
+    "chronological_selective_modulation_not_reproduced",
+    "crossfit_task_modulation_not_reproduced",
+    "effect_direction_uncertain",
+    "no_resolved_carrier_peak",
+    "no_selective_oscillatory_modulation",
+    "odd_even_carrier_not_reproducible",
+    "odd_even_effect_direction_not_reproduced",
+    "odd_even_selective_modulation_not_reproduced",
+    "selective_modulation_uncertain",
+    "within_epoch_carrier_missing",
+    "wrong_direction_or_small_effect"
+  ],
+  "analysis_version": "offline-rhythm-validation-1.2",
+  "input_sha256": {
+    "eeg": "97173b63630856d69673155740809c8ab123d2f02859a1606cd8c9e7206d2c64",
+    "metadata": "7165d01bbac54593c6deb0cff98be5a242fd747faa458b1c3d45e96a5b2f687b",
+    "events": "be1cec8c2126b759c3b5d8750fe534bfc49ed864878db6077bc0a8e285037716"
+  }
+}

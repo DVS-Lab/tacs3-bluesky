@@ -1,6 +1,6 @@
 # Jacob and Avi: the specific information we need
 
-The normalization fix, software testing, and pilot rerun are complete. Additional known-signal tests demonstrate a frequency-estimation limitation independent of participant EEG; artifact screening also needs validation. Please do not install software, rerun analyses, choose thresholds, or interpret every failed estimate as bad EEG. We will handle further analysis and code changes. [Latest data-versus-method diagnosis](data_vs_method_diagnosis.md).
+The normalization and carrier-estimation repairs, acceptance-rule validation, known-signal recovery tests, and full pilot rerun are complete. See the [v1.2 results](carrier_estimator_validation.md). No native pilot target qualifies, despite substantially improved known-signal recovery. A failed target is not evidence of bad EEG. No installation, analysis rerun, or threshold decision is needed from Jacob or Avi. The following is a draft request for existing records that are not available locally; it has not been sent.
 
 Please send David the following through the approved lab storage location. A file link and a brief explanation are enough; “not available” is also useful. Do not rename source files or repair timestamps yourself.
 
@@ -12,6 +12,6 @@ Please send David the following through the approved lab storage location. A fil
 
 4. **10034 acquisition/reference records.** For the September 18 Bandit pre/post recordings, do you have the acquisition montage/reference settings, channel-integrity or impedance logs, or notes about cap/connection changes? These channels are almost identical to one another and leave little differential signal after rereferencing. We need that context to distinguish acquisition issues from reference/analysis effects; this finding alone does not establish bad EEG. Please point to existing records rather than recollecting data.
 
-We recovered the 10579 post-Bandit file ourselves (`010579` was leading-zero padding), so that no longer needs investigation. The [machine-generated inventory](../validation/acceptance_calibration_followup/unresolved_input_inventory.json) lists the exact remaining candidate paths and fields. The [latest results](acceptance_calibration_followup.md) explain the software work and its limits.
+We recovered the 10579 post-Bandit file ourselves (`010579` was leading-zero padding), so that no longer needs investigation. The [machine-generated inventory](../validation/acceptance_calibration_followup/unresolved_input_inventory.json) lists the exact remaining candidate paths and fields. The [latest results](carrier_estimator_validation.md) explain the software work and its limits.
 
 Once the available evidence is supplied, we can update verified pairings, rerun the affected analyses, and assess any independent repeats. We will not infer undocumented identities or clock offsets, and we are not asking you to choose between 13 and 23 Hz or authorize stimulation.

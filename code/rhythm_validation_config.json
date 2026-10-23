@@ -1,5 +1,5 @@
 {
-  "analysis_version": "offline-rhythm-validation-1.1",
+  "analysis_version": "offline-rhythm-validation-1.2",
   "seed": 112358,
   "preprocessing": {
     "highpass_hz": 1.0,
@@ -223,5 +223,24 @@
     "iaf_offset_hz": 5,
     "epoch_ptp_uv": 150.0,
     "step_uv": 75.0
+  },
+  "carrier_estimation": {
+    "common": {
+      "background_upper_clip_db": 1.0,
+      "min_carrier_prominence_db": 3.0,
+      "competing_power_fraction": 0.5,
+      "boundary_margin_hz": 0.3,
+      "min_selective_modulation_fraction": 0.2
+    },
+    "theta": {
+      "max_carrier_width_hz": 1.5,
+      "max_split_hz": 0.75,
+      "max_ci_hz": 1.0
+    },
+    "beta": {
+      "max_carrier_width_hz": 2.5,
+      "max_split_hz": 1.5,
+      "max_ci_hz": 2.0
+    }
   }
 }

@@ -1,0 +1,58 @@
+{
+  "F3": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 74.40187329879538,
+    "role": "scalp"
+  },
+  "Fp1": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 74.3821867602269,
+    "role": "ocular_only"
+  },
+  "FCz": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 148.24124546841938,
+    "role": "scalp"
+  },
+  "FT7": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 140.2765667533185,
+    "role": "scalp"
+  },
+  "F4": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 133.13408555063307,
+    "role": "scalp"
+  },
+  "P4": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 143.1454827235184,
+    "role": "scalp"
+  },
+  "P3": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 170.6777540035898,
+    "role": "scalp"
+  },
+  "EOG1": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 74.32043730076025,
+    "role": "scalp"
+  }
+}

@@ -1,0 +1,31 @@
+........................................................................ [ 82%]
+.............s.                                                          [100%]
+=============================== warnings summary ===============================
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  /Users/tug87422/Documents/Codex/2026-10-07/files-pasted-by-the-user-codex/work/venv/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:64: PyparsingDeprecationWarning: 'oneOf' deprecated - use 'one_of'
+    prop = Group((name + Suppress("=") + comma_separated(value)) | oneOf(_CONSTANTS))
+
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  /Users/tug87422/Documents/Codex/2026-10-07/files-pasted-by-the-user-codex/work/venv/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:85: PyparsingDeprecationWarning: 'parseString' deprecated - use 'parse_string'
+    parse = parser.parseString(pattern)
+
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  /Users/tug87422/Documents/Codex/2026-10-07/files-pasted-by-the-user-codex/work/venv/lib/python3.11/site-packages/matplotlib/_fontconfig_pattern.py:89: PyparsingDeprecationWarning: 'resetCache' deprecated - use 'reset_cache'
+    parser.resetCache()
+
+tests/test_rhythm_validation.py::test_secondary_no_peak_is_valid_json
+  /Users/tug87422/Documents/Codex/2026-10-07/files-pasted-by-the-user-codex/work/venv/lib/python3.11/site-packages/matplotlib/_mathtext.py:45: PyparsingDeprecationWarning: 'enablePackrat' deprecated - use 'enable_packrat'
+    ParserElement.enablePackrat()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+86 passed, 1 skipped, 14 warnings in 10.67s

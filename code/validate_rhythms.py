@@ -110,6 +110,8 @@ def run(root, manifest_path, config_path, subject=None, output_name=None, replay
                               'change_db':arrays['trials'].mean(0) if len(epochs) else np.nan,
                               'baseline_power_uv2':arrays['base'].mean(0) if len(epochs) else np.nan,
                               'analysis_power_uv2':arrays['active'].mean(0) if len(epochs) else np.nan}).to_csv(dest/'spectrum.csv',index=False)
+                pd.DataFrame({'frequency_hz':arrays['psd_freqs'],
+                              'power_uv2_per_hz':arrays['psds'].mean(0) if len(epochs) else np.nan}).to_csv(dest/'carrier_spectrum.csv',index=False)
                 if estimand=='feedback_theta_enhancement':
                     result['secondary_theta']=theta_secondary(epochs,times,fs,clean,names,channel_qc,cfg['theta_secondary'])
             except InputError as exc:
@@ -120,6 +122,15 @@ def run(root, manifest_path, config_path, subject=None, output_name=None, replay
                               n_retained=0,retention_fraction=0,failure_reasons=[str(exc)],warnings=[])
                 for log in logs:
                     if log['eligible']:log['reason']=str(exc)
+            if not result.get('estimator'):
+                result['analysis_limiting_stage']=('too_few_eligible_trials_before_artifact_screening'
+                    if result['failure_reasons'] == ['no_eligible_events'] else 'input_or_timing_unresolved')
+            elif result['n_eligible'] < cfg['reliability']['min_epochs']:
+                result['analysis_limiting_stage']='too_few_eligible_trials_before_artifact_screening'
+            elif result.get('data_adequacy_reasons'):
+                result['analysis_limiting_stage']='channel_or_retained_trial_yield_limited'
+            else:
+                result['analysis_limiting_stage']='candidate_passes_provisional_checks' if result['reliable'] else 'no_qualified_task_related_carrier'
             if logs:pd.DataFrame(logs).to_csv(dest/'events.csv',index=False)
             write_json(dest/'result.json',result)
             write_json(dest/'recommendation_preview.json',preview(result))
