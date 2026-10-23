@@ -1,5 +1,7 @@
 # Verification record
 
+This is the historical v1.0 verification record. See [v1.1 validation and decision](../docs/meanlogratio_validation_decision.md) for the corrected estimator.
+
 - Environment: macOS ARM64, Python 3.11.17; direct and transitive dependencies pinned in `requirements-validation.txt`.
 - Full tests: `python -m pytest tests -q -ra` — **50 passed, 1 skipped**. Raw summary in `test_results.txt`; 14 third-party Matplotlib/Pyparsing deprecation warnings do not affect results.
 - Baseline before edits: 7 passed, 1 failed. The failed test calls an obsolete SST `--test-mode` interface; the current `sst_main.py` requires PsychoPy and immediately launches a GUI. It is explicitly skipped with that reason, not reported as passing. Experimental timing/code was not altered to satisfy it.

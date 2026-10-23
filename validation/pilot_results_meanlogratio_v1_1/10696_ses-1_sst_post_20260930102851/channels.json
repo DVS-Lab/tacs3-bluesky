@@ -1,0 +1,62 @@
+{
+  "F3": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.006666666666666667,
+    "raw_std_uv": 212.87662643171765,
+    "role": "scalp"
+  },
+  "Fp1": {
+    "bad": true,
+    "reasons": [
+      "excess_bad_windows"
+    ],
+    "bad_window_fraction": 0.9466666666666667,
+    "raw_std_uv": 157.27473686162253,
+    "role": "ocular_only"
+  },
+  "FCz": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 189.3964317329787,
+    "role": "scalp"
+  },
+  "FT7": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.006666666666666667,
+    "raw_std_uv": 207.25604015913265,
+    "role": "scalp"
+  },
+  "F4": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.04666666666666667,
+    "raw_std_uv": 93.30592848678586,
+    "role": "scalp"
+  },
+  "P4": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 120.80548000111479,
+    "role": "scalp"
+  },
+  "P3": {
+    "bad": false,
+    "reasons": [],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 134.58810844905597,
+    "role": "scalp"
+  },
+  "EXT": {
+    "bad": true,
+    "reasons": [
+      "external_channel_not_scalp"
+    ],
+    "bad_window_fraction": 0.0,
+    "raw_std_uv": 55.61610544734613,
+    "role": "scalp"
+  }
+}

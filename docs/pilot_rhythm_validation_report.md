@@ -1,5 +1,7 @@
 # Pilot rhythm validation report
 
+**Historical v1.0 report.** The normalization is now corrected in v1.1. Read the [current validation and individualization decision](meanlogratio_validation_decision.md) for updated results and limitations.
+
 **No individualized beta frequency survives the prespecified provisional QC gates.** This is a negative feasibility result for this workflow and dataset, not proof that participants lack beta rhythms or that Bandit and SST are equivalent.
 
 The [QC summary](../validation/pilot_results/qc_summary.csv), [original/revised comparison](../validation/pilot_results/original_revised_comparison.csv), [paired descriptives](../validation/pilot_results/paired_descriptives.csv), per-trial logs, spectra, plots, input manifest, and configuration are committed under `validation/pilot_results`. The [audit](rhythm_estimation_audit.md) gives methods, evidence, threshold rationale, and PI decisions. The [Avi guide](avi_rhythm_validation_guide.md) gives executable Windows commands.

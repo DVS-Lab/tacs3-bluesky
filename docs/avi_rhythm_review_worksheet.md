@@ -1,5 +1,7 @@
 # Avi: pilot rhythm review worksheet
 
+**Current result:** [Corrected normalization validation and recommendation](meanlogratio_validation_decision.md). The current v1.1 workflow is for offline analysis; individualized stimulation is not supported by this validation.
+
 Copy this worksheet into your own document and return it to David through the approved lab sharing location. Follow the [step-by-step guide](avi_rhythm_validation_guide.md). No installation is required. Fill every item with confirmed, contradicted, unknown, found, or not found, plus the supporting detail. Do not put participant files or sensitive paths in public GitHub comments.
 
 Reviewer: ___  Review date: ___
@@ -22,7 +24,7 @@ For each entry, compare the source paths below with the lab session log and orig
 - EEG: `pilot_data/Pilot-G10037/20260916105202_10037-1_SST_pre-stim.easy`
 - Events: `pilot_data/Pilot-G10037/sub-10037-1_task-SST_pre-stim_2026-09-16_10-51-42.csv`
 - Metadata: `stimulation/stimulation-data/20260916105202_10037-1_Run 1.info`
-- [Read the analysis diagnostics](../validation/pilot_results/10037_ses-1_sst_pre_20260916105202/response_beta_erd/result.json).
+- [Read the analysis diagnostics](../validation/pilot_results_meanlogratio_v1_1/10037_ses-1_sst_pre_20260916105202/response_beta_erd/result.json).
 - Pairing: confirmed / contradicted / unknown: ___
 - Evidence (session log, run identity, original export, timing log): ___
 - Known restart, early stop, clock change, aborted run, or other relevant event; otherwise unknown: ___
@@ -33,7 +35,7 @@ For each entry, compare the source paths below with the lab session log and orig
 - EEG: `pilot_data/Pilot-G10037/20260916105944_10037-1_Bandit_pre-stim.easy`
 - Events: `pilot_data/Pilot-G10037/sub-10037-1_task-bandit_pre-stim_2026-09-16_10-58-33.csv`
 - Metadata: `stimulation/stimulation-data/20260916105944_10037-1_Run 1.info`
-- [Read the analysis diagnostics](../validation/pilot_results/10037_ses-1_bandit_pre_20260916105944/response_beta_erd/result.json).
+- [Read the analysis diagnostics](../validation/pilot_results_meanlogratio_v1_1/10037_ses-1_bandit_pre_20260916105944/response_beta_erd/result.json).
 - Pairing: confirmed / contradicted / unknown: ___
 - Evidence (session log, run identity, original export, timing log): ___
 - Known restart, early stop, clock change, aborted run, or other relevant event; otherwise unknown: ___
@@ -44,7 +46,7 @@ For each entry, compare the source paths below with the lab session log and orig
 - EEG: `pilot_data/Pilot-G10037/20260916113150_10037-1_SST_post-stim.easy`
 - Events: `data/sub-10037/sub-10037_ses-1_run-02_task-SST_2026-09-16_11-31-36_events.csv`
 - Metadata: `stimulation/stimulation-data/20260916113150_10037-1_SST_post-stim.info`
-- [Read the analysis diagnostics](../validation/pilot_results/10037_ses-1_sst_post_20260916113150/response_beta_erd/result.json).
+- [Read the analysis diagnostics](../validation/pilot_results_meanlogratio_v1_1/10037_ses-1_sst_post_20260916113150/response_beta_erd/result.json).
 - Pairing: confirmed / contradicted / unknown: ___
 - Evidence (session log, run identity, original export, timing log): ___
 - Known restart, early stop, clock change, aborted run, or other relevant event; otherwise unknown: ___
@@ -55,7 +57,7 @@ For each entry, compare the source paths below with the lab session log and orig
 - EEG: `pilot_data/Pilot-G10037/20260916113955_10037-1_Bandit_post-stim.easy`
 - Events: `behavioral-data/sub-10037/sub-10037_ses-1_run-02_task-bandit_2026-09-16_11-39-45_events.tsv`
 - Metadata: `stimulation/stimulation-data/20260916113955_10037-1_Bandit_post-stim.info`
-- [Read the analysis diagnostics](../validation/pilot_results/10037_ses-1_bandit_post_20260916113955/response_beta_erd/result.json).
+- [Read the analysis diagnostics](../validation/pilot_results_meanlogratio_v1_1/10037_ses-1_bandit_post_20260916113955/response_beta_erd/result.json).
 - Pairing: confirmed / contradicted / unknown: ___
 - Evidence (session log, run identity, original export, timing log): ___
 - Known restart, early stop, clock change, aborted run, or other relevant event; otherwise unknown: ___
@@ -168,7 +170,7 @@ For each, list the folders/archives searched and either a candidate source with 
 
 - Performed? yes / no (not required): ___
 - Git commit and Python version: ___
-- Test summary (expected 50 passed, 1 skipped): ___
+- Test summary (expected 54 passed, 1 skipped): ___
 - 10034 completion (expected 4 recordings / 10 analyses) and four beta trial counts match the guide? ___
 - Full batch, if run (expected 38 recordings / 95 analyses / 0 passing): ___
 - Output folder location and differences/errors, if any: ___

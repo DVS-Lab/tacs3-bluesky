@@ -8,7 +8,7 @@ From the repository root, with the validation environment installed:
 .\.venv\Scripts\python.exe code\validate_rhythms.py --subject 10034
 ```
 
-Remove `--subject 10034` to analyze all pilot recordings. The command prints the output folder, `validation_outputs/<timestamp>/`, which contains the new `qc_summary.csv`. The CSV in `validation/pilot_results` is a saved reference run and is not overwritten. See the [setup instructions](../docs/avi_rhythm_validation_guide.md#6-optional-reproduce-the-analysis-on-the-lab-windows-computer) if the environment is not installed.
+Remove `--subject 10034` to analyze all pilot recordings. The command prints the output folder, `validation_outputs/<timestamp>/`, which contains the new `qc_summary.csv`. The current saved reference is `validation/pilot_results_meanlogratio_v1_1`; `validation/pilot_results` preserves the historical v1.0 run. Neither is overwritten by a new run. See the [setup instructions](../docs/avi_rhythm_validation_guide.md#6-optional-reproduce-the-analysis-on-the-lab-windows-computer) if the environment is not installed.
 
 ## What each script does
 
@@ -49,4 +49,4 @@ For the scientific rationale and limitations, see the [audit](../docs/rhythm_est
 
 For the controlled 10034 pre comparison showing which choices move the beta minimum from 13 to 23 Hz, see the [method comparison and reproduction commands](../docs/10034_beta_method_comparison.md).
 
-The subsequent [normalization check](../docs/10034_normalization_check.md) documents downward log-ratio bias and a candidate correction. This correction has not been applied to the primary estimator.
+The correction is now applied in v1.1. Read the [current validation and individualization decision](../docs/meanlogratio_validation_decision.md), including the pilot rerun and limitations of the acceptance criteria.

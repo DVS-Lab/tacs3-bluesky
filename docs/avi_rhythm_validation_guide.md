@@ -1,5 +1,7 @@
 # Avi: step-by-step review of the pilot rhythm validation
 
+**Current result:** [Corrected normalization validation and recommendation](meanlogratio_validation_decision.md). The current v1.1 workflow is for offline analysis; individualized stimulation is not supported by this validation.
+
 **Which script produces `qc_summary.csv`?** Run `code/validate_rhythms.py`. The [codebook in the code folder](../code/README.md) explains the supporting scripts, functions, settings, and output fields.
 
 **Start with the browser review below. You do not need to install software or rerun the analysis to do this review.** The pilot analysis has already been completed, and automated tests plus a real-data smoke test passed on Windows and Linux. A local rerun is optional and described at the end.
@@ -11,9 +13,9 @@ Your immediate job is to check the recording history and source files against wh
 1. Sign into GitHub with an account that can access DVS-Lab and open [PR #1](https://github.com/DVS-Lab/tacs3-bluesky/pull/1). If you cannot access it, tell David that repository access is needed; the review can also be done from the handoff ZIP he supplies.
 2. Read the [pilot report](pilot_rhythm_validation_report.md), especially “Coverage and result” and the six-participant table. You do not need to review the code diff first.
 3. Open the [review worksheet](avi_rhythm_review_worksheet.md). Copy it into a text document in the lab's approved working location and fill in the answers as you follow steps 2–5. “Unknown” and “not found in the locations checked” are useful answers.
-4. Open the [QC summary](../validation/pilot_results/qc_summary.csv). In GitHub, use its table view, or download a copy and open it in Excel. If using the ZIP, extract it first and open `validation/pilot_results/qc_summary.csv`. Inspect copies without saving changes to source files.
+4. Open the [QC summary](../validation/pilot_results_meanlogratio_v1_1/qc_summary.csv). In GitHub, use its table view, or download a copy and open it in Excel. If using the ZIP, extract it first and open `validation/pilot_results_meanlogratio_v1_1/qc_summary.csv`. Inspect copies without saving changes to source files.
 
-These links point to the review branch. The checked-in reference outputs are under `validation/pilot_results`; `validation_outputs` exists only after a local rerun. No StarStim, NIC-2, PsychoPy, or connected hardware is needed.
+These links point to the review branch. The checked-in reference outputs are under `validation/pilot_results_meanlogratio_v1_1`; `validation_outputs` exists only after a local rerun. No StarStim, NIC-2, PsychoPy, or connected hardware is needed.
 
 ## 2. Check what the summary is saying
 
@@ -30,9 +32,9 @@ In the QC summary, find subject `10034` and the rows whose `estimand` is `respon
 
 Open these three images, using the links or the same paths within the extracted ZIP:
 
-1. [10034 Bandit pre spectrum and time-frequency plot](../validation/pilot_results/10034_ses-1_bandit_pre_20260918104411/response_beta_erd/spectra_tfr.png). The left panel shows power change by frequency; the right shows power change around responses. Record that 115/120 trials remain but the result still fails. A dip in the curve alone does not establish a reliable individual frequency.
-2. [10034 SST pre channel QC](../validation/pilot_results/10034_ses-1_sst_pre_20260918103527/channel_qc.png). Note which channels are flagged, and whether the session notes mention poor contact, movement, blinking, or other acquisition problems. If no notes exist, write “no session notes available.”
-3. [10034 SST pre spectrum and time-frequency plot](../validation/pilot_results/10034_ses-1_sst_pre_20260918103527/response_beta_erd/spectra_tfr.png). Only 3/53 eligible trials remain. Open its [trial exclusion log](../validation/pilot_results/10034_ses-1_sst_pre_20260918103527/response_beta_erd/events.csv) and read the `reason` column. `ocular_artifact_spreads_to_roi` means the screen detected eye-related activity spreading into the analyzed frontal channels. `not_correct_go` means that trial is outside this particular analysis, not necessarily a bad trial.
+1. [10034 Bandit pre spectrum and time-frequency plot](../validation/pilot_results_meanlogratio_v1_1/10034_ses-1_bandit_pre_20260918104411/response_beta_erd/spectra_tfr.png). The left panel shows power change by frequency; the right shows power change around responses. Record that 115/120 trials remain but the result still fails. A dip in the curve alone does not establish a reliable individual frequency.
+2. [10034 SST pre channel QC](../validation/pilot_results_meanlogratio_v1_1/10034_ses-1_sst_pre_20260918103527/channel_qc.png). Note which channels are flagged, and whether the session notes mention poor contact, movement, blinking, or other acquisition problems. If no notes exist, write “no session notes available.”
+3. [10034 SST pre spectrum and time-frequency plot](../validation/pilot_results_meanlogratio_v1_1/10034_ses-1_sst_pre_20260918103527/response_beta_erd/spectra_tfr.png). Only 3/53 eligible trials remain. Open its [trial exclusion log](../validation/pilot_results_meanlogratio_v1_1/10034_ses-1_sst_pre_20260918103527/response_beta_erd/events.csv) and read the `reason` column. `ocular_artifact_spreads_to_roi` means the screen detected eye-related activity spreading into the analyzed frontal channels. `not_correct_go` means that trial is outside this particular analysis, not necessarily a bad trial.
 
 Write observations in the worksheet. You do not need to judge whether the provisional thresholds are scientifically optimal. If a plot or exclusion seems inconsistent with your knowledge of the session, identify the recording and the specific discrepancy.
 
@@ -56,7 +58,7 @@ Start with these four 10037 recordings, all dated **September 16, 2026**. Exact 
 | SST post, 11:31:50 | No eligible correct-go responses in the paired file | Check the original behavioral file's `stop`, `go_correct`, and response fields. Was this the intended completed run, an aborted run, or a different export? |
 | Bandit post, 11:39:55 | Too few selected response times fall within the EEG recording | Confirm the post-run identity and whether the task continued beyond EEG recording. |
 
-For details, open the recording's `response_beta_erd/result.json` under `validation/pilot_results` and search for `failure_reasons` and `timestamp_diagnostics`. These are readable text fields; no Python is required. If present, `events.csv` gives the trial-level reason. Some input failures occur before a trial log or plot can be produced, so a missing plot is not itself a new error.
+For details, open the recording's `response_beta_erd/result.json` under `validation/pilot_results_meanlogratio_v1_1` and search for `failure_reasons` and `timestamp_diagnostics`. These are readable text fields; no Python is required. If present, `events.csv` gives the trial-level reason. Some input failures occur before a trial log or plot can be produced, so a missing plot is not itself a new error.
 
 The two 10037 post event files are already included: SST under `data/sub-10037`, Bandit under `behavioral-data/sub-10037`. Please verify these matches; do not assume the files are missing because they are outside `pilot_data`.
 
@@ -87,7 +89,7 @@ You are finished with this review when each worksheet item has an answer, includ
 
 ## 6. Optional: reproduce the analysis on the lab Windows computer
 
-This checks that the lab computer can reproduce the analysis. It is **not a prerequisite for steps 1–5**. Previously completed checks: [Windows/Linux CI run](https://github.com/DVS-Lab/tacs3-bluesky/actions/runs/37721668961) and [verification record](../validation/verification.md).
+This checks that the lab computer can reproduce the analysis. It is **not a prerequisite for steps 1–5**. Previously completed checks: [Windows/Linux CI run](https://github.com/DVS-Lab/tacs3-bluesky/actions/runs/39985644935) and [current validation report](meanlogratio_validation_decision.md).
 
 ### A. Set up a separate analysis copy
 
@@ -122,7 +124,7 @@ From the new `tacs3-rhythm-validation` folder:
 .\.venv\Scripts\python.exe code\validate_rhythms.py --subject 10034
 ```
 
-Expected test result for this version: **50 passed, 1 skipped**. The skip is an obsolete SST GUI command-line test; do not launch the experimental task to resolve it. Third-party Matplotlib/Pyparsing deprecation warnings were observed in the reference environment and do not mean a test failed. Report actual failed tests or new errors.
+Expected test result for this version: **54 passed, 1 skipped**. The skip is an obsolete SST GUI command-line test; do not launch the experimental task to resolve it. Third-party Matplotlib/Pyparsing deprecation warnings were observed in the reference environment and do not mean a test failed. Report actual failed tests or new errors.
 
 The participant command prints `Outputs: ...`. Open that exact folder in File Explorer under `validation_outputs`. Open `completion.json` with Notepad: expect `completed: true`, `recordings: 4`, and `estimates: 10`. Open its `qc_summary.csv`, filter to `response_beta_erd`, and compare all four rows to the trial-count table in step 2. All ten analyses are expected to fail scientific QC; the individual frequency cells should remain empty. If counts or conclusions differ, record the difference and send the run folder to David before continuing to the full batch.
 
@@ -136,6 +138,6 @@ If the participant check matches, run:
 
 Allow several minutes or longer depending on the computer. Open the new folder printed after `Outputs:`. Its `completion.json` should report `completed: true`, **38 recordings, 95 estimates, 0 passing estimates**. A QC `FAIL` is a completed analysis outcome, not a software crash. A traceback or absent `completion.json` means the run did not complete. Completion alone does not establish that the expected data were analyzed: also compare trial counts and failure reasons with the reference summary.
 
-Each run creates a new timestamped folder; older outputs remain intact. If rerun, send David the test summary, commit/Python version, and the completed output folder (or its `completion.json`, `qc_summary.csv`, `original_revised_comparison.csv`, `provenance.json`, and the three plots from step 2). Record any differences from `validation/pilot_results`; run timestamps and computer paths will naturally differ.
+Each run creates a new timestamped folder; older outputs remain intact. If rerun, send David the test summary, commit/Python version, and the completed output folder (or its `completion.json`, `qc_summary.csv`, `original_revised_comparison.csv`, `provenance.json`, and the three plots from step 2). Record any differences from `validation/pilot_results_meanlogratio_v1_1`; run timestamps and computer paths will naturally differ.
 
 **Interpretation:** `PASS` would mean meeting provisional QC, still requiring separately approved deployment. `warnings` records limitations. `FAIL` means no qualified individual frequency. The documented 20-Hz beta and 6-Hz theta fallback options are not participant assignments. Do not raise thresholds to obtain a pass or copy diagnostic values into NIC-2.

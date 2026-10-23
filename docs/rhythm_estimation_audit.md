@@ -1,5 +1,7 @@
 # Rhythm-estimation audit and offline methods
 
+**v1.1 update:** Mean-log-ratio normalization is now implemented. The [new validation report](meanlogratio_validation_decision.md) documents the corrected pilot run and substantial false rejection by the provisional gates. No individualization/deployment claim is supported.
+
 Audited starting commit: `39c4104115d159340fef46f5b7f57ae8b3a25c02`. The validated software workflow is `code/validate_rhythms.py`; “validated” here describes checked software behavior, **not empirical validation of individualized stimulation**. The pilot findings are in [pilot validation report](pilot_rhythm_validation_report.md). All thresholds remain provisional.
 
 ## Confirmed problems and consequences
@@ -41,7 +43,7 @@ Continuous fourth-order SOS Butterworth 1–45-Hz filtering is zero phase. No ex
 
 Fp1 excursions are logged. An excursion rejects an epoch when its correlation with the **referenced** ROI indicates spread; correlation is computed after the same reference transformation, avoiding false rejection from common acquisition-reference activity. This is a conservative ocular screen, not verified EOG correction. Independent Fp1 noise does not veto clean ROI trials; synthetic spread and independent-noise cases test both sides. The sparse montage limits source separation and leaves residual muscle/ocular ambiguity.
 
-Power is computed per channel and trial using explicitly zero-mean Morlets, then averaged over ROI channels. Each trial is normalized to its own baseline before averaging dB contrasts. This differs from the legacy log of a ratio of grand-average power; the report treats them as different estimators, not interchangeable numbers. Padding is checked for baseline, analysis, and plotted intervals. The [MNE wavelet documentation](https://mne.tools/stable/generated/mne.time_frequency.tfr_array_morlet.html) explains the support and time/frequency tradeoff underlying this design.
+Power is computed per channel and trial using explicitly zero-mean Morlets, then averaged over ROI channels. Each trial is normalized by subtracting its mean baseline log power from its log power before averaging dB contrasts (mean-log-ratio, v1.1). The earlier v1.0 implementation used log of mean baseline power and had a downward normalization offset. This differs from the legacy log of a ratio of grand-average power; the report treats them as different estimators, not interchangeable numbers. Padding is checked for baseline, analysis, and plotted intervals. The [MNE wavelet documentation](https://mne.tools/stable/generated/mne.time_frequency.tfr_array_morlet.html) explains the support and time/frequency tradeoff underlying this design.
 
 ## Reliability and threshold rationale
 

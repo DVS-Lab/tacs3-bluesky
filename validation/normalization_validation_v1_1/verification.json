@@ -1,0 +1,20 @@
+{
+  "analysis_version": "offline-rhythm-validation-1.1",
+  "tests_passed": 54,
+  "tests_skipped": 1,
+  "recordings": 38,
+  "analyses": 95,
+  "passing_pilot_analyses": 0,
+  "repeat_10034_equal_results": 10,
+  "repeat_comparison_excludes": "legacy_reproduction because repeat used --skip-legacy",
+  "retained_event_logs_changed_vs_v1_0": 0,
+  "synthetic_known_datasets": 72,
+  "known_candidate_errors_at_most_hz": 0.5,
+  "known_accepted": 30,
+  "nonqualifying_control_datasets": 90,
+  "nonqualifying_controls_accepted": 0,
+  "source_code_commit": "4ca1dc7",
+  "ci_status": "success",
+  "ci_run_url": "https://github.com/DVS-Lab/tacs3-bluesky/actions/runs/39985644935",
+  "ci_code_commit": "4ca1dc750b41d65482db791fe68dd8d9854af0a2"
+}

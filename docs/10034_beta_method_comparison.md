@@ -1,5 +1,7 @@
 # What drives the 13-to-23-Hz change in 10034 Bandit pre?
 
+**Historical v1.0 report.** The normalization is now corrected in v1.1. Read the [current validation and individualization decision](meanlogratio_validation_decision.md) for updated results and limitations.
+
 **Follow-up:** The [normalization check](10034_normalization_check.md) finds that centering baseline and response consistently in log power retains the 23-Hz minimum but reduces its effect from −0.753 to −0.065 dB. The strong negative value below should not be interpreted as established physiological suppression.
 
 **The analysis window and the order of trial normalization/averaging are the principal drivers in this recording.** Either change alone moves the original minimum into the 22.5–23-Hz range. The retained trials are identical. The effects interact, so the 10-Hz total shift cannot be divided into independent additive contributions.
@@ -46,7 +48,9 @@ The revised `feature()` first finds the diagnostic minimum, then checks it. The 
 
 The reproduced full 23-Hz result still fails: no qualifying localized contrast, no absolute spectral corroboration, failed/missing split-half features, and a qualifying feature in only **3/300 bootstrap samples (1%)**. Its individualized-frequency field remains empty. The original 13-Hz result is a boundary minimum with positive power change. This comparison explains the implementation discrepancy; it validates neither frequency for stimulation and does not assess task differences or generalize to other recordings.
 
-## Reproduce and inspect
+## Reproduce and inspect (historical v1.0)
+
+Use a separate checkout of commit `781c07ae7ab7446a1fda4f1587f5688a39a94c59` for these historical experiments. Their endpoint assertions deliberately target v1.0; they are not the validation commands for the corrected current branch.
 
 From the repository root, using the pinned Python 3.11 validation environment, choose a new output folder for each run:
 

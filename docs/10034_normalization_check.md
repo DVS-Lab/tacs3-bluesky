@@ -1,5 +1,7 @@
 # Follow-up: baseline normalization and the 10034 beta effect
 
+**Historical v1.0 report.** The normalization is now corrected in v1.1. Read the [current validation and individualization decision](meanlogratio_validation_decision.md) for updated results and limitations.
+
 The earlier [method comparison](10034_beta_method_comparison.md) identifies the choices that move the minimum from 13 to 23 Hz. It does not establish that the larger negative value is physiological suppression. A focused follow-up checks the baseline normalization itself.
 
 ## Finding
@@ -30,7 +32,9 @@ Retain the revised framework's input checks, reproducibility, and explicit rejec
 
 Task/event-specific estimates need not agree across tasks. Each must independently demonstrate a reproducible target signal; choosing a separate number per task does not resolve failed identification. Response-related beta suppression and stop-related beta enhancement remain distinct targets. No live settings or stimulation assignments were modified.
 
-## Reproduction
+## Reproduction (historical v1.0)
+
+Use a separate checkout of commit `781c07ae7ab7446a1fda4f1587f5688a39a94c59` for these historical experiments. Their endpoint assertions deliberately target v1.0; they are not the validation commands for the corrected current branch.
 
 From a checkout with the pinned validation environment, write to a new output file:
 

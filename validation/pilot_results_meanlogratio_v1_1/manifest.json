@@ -1,0 +1,727 @@
+{
+  "schema": "rhythm-input-manifest-v1",
+  "jobs": [
+    {
+      "id": "10010_ses-1_sst_pre_20260904111037",
+      "subject": "10010",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260904111037",
+      "eeg": "pilot_data/Pilot-G10010/20260904111037_10010-1_SST_pre-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260904111037_10010-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "1af2d36a0305039b612bae45463b54db74fe5c671acc1d8e93083453b4adf603",
+        "metadata": "ffed68a8acef91a37d42f572303c5d3ca6812c4940335a1407210e5d4b366874"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "10010_ses-1_bandit_pre_20260904112036",
+      "subject": "10010",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260904112036",
+      "eeg": "pilot_data/Pilot-G10010/20260904112036_10010-1_Bandit_pre-stim.easy",
+      "events": "stimulation/pre-stimulation-participant-responses/sub-10010-1_task-bandit_2026-09-04_11-17-33.csv",
+      "metadata": "stimulation/stimulation-data/20260904112036_10010-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "252865e40ae8a545ff2772cf9010765721f2091126d7f895343069e2b565973d",
+        "metadata": "e03866df6583f3d9ec00ba8ec1217eecf631a781111dfd4af95429ca94909efc",
+        "events": "dea9f6670bf8c2caca2c99008ca29c2a34fbd4149611264410bb9483f36d236f"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.898 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10010_ses-1_sst_post_20260904114750",
+      "subject": "10010",
+      "session": "1",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260904114750",
+      "eeg": "pilot_data/Pilot-G10010/20260904114750_10010-1_SST_post-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260904114750_10010-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "d165d915ebc89ea2c475ba07db17755e906d9b4000a50b5d88af0b43a7222187",
+        "metadata": "ee731df2343000233e5659b1a98aba6086053ea6abe371fc0c806411e308e359"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "10034_ses-1_sst_pre_20260918103527",
+      "subject": "10034",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260918103527",
+      "eeg": "pilot_data/Pilot-G10034/20260918103527_10034-1_SST_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10034/sub-10034-1_task-SST_pre-stim_2026-09-18_10-34-02.csv",
+      "metadata": "stimulation/stimulation-data/20260918103527_10034-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "0cf70d02c312f0bfed17f9880e1256eaeac180e2c2e0ed3b392e7b6c1eb0932b",
+        "metadata": "36fbb39c0458638912611b061348f60a0d619407ddd246c3d3474cb170f90821",
+        "events": "c28696dc1aaaad6b52a18ac4c5dbc3ec9d42472883fba9cab50e6070a15db3ee"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.845 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10034_ses-1_bandit_pre_20260918104411",
+      "subject": "10034",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260918104411",
+      "eeg": "pilot_data/Pilot-G10034/20260918104411_10034-1_Bandit_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10034/sub-10034-1_task-bandit_pre-stim_2026-09-18_10-42-07.csv",
+      "metadata": "stimulation/stimulation-data/20260918104411_10034-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "37766fa5d33c1f28768aeb7a70a72445241bc9d5680812c09c5e0945d2b9b750",
+        "metadata": "9aecff85e429704ab77255f92c971720ade00d33edeb17affb05ce7c184a49de",
+        "events": "a468eeb07b1937a0f2a466ef215f61f9d2655e805b72f6755fc7bdfb5001866a"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.967 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10034_ses-1_sst_post_20260918111616",
+      "subject": "10034",
+      "session": "1",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260918111616",
+      "eeg": "pilot_data/Pilot-G10034/20260918111616_10034-1_SST_post-stim.easy",
+      "events": "pilot_data/Pilot-G10034/sub-10034-1_task-SST_post-stim_2026-09-18_11-16-03.csv",
+      "metadata": "stimulation/stimulation-data/20260918111616_10034-1_SST_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "9011ba33655969dd5310f0c3a16d8bb53051868d8b5010ea2c8f9818e42af2bd",
+        "metadata": "f93105c6a0175cac5efb4e0c083d36159cfc2c8e41e5a388f36e1303626df727",
+        "events": "4e3bc8b9dd3511a89853cc8e2da4954232f2d3fdbf160b0a8c33a4430c1aeeb6"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.826 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10034_ses-1_bandit_post_20260918112315",
+      "subject": "10034",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260918112315",
+      "eeg": "pilot_data/Pilot-G10034/20260918112315_10034-1_Bandit_post-stim.easy",
+      "events": "pilot_data/Pilot-G10034/sub-10034-1_task-bandit_post-stim_2026-09-18_11-22-49.csv",
+      "metadata": "stimulation/stimulation-data/20260918112315_10034-1_Bandit_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "5cdde32d22f5a02873c5ae0cdf6359c873f60869750e39f5940ba4638f42ba9d",
+        "metadata": "909d9f4994bd608bb408e91551fac302c694015baf6d758fb99891cc5adeec8d",
+        "events": "942e78151cc26658b43ea159237fcf859e4275abbf107d042c71953f285ddf02"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.958 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10037_ses-1_sst_pre_20260916105202",
+      "subject": "10037",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260916105202",
+      "eeg": "pilot_data/Pilot-G10037/20260916105202_10037-1_SST_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10037/sub-10037-1_task-SST_pre-stim_2026-09-16_10-51-42.csv",
+      "metadata": "stimulation/stimulation-data/20260916105202_10037-1_Run 1.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "7676faf770ab6866e62e9f08adb9f8cb55c3b9fd83705107afcd3be18ce5ee8a",
+        "metadata": "aaf0f1c119c9efa29a2676634d2c6c50674332134ff17a1b122d35f7134e3a22",
+        "events": "44e5c9e0a15e8a4157d09a5ff38a859b4a7b94a612418549206f6468038d07ff"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.829 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10037_ses-1_bandit_pre_20260916105944",
+      "subject": "10037",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260916105944",
+      "eeg": "pilot_data/Pilot-G10037/20260916105944_10037-1_Bandit_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10037/sub-10037-1_task-bandit_pre-stim_2026-09-16_10-58-33.csv",
+      "metadata": "stimulation/stimulation-data/20260916105944_10037-1_Run 1.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "08bfc01b16d24dfb85b7a8137f8c76fdbb0c4a167c6c047599ef4c2aa45d5645",
+        "metadata": "093ec2cecf7c906bddf97892317f2a13b696ca537a6e2046a8b19305c9ce2282",
+        "events": "594b4dff0dea4d6ada3a0eb6e76070785e3ae45aacee44d9dc7607e205cedf8b"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.942 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10037_ses-1_sst_post_20260916113150",
+      "subject": "10037",
+      "session": "1",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260916113150",
+      "eeg": "pilot_data/Pilot-G10037/20260916113150_10037-1_SST_post-stim.easy",
+      "events": "data/sub-10037/sub-10037_ses-1_run-02_task-SST_2026-09-16_11-31-36_events.csv",
+      "metadata": "stimulation/stimulation-data/20260916113150_10037-1_SST_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "ba574b8c066b315f6cdfd928548c78449dbe3082ba01496c6055ac4f78c4565f",
+        "metadata": "67eceac8c1338c788a125b9cfa26573c659dc5136e11d96ac8366b92fdb676f3",
+        "events": "8b5bbc476f31804cf794d6c0ef4a541cd4fe6b16179a97de3f88c7d93bc2db9f"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.649 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10037_ses-1_bandit_post_20260916113955",
+      "subject": "10037",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260916113955",
+      "eeg": "pilot_data/Pilot-G10037/20260916113955_10037-1_Bandit_post-stim.easy",
+      "events": "behavioral-data/sub-10037/sub-10037_ses-1_run-02_task-bandit_2026-09-16_11-39-45_events.tsv",
+      "metadata": "stimulation/stimulation-data/20260916113955_10037-1_Bandit_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "e658548122baacf262cba8bc0bcbd64b4ec1e1388043e69e4817db1d9a1ea34b",
+        "metadata": "76345dca5c35b38baf564c564b77f66d7e51e3d5e53eff1bb3dc608cae5928ae",
+        "events": "e6077b9b5ba8355cc91307d83fd7172082779f26d457c299d1972de435478f21"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.705 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10052_ses-1_sst_pre_20260917144340",
+      "subject": "10052",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260917144340",
+      "eeg": "pilot_data/Pilot-G10052/20260917144340_10052-1_SST_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10052/sub-10052-1_task-SST_pre-stim_2026-09-17_14-42-43.csv",
+      "metadata": "stimulation/stimulation-data/20260917144340_10052-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "42348c719cdd84c2c90592800d784b7625398f0a1652e2738bff500825dd4302",
+        "metadata": "010bf4479b32e2c3fd66496046ac527976de1c81ac9c1dd8498d74006b65977b",
+        "events": "d6ad2811e0fdb5f3b8a7e0a8f99d1051c23a4f92c37035b48310cda38c0ce698"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.826 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10052_ses-1_bandit_pre_20260917145125",
+      "subject": "10052",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260917145125",
+      "eeg": "pilot_data/Pilot-G10052/20260917145125_10052-1_Bandit_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10052/sub-10052-1_task-bandit_pre-stim_2026-09-17_14-49-57.csv",
+      "metadata": "stimulation/stimulation-data/20260917145125_10052-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "b032496eb1deb59f19770ec5a8f8750383da3aaa23dacba0ad1231b979148948",
+        "metadata": "c706eda32dbab81e2539d34069e4680894cb34fff443ca8cfc332a5cab66e8d1",
+        "events": "fcf39f2c05c11f8154353249e9dc42ad47fb1ee2a9591f6d429bd1634b607973"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.924 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10052_ses-1_sst_post_20260917154536",
+      "subject": "10052",
+      "session": "1",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260917154536",
+      "eeg": "pilot_data/Pilot-G10052/20260917154536_10052-1_SST_post-stim.easy",
+      "events": "pilot_data/Pilot-G10052/sub-10052-1_task-SST_post-stim_2026-09-17_15-45-23.csv",
+      "metadata": "stimulation/stimulation-data/20260917154536_10052-1_SST_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "dec4e91f22c14d4c7eb0ff9fe308f584c8582f2ced9ccb740f6c840212feb337",
+        "metadata": "8ed0390ac4f0f90e0ad28b5e62f67e4ac9ae98f2d4dd5fd2b005eaf3ed924943",
+        "events": "ced37b0c783a1e29e633317206844311a831f36ff33631711369613952670b3d"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.844 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10052_ses-1_bandit_post_20260917155223",
+      "subject": "10052",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260917155223",
+      "eeg": "pilot_data/Pilot-G10052/20260917155223_10052-1_Bandit_post-stim.easy",
+      "events": "pilot_data/Pilot-G10052/sub-10052-1_task-bandit_post-stim_2026-09-17_15-52-03.csv",
+      "metadata": "stimulation/stimulation-data/20260917155223_10052-1_Bandit_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "1bfc757140b641d65e7db96d2b04116f74821701c03e08dcd0de2d8be1ef82b2",
+        "metadata": "e6af1d77edd7b8366309f7a88c6d1a846fb86b6a879580b2c08b055f54bddc73",
+        "events": "5d6905227901c58f3d1ef035ba41f572e00e2d4ab06e29ac811a84da68f2dda6"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.915 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10085_ses-1_sst_pre_20260921182620",
+      "subject": "10085",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260921182620",
+      "eeg": "pilot_data/Pilot-G10085/20260921182620_10085-1_SST_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10085/sub-10085-1_task-SST_pre-stim_2026-09-21_18-24-05.csv",
+      "metadata": "stimulation/stimulation-data/20260921182620_10085-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "41a1a7f618fe4d53fea3d50646b1560165deef2446a78e340643ee055b542021",
+        "metadata": "f0d81dea5eaad129ce532c95045aede2a1430cf104a7dba3a4b258ee23a16c57",
+        "events": "7fce61e4a0dc1f280e70ffdd993d982c0d5f819c28c889df367b69099e9cba0a"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.847 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10085_ses-1_bandit_pre_20260921183508",
+      "subject": "10085",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260921183508",
+      "eeg": "pilot_data/Pilot-G10085/20260921183508_10085-1_Bandit_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10085/sub-10085-1_task-bandit_pre-stim_2026-09-21_18-33-01.csv",
+      "metadata": "stimulation/stimulation-data/20260921183508_10085-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "8945fecd8e4daae5f05824d4d7e7a46cdb5d4a7e7f624bccf9bff1b0c824c2d3",
+        "metadata": "7a5e00e43471ab8c31ae86e1798069caad5100321bab606a257a09126e20b2ef",
+        "events": "bf0f02f173bec461db8270acc651b575cf17a9a7b8ce0be9c9b43b71ebb424d6"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.941 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10085_ses-1_sst_post_20260921190735",
+      "subject": "10085",
+      "session": "1",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260921190735",
+      "eeg": "pilot_data/Pilot-G10085/20260921190735_10085-1_SST_post-stim.easy",
+      "events": "pilot_data/Pilot-G10085/sub-10085-1_task-SST_post-stim_2026-09-21_19-07-13.csv",
+      "metadata": "stimulation/stimulation-data/20260921190735_10085-1_SST_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "53380770eb49812d26da5f1854fbd2301ff7b3d7de1cb951e0c35c93e7e473c6",
+        "metadata": "bab71f3fb635c339e258bdf563f5a46b288719c23d0405a55536c51521bdfe39",
+        "events": "db3f01c600551e08ff8b9f495938fad87c7a847293bdac2d081b41cb06df8835"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.822 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10085_ses-1_bandit_post_20260921191436",
+      "subject": "10085",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260921191436",
+      "eeg": "pilot_data/Pilot-G10085/20260921191436_10085-1_Bandit_post-stim.easy",
+      "events": "pilot_data/Pilot-G10085/sub-10085-1_task-bandit_post-stim_2026-09-21_19-14-24.csv",
+      "metadata": "stimulation/stimulation-data/20260921191436_10085-1_Bandit_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "9d63c0fe2e5e235d7b80e7d7e8b7eb51cec5c9c4c370eba6a5509fa3bc207dec",
+        "metadata": "6bc9d773d9ef53936fe68999c679b9a4dd5b3efd23a45410fd8be2c87cebf89b",
+        "events": "2e78fe78d164ab756d3c0cd40478eb06f129cd9fab5533ef3f5ac8ed948dd167"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.933 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10383_ses-1_sst_pre_20260924145734",
+      "subject": "10383",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260924145734",
+      "eeg": "pilot_data/Pilot-G10383/20260924145734_10383-1_SST_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10383/sub-10383-1_task-SST_pre-stim_2026-09-24_14-56-31.csv",
+      "metadata": "stimulation/stimulation-data/20260924145734_10383-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "70471e068bc43461b165cf94a4b8f8b3e3d03166894525773d8035eecb0a68e4",
+        "metadata": "56f9d9cf5d65646a5e32ab87604a4c55a3cf410d2a0d756ed45339029f931662",
+        "events": "4ef1841cea244ad0640c442cfa2b208df16a3dd92d030bde11445cb997e8b38f"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.823 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10383_ses-1_bandit_pre_20260924150555",
+      "subject": "10383",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260924150555",
+      "eeg": "pilot_data/Pilot-G10383/20260924150555_10383-1_Bandit_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10383/sub-10383-1_task-bandit_pre-stim_2026-09-24_15-04-16.csv",
+      "metadata": "stimulation/stimulation-data/20260924150555_10383-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "6d374fb4bfb7292e834a2cc0d06f3821faa118c3745e3ae8408af446f2efede1",
+        "metadata": "b4096c4b568502983692e182b5edb48798166810a7fff3fff0e5cc58b4d264bf",
+        "events": "f2025f4f0a2b901f6227dad8afd812889550dbf8758fabb16474eb90b683cf8a"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.941 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10383_ses-1_sst_post_20260924153806",
+      "subject": "10383",
+      "session": "1",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260924153806",
+      "eeg": "pilot_data/Pilot-G10383/20260924153806_10383-1_SST_post-stim.easy",
+      "events": "pilot_data/Pilot-G10383/sub-10383-1_task-SST_post-stim_2026-09-24_15-37-44.csv",
+      "metadata": "stimulation/stimulation-data/20260924153806_10383-1_SST_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "2024bf97732ac694fce1d3fbb306e084c5057883c81f8d9c3a92a3042fb9ea01",
+        "metadata": "f1920aca273104a91e734b43f2403768aa073135fb4403d34f5477e61346973e",
+        "events": "d0b23b63196cef016cfe101329c56a3ad20457362eb610995de41cd93a32ab94"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.831 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10383_ses-1_bandit_post_20260924154547",
+      "subject": "10383",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260924154547",
+      "eeg": "pilot_data/Pilot-G10383/20260924154547_10383-1_Bandit_post-stim.easy",
+      "events": "pilot_data/Pilot-G10383/sub-10383-1_task-bandit_post-stim_2026-09-24_15-44-56.csv",
+      "metadata": "stimulation/stimulation-data/20260924154547_10383-1_Bandit_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "74b5cb69e61c136435786bcf71488267a25650be6fa9dadaf3cd32b6013e794a",
+        "metadata": "b0d3753988a7697a033f515c42acb5f1e5f720244e45e958d4ad519cf5b22ed6",
+        "events": "6dcd44c2b40a3ca0dc936135c7f5479560cdf1c90e39d2c392952502b0fe9e19"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.975 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10579_ses-1_bandit_pre_20260903195254",
+      "subject": "10579",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260903195254",
+      "eeg": "pilot_data/Pilot-G10579/20260903195254_10579-1_Bandit_pre-stim.easy",
+      "events": "stimulation/pre-stimulation-participant-responses/sub-10579-1_task-bandit_2026-09-03_19-50-52.csv",
+      "metadata": "stimulation/stimulation-data/20260903195254_10579-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "e21399b8c15764adc1cec14e26fd52040111b13f0a12f5e51da0d20590fde06f",
+        "metadata": "a462747c2f60b498d7cc36dca744f2ec74bb306d88151034e7b1b1afe65e619b",
+        "events": "2da0286d0ac75bf13e527a625a35617183ca97d5b5032a4bea8020628f249826"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.966 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10579_ses-1_sst_pre_20260903195950",
+      "subject": "10579",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260903195950",
+      "eeg": "pilot_data/Pilot-G10579/20260903195950_10579-1_SST_pre-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260903195950_10579-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "68df4e6c19a9a9fcda77c2c3fbe9e1b1760baf240c112fb9cd48cb8189e878fc",
+        "metadata": "dde7b0aecf3f8e46b993dff7222d77ffd39443243789b935d73a3941eb727212"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "10579_ses-1_bandit_post_20260903201256",
+      "subject": "10579",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260903201256",
+      "eeg": "pilot_data/Pilot-G10579/20260903201256_10579-1_Bandit_post-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260903201256_010579-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "97173b63630856d69673155740809c8ab123d2f02859a1606cd8c9e7206d2c64",
+        "metadata": "7165d01bbac54593c6deb0cff98be5a242fd747faa458b1c3d45e96a5b2f687b"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "10696_ses-1_sst_pre_20260930094329",
+      "subject": "10696",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260930094329",
+      "eeg": "pilot_data/Pilot-G10696/20260930094329_10696-1_SST_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10696/sub-10696-1_task-SST_pre-stim_2026-09-30_09-43-13.csv",
+      "metadata": "stimulation/stimulation-data/20260930094329_10696-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "6c0ebd8f644462b086ebb83873edac69cd716807fed5c7a4bc97dd91a605ea44",
+        "metadata": "b23abb59caad20e7ef1758e99af0bc3794629427921d42952931a0313f404bb2",
+        "events": "17c85cbd906ece958ce0bed36530bbe1695a5fcf9dc3f9700296ab3d10291b37"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.824 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10696_ses-1_bandit_pre_20260930095124",
+      "subject": "10696",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260930095124",
+      "eeg": "pilot_data/Pilot-G10696/20260930095124_10696-1_Bandit_pre-stim.easy",
+      "events": "pilot_data/Pilot-G10696/sub-10696-1_task-bandit_pre-stim_2026-09-30_09-50-15.csv",
+      "metadata": "stimulation/stimulation-data/20260930095124_10696-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "e98842ce44cc8c556dbbb566d6682c750ad3230b534fb9391a16671022369414",
+        "metadata": "1e87d0d78b925477c35c5fb418b342a51a828ce1d1707453e342edff9414dd9c",
+        "events": "64993d76fe60aff77ae715e0ce81c43e583fcf8eccfb1dc54a449e12e05d65d3"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.967 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10696_ses-1_sst_post_20260930102851",
+      "subject": "10696",
+      "session": "1",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260930102851",
+      "eeg": "pilot_data/Pilot-G10696/20260930102851_10696-1_SST_post-stim.easy",
+      "events": "pilot_data/Pilot-G10696/sub-10696-1_task-SST_post-stim_2026-09-30_10-28-36.csv",
+      "metadata": "stimulation/stimulation-data/20260930102851_10696-1_SST_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "f12f47f2eb538c146a8e4f4ae4e85893318cbe8910f297f246a75f672ca86538",
+        "metadata": "c03e51ec9ebbc4052f70e66bc8d34d5d20acc4635a35123f2acaacba1b060762",
+        "events": "2153b6ebf2e6a692bd25e94698f3a674b02b0f98d9781492c789a0b5c583c098"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.815 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10696_ses-1_bandit_post_20260930103544",
+      "subject": "10696",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260930103544",
+      "eeg": "pilot_data/Pilot-G10696/20260930103544_10696-1_Bandit_post-stim.easy",
+      "events": "pilot_data/Pilot-G10696/sub-10696-1_task-bandit_post-stim_2026-09-30_10-35-22.csv",
+      "metadata": "stimulation/stimulation-data/20260930103544_10696-1_Bandit_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "790fa1d21b8ea16e61f3513e65aa92589d8d4197d05efc7a3a2b4c678b91e309",
+        "metadata": "828ff86d730be26e94d78b21d9796152ff86ae063e841aa17a1f4324aa0c7ca8",
+        "events": "bd56a5846bbf99fb087d88e76dc77db8b8fa2eb73b050df13a0faf363e1c7dcb"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.967 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10890_ses-unverified_sst_pre_20260828130310",
+      "subject": "10890",
+      "session": "unverified",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260828130310",
+      "eeg": "pilot_data/Pilot-G10890/20260828130310_10890_SST_pre-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260828130310_10890_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "8cc685d67ac63c834926cdfc7154842ba14ed5a921d00e665d8669944603425b",
+        "metadata": "d2b6663b98ccd7961f0c4e028cf0ba6617d72f5e084c3554d56990906b3cd29a"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "10890_ses-1_bandit_pre_20260828131138",
+      "subject": "10890",
+      "session": "1",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260828131138",
+      "eeg": "pilot_data/Pilot-G10890/20260828131138_10890-1_Bandit_pre-stim.easy",
+      "events": "stimulation/pre-stimulation-participant-responses/sub-10890-1_task-bandit_2026-08-28_13-10-01.csv",
+      "metadata": "stimulation/stimulation-data/20260828131138_10890-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "0d28ee18c7b026c50bb847238671e9e6bbdeed56beaaaebdad37ce334849e93c",
+        "metadata": "d97b5973cf322450ea41b32afdb0683ed8ac73def37a18532ed3e1868e08ab42",
+        "events": "dca8733301827e60279d4cd6d774fa53a86439d63c6425358b8727b1304a0fb0"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.942 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "10890_ses-1_sst_pre_20260828134105",
+      "subject": "10890",
+      "session": "1",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260828134105",
+      "eeg": "pilot_data/Pilot-G10890/20260828134105_10890-1_SST_pre-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260828134105_10890-1_SST_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "fe4d4e5bdcb0014af2e0ce77877418f1e2a4a90796f87f90497d42bd99a20259",
+        "metadata": "02b0b064b4763700b970ad1f3478013d4d954c9a51aa1bbf1fce93ee1a2f3ee3"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "10890_ses-1_bandit_post_20260828134750",
+      "subject": "10890",
+      "session": "1",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260828134750",
+      "eeg": "pilot_data/Pilot-G10890/20260828134750_10890-1_Bandit_post-stim.easy",
+      "events": "stimulation/pre-stimulation-participant-responses/sub-10890-1_task-bandit_2026-08-28_13-47-30.csv",
+      "metadata": "stimulation/stimulation-data/20260828134750_10890-1_Bandit_pre-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "3f10d3ee9ac88b0ed67d7100bea5d4ee9f69ad07e93e5895e7c30ed169f3ab2d",
+        "metadata": "a262203b6e9c410092e3e1915750db05aead139165eb223d458bb404c3e7f31d",
+        "events": "25bed45315eb63b556a7cf0f3f9b0bb309a454de4853320b99de96326b6b8737"
+      },
+      "match_evidence": "Exact participant and task; session 1 in event rows; phase from EEG filename; 0.992 event overlap; metadata source EEG SHA256 identical."
+    },
+    {
+      "id": "12193_ses-unverified_sst_pre_20260914112951",
+      "subject": "12193",
+      "session": "unverified",
+      "task": "sst",
+      "phase": "pre",
+      "run": "20260914112951",
+      "eeg": "pilot_data/Pilot-G12193/20260914112951_12193_SST_pre-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260914112951_1219300000_Run 1.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "3b498c0c2efff2343218523e3c0089fcb428527208504244959b37419274e307",
+        "metadata": "c709d29c129a266e836746f6275e3bdf99d6c9975af63cb1a4c45a06722d172d"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "12193_ses-unverified_bandit_pre_20260914113817",
+      "subject": "12193",
+      "session": "unverified",
+      "task": "bandit",
+      "phase": "pre",
+      "run": "20260914113817",
+      "eeg": "pilot_data/Pilot-G12193/20260914113817_12193_Bandit_pre-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260914113817_1219300000_Run 1.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "671281c6d1deceeec70154dbdf9522b4d15470c5fe234a9755ca917d16181d6c",
+        "metadata": "bc9b81ee4ce0befcd5ab8fe4bc527cd40d7766ea454d2b8cba1b2d1ce4d94424"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "12193_ses-unverified_sst_post_20260914121139",
+      "subject": "12193",
+      "session": "unverified",
+      "task": "sst",
+      "phase": "post",
+      "run": "20260914121139",
+      "eeg": "pilot_data/Pilot-G12193/20260914121139_12193_SST_post-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260914121139_1219300000_SST_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "2cc5c1e9c9e0518eb5f37209871e6c79ce6a3ea25a34a5f42270f016438a2497",
+        "metadata": "3fa0044a6fb648d05195bd95ea75179579ae7117bdc099c9604995ca82d8c14a"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    },
+    {
+      "id": "12193_ses-unverified_bandit_post_20260914121834",
+      "subject": "12193",
+      "session": "unverified",
+      "task": "bandit",
+      "phase": "post",
+      "run": "20260914121834",
+      "eeg": "pilot_data/Pilot-G12193/20260914121834_12193_Bandit_post-stim.easy",
+      "events": null,
+      "metadata": "stimulation/stimulation-data/20260914121834_1219300000_Bandit_post-stim.info",
+      "clock_domain": "unix",
+      "event_unit": "ms",
+      "sha256": {
+        "eeg": "2dbedf90c7142bec1f5765871c91bac4ff8c744bfa0973a4ba200c0231c777b1",
+        "metadata": "f39573e26bda8cb441c5324fb98fb85ba9bb46de9778b8140bdb966996c17905"
+      },
+      "missing_reason": "no_unique_identity_and_timestamp_matched_behavior",
+      "unresolved_candidates": []
+    }
+  ]
+}
