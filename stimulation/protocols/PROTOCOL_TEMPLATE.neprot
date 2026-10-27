@@ -8,10 +8,10 @@
    <stepConfigurationType>ADVANCED</stepConfigurationType>
    <stepBasicStimChannel>-1</stepBasicStimChannel>
    <stepType>0</stepType>
-   <stimulationTime>480</stimulationTime>
-   <rampUp>60</rampUp>
-   <rampDown>60</rampDown>
-   <rampSham>0</rampSham>
+   <stimulationTime>540</stimulationTime>
+   <rampUp>0</rampUp>
+   <rampDown>0</rampDown>
+   <rampSham>60</rampSham>
    <stimulationSham>Single</stimulationSham>
    <tRNSLowFreq>0</tRNSLowFreq>
    <tRNSHighFreq>0</tRNSHighFreq>

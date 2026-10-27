@@ -2,31 +2,30 @@ THETA / BETA RESULTS
 ==================================================
 Subject: G11450 | Session: 3
 EEG: 20261026164732_G11450-3_Bandit_pre-stim.easy
-Behavior: sub-G11450-3_task-Bandit_pre-stim_2026-10-26_16-46-23.csv
+Behavior: sub-G11450-3_task-bandit_post-stim_2026-10-26_18-14-35.csv
 
 QC / TROUBLESHOOTING
 --------------------------------------------------
 Sampling rate: 500 Hz (hard-coded)
 Frontal ROI: F3, FCz, F4
 Artifact threshold: ±200 uV
-Feedback: 119 valid events | 116 retained | 1 artifact | 2 bounds | 0 missing timestamp
-Decision: 119 valid events | 118 retained | 0 artifact | 1 bounds | 0 missing timestamp
-Feedback artifact channels: F3=1
+Feedback: 118 valid events | 0 retained | 0 artifact | 118 bounds | 0 missing timestamp
+Decision: 118 valid events | 0 retained | 0 artifact | 118 bounds | 0 missing timestamp
 
 THETA
 ==================================================
 Band: 4-8 Hz | Feedback window: +0.1 to +1.5 s
 Specparam theta: NO MODELED PEAK
-TFR theta: 8.00 Hz | -0.420 dB | BAND EDGE
+TFR theta: UNAVAILABLE
 IAF-5 theta: 4.00 Hz (IAF: 8.00 Hz via power)
-Selected theta: 8.00 Hz via TFR
+Selected theta: 4.00 Hz via IAF-5
 
 BETA
 ==================================================
 Band: 13-30 Hz | Decision window: -1.0 to -0.1 s
-TFR beta ERD: 21.00 Hz | -1.747 dB
+TFR beta ERD: UNAVAILABLE
 
 STIMULATION FREQUENCIES
 ==================================================
-Theta stimulation frequency: 8.00 Hz
-Beta stimulation frequency: 21.00 Hz
+Theta stimulation frequency: 4.00 Hz
+Beta stimulation frequency: UNAVAILABLE
