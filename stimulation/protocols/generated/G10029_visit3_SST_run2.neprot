@@ -7,11 +7,11 @@
    <stepName>SST-2</stepName>
    <stepConfigurationType>ADVANCED</stepConfigurationType>
    <stepBasicStimChannel>-1</stepBasicStimChannel>
-   <stepType>0</stepType>
+   <stepType>7</stepType>
    <stimulationTime>540</stimulationTime>
-   <rampUp>0</rampUp>
-   <rampDown>0</rampDown>
-   <rampSham>60</rampSham>
+   <rampUp>30</rampUp>
+   <rampDown>30</rampDown>
+   <rampSham>0</rampSham>
    <stimulationSham>Single</stimulationSham>
    <tRNSLowFreq>0</tRNSLowFreq>
    <tRNSHighFreq>0</tRNSHighFreq>

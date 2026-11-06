@@ -152,6 +152,53 @@ def replace_protocol_info(file_path, frequency, template_name, step_name):
                 "Could not find <ftacsValue></ftacsValue> "
                 "in the protocol template."
             )
+        
+    # --------------------------------------------------------
+    # Replace stepType
+    # --------------------------------------------------------
+
+    text, stepType_replaced = re.subn(
+        r"<stepType>.*?</stepType>",
+        f"<stepType>{7}</stepType>",
+        text,
+        flags=re.DOTALL,
+    )
+
+    # --------------------------------------------------------
+    # Replace rampUp
+    # --------------------------------------------------------
+
+    text, rampUp_replaced = re.subn(
+        r"<rampUp>.*?</rampUp>",
+        f"<rampUp>{30}</rampUp>",
+        text,
+        flags=re.DOTALL,
+    )
+
+    # --------------------------------------------------------
+    # Replace rampDown
+    # --------------------------------------------------------
+
+    text, rampDown_replaced = re.subn(
+        r"<rampDown>.*?</rampDown>",
+        f"<rampDown>{30}</rampDown>",
+        text,
+        flags=re.DOTALL,
+    )
+
+    # --------------------------------------------------------
+    # Replace rampSham
+    # --------------------------------------------------------
+
+    text, rampSham_replaced = re.subn(
+        r"<rampSham>.*?</rampSham>",
+        f"<rampSham>{0}</rampSham>",
+        text,
+        flags=re.DOTALL,
+    )
+
+
+
     # --------------------------------------------------------
     # Replace TemplateName
     # --------------------------------------------------------
@@ -168,6 +215,7 @@ def replace_protocol_info(file_path, frequency, template_name, step_name):
             "Could not find <TemplateName></TemplateName> "
             "in the protocol template."
         )
+    
     # --------------------------------------------------------
     # Replace stepName
     # --------------------------------------------------------
