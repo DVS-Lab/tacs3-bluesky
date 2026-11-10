@@ -1105,6 +1105,7 @@ class SSTTask:
     def _show_waiting_screen(
         self,
         msg_stim,
+        start_screen: bool = False,
     ) -> bool:
 
         msg_stim.draw()
@@ -1141,7 +1142,10 @@ class SSTTask:
             # SPACE
             # ----------------------------------------------------------
 
-            if (
+            if start_screen:
+                if "equal" in keys:
+                    return True
+            elif (
                 "space" in keys
                 or "equal" in keys
             ):
@@ -1322,11 +1326,12 @@ class SSTTask:
                 ),
                 (
                     "Try to respond as soon as you see the black arrow.\n\n"
-                    "Press SPACE to begin."
+                    "Please wait for the experimenter to start the task, then\n\n"
+                    "Press = to begin."
                 ),
             ]
 
-            for page_text in instruction_pages:
+            for page_index, page_text in enumerate(instruction_pages):
 
                 instruction_stim = visual.TextStim(
                     win,
@@ -1337,7 +1342,10 @@ class SSTTask:
                     alignText="center",
                 )
 
-                if not self._show_waiting_screen(instruction_stim):
+                if not self._show_waiting_screen(
+                    instruction_stim,
+                    start_screen=(page_index == len(instruction_pages) - 1),
+                ):
                     return
 
             # ==========================================================

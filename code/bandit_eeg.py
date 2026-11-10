@@ -699,7 +699,7 @@ class BanditTask:
             "Please wait for the experimenter",
             "to start the task, then",
             "",
-            "Press SPACE to begin",
+            "Press = to begin",
             "Press ESC to exit",
         ]
 
@@ -717,9 +717,9 @@ class BanditTask:
         )
 
         while True:
-            keys = event.getKeys(keyList=["space", "escape"])
+            keys = event.getKeys(keyList=["equal", "escape"])
 
-            if "space" in keys:
+            if "equal" in keys:
                 return True
 
             if "escape" in keys:
@@ -771,7 +771,7 @@ class BanditTask:
             "Please wait for the experimenter",
             "to start the task, then",
             "",
-            "Press SPACE to begin",
+            "Press = to begin",
             "Press ESC to exit",
         ]
 
@@ -789,9 +789,9 @@ class BanditTask:
         )
 
         while True:
-            keys = event.getKeys(keyList=["space", "escape"])
+            keys = event.getKeys(keyList=["equal", "escape"])
 
-            if "space" in keys:
+            if "equal" in keys:
                 return True
 
             if "escape" in keys:
@@ -842,7 +842,7 @@ class BanditTask:
             "Please wait for the experimenter",
             "to start the task, then",
             "",
-            "Press SPACE to begin",
+            "Press = to begin",
             "Press ESC to exit",
         ]
 
@@ -857,9 +857,9 @@ class BanditTask:
         listen_lsl = (not self.cli_args.localizer) and self.lsl_trigger is not None
 
         while True:
-            keys = event.getKeys(keyList=["space", "escape"])
+            keys = event.getKeys(keyList=["equal", "escape"])
 
-            if "space" in keys:
+            if "equal" in keys:
                 return True
 
             if "escape" in keys:
@@ -905,7 +905,7 @@ class BanditTask:
             "Please wait for the experimenter",
             "to start the task, then",
             "",
-            "Press SPACE to begin",
+            "Press = to begin",
             "Press ESC to exit",
         ]
         self._instructions_stim.text = "\n".join(lines)
@@ -917,8 +917,8 @@ class BanditTask:
 
         listen_lsl = (not self.cli_args.localizer) and self.lsl_trigger is not None
         while True:
-            keys = event.getKeys(keyList=["space", "escape"])
-            if "space" in keys:
+            keys = event.getKeys(keyList=["equal", "escape"])
+            if "equal" in keys:
                 return True
             if "escape" in keys:
                 return False
