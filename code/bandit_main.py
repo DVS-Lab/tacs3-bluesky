@@ -742,7 +742,7 @@ class BanditTask:
             "Please wait for the experimenter",
             "to start the task, then",
             "",
-            "Please wait for the experimenter to begin the task",
+            "Press = to begin.",
             "Press ESC to exit",
         ]
 
