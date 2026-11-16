@@ -230,3 +230,4 @@ code/*/logs/
 
 #API key
 /code/redcap_api_key.txt
+.DS_Store
