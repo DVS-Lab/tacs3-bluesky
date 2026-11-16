@@ -1,0 +1,4 @@
+bet=5
+winnings=10
+unbet=5
+run_bonus=15
