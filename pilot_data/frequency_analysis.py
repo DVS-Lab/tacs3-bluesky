@@ -3,23 +3,27 @@
 
 Place this script in the base folder that contains the participant folders
 (e.g. ...\\10001, ...\\10002, ...). Every folder whose name contains a subject
-ID is processed. Inside each folder the script expects, for each session n:
+ID is processed. Inside each folder the script expects, for each session n and
+each task (Bandit, SST):
 
-    *<ID>-<n>_Bandit_pre-stim.easy
-    *<ID>-<n>_Bandit_post-stim.easy
-    sub-<ID>-<n>_task-bandit_pre-stim*.csv
-    sub-<ID>-<n>_task-bandit_post-stim*.csv
+    *<ID>-<n>_Bandit_pre-stim.easy      *<ID>-<n>_SST_pre-stim.easy
+    *<ID>-<n>_Bandit_post-stim.easy     *<ID>-<n>_SST_post-stim.easy
+    sub-<ID>-<n>_task-bandit_pre-stim*.csv   sub-<ID>-<n>_task-SST_pre-stim*.csv
+    sub-<ID>-<n>_task-bandit_post-stim*.csv  sub-<ID>-<n>_task-SST_post-stim*.csv
 
 Sessions are discovered automatically from the filenames, so any number of
-sessions is supported. Pre and post are analyzed independently with exactly the
-same methods as the single-subject script:
+sessions is supported. Pre and post are analyzed independently.
 
+Bandit:
     theta: Specparam, Morlet TFR, IAF-5  (feedback epochs / posterior alpha)
     beta : Morlet TFR ERD                (choice epochs)
+SST:
+    beta : Morlet TFR ERD                (epochs around stim_onset_unix_time,
+                                          0 to 1.5 s after onset, all trials)
 
 Output: batch_theta_beta_results.csv in the base folder, one row per
 subject-session (e.g. 10001-ses1) and one column per measurement
-(e.g. bandit_pre_theta_specparam).
+(e.g. bandit_pre_theta_specparam, sst_pre_beta_tfr).
 
 Behavior on problems:
   * Missing file(s) or failed analysis -> values left blank, script continues.
@@ -55,6 +59,9 @@ OUTPUT_CSV = BASE_DIR / "batch_theta_beta_results.csv"
 
 CONDITIONS = ("pre", "post")
 
+# Task name -> token used in filenames (matching is case-insensitive).
+TASK_TOKEN = {"bandit": "Bandit", "sst": "SST"}
+
 HIGHPASS = 0.5
 LOWPASS = 45.0
 NOTCH = 60.0
@@ -80,6 +87,11 @@ DECISION_EPOCH = (-1.5, 0.5)
 DECISION_BASELINE = (-1.5, -1.0)
 DECISION_ANALYSIS = (-1.0, -0.1)
 
+# SST: beta ERD in the 1.5 s after stimulus onset, vs. a pre-onset baseline.
+SST_EPOCH = (-1.5, 2.0)
+SST_BASELINE = (-1.0, -0.5)
+SST_ANALYSIS = (0.0, 1.5)
+
 THETA_FREQS = np.arange(THETA_SEARCH_BAND[0], THETA_SEARCH_BAND[1] + 0.25, 0.25)
 DECISION_FREQS = np.arange(BETA_SEARCH_BAND[0], BETA_SEARCH_BAND[1] + 0.5, 0.5)
 
@@ -88,17 +100,24 @@ SMOOTH_SIGMA = 1.0
 
 FEEDBACK_EVENT_COL = "feedback_onset_unix_time"
 DECISION_EVENT_COL = "choice_onset_unix_time"
+SST_EVENT_COL = "stim_onset_unix_time"
 
 # Original 1-based channel numbers.
 FRONTAL_CHANNELS = (1, 3, 5)         # F3, FCz, F4
 POSTERIOR_ALPHA_CHANNELS = (6, 7)    # P4, P3
 REF_CHANNELS = (1, 2, 3, 4, 5, 6, 7)  # all scalp channels; excludes EXT
 
-MEASURES = ("theta_specparam", "theta_tfr", "theta_iaf5", "beta_tfr")
+BANDIT_MEASURES = ("theta_specparam", "theta_tfr", "theta_iaf5", "beta_tfr")
+SST_MEASURES = ("beta_tfr",)
+TASK_MEASURES = {"bandit": BANDIT_MEASURES, "sst": SST_MEASURES}
 
 
 class DuplicateFileError(Exception):
     """Raised when more than one file matches an expected pattern."""
+
+
+def column_name(task, cond, measure):
+    return f"{task}_{cond}_{measure}"
 
 
 # =====================================================================
@@ -114,25 +133,30 @@ def subject_id_from_folder(name):
     return max(runs, key=len)
 
 
-def eeg_regex(subject_id, session, cond):
+def eeg_regex(subject_id, session, cond, task):
+    token = re.escape(TASK_TOKEN[task])
     return re.compile(
-        rf"(?<!\d){subject_id}-{session}_Bandit_{cond}-stim\.easy$", re.IGNORECASE
+        rf"(?<!\d){subject_id}-{session}_{token}_{cond}-stim\.easy$", re.IGNORECASE
     )
 
 
-def csv_regex(subject_id, session, cond):
+def csv_regex(subject_id, session, cond, task):
+    token = re.escape(TASK_TOKEN[task])
     return re.compile(
-        rf"^sub-{subject_id}-{session}_task-bandit_{cond}-stim.*\.csv$", re.IGNORECASE
+        rf"^sub-{subject_id}-{session}_task-{token}_{cond}-stim.*\.csv$",
+        re.IGNORECASE,
     )
 
 
 def discover_sessions(folder, subject_id):
-    """Find all session numbers present in a participant folder."""
+    """Find all session numbers present in a participant folder (any task)."""
+    tokens = "|".join(re.escape(t) for t in TASK_TOKEN.values())
     eeg_pat = re.compile(
-        rf"(?<!\d){subject_id}-(\d+)_Bandit_(?:pre|post)-stim\.easy$", re.IGNORECASE
+        rf"(?<!\d){subject_id}-(\d+)_(?:{tokens})_(?:pre|post)-stim\.easy$",
+        re.IGNORECASE,
     )
     csv_pat = re.compile(
-        rf"^sub-{subject_id}-(\d+)_task-bandit_(?:pre|post)-stim.*\.csv$",
+        rf"^sub-{subject_id}-(\d+)_task-(?:{tokens})_(?:pre|post)-stim.*\.csv$",
         re.IGNORECASE,
     )
     sessions = set()
@@ -161,7 +185,7 @@ def find_unique(folder, regex, description):
 
 def build_job_list():
     """Scan every participant folder. Raises on duplicates before any analysis."""
-    jobs = []  # (subject_id, session, cond, eeg_file|None, csv_file|None)
+    jobs = []  # (subject_id, session, task, cond, eeg_file|None, csv_file|None)
 
     folders = sorted(
         (p for p in BASE_DIR.iterdir() if p.is_dir()),
@@ -173,18 +197,21 @@ def build_job_list():
             continue
 
         for session in discover_sessions(folder, subject_id):
-            for cond in CONDITIONS:
-                eeg_file = find_unique(
-                    folder,
-                    eeg_regex(subject_id, session, cond),
-                    f"EEG {subject_id}-{session} {cond}-stim",
-                )
-                csv_file = find_unique(
-                    folder,
-                    csv_regex(subject_id, session, cond),
-                    f"behavior CSV {subject_id}-{session} {cond}-stim",
-                )
-                jobs.append((subject_id, session, cond, eeg_file, csv_file))
+            for task in TASK_TOKEN:
+                for cond in CONDITIONS:
+                    eeg_file = find_unique(
+                        folder,
+                        eeg_regex(subject_id, session, cond, task),
+                        f"EEG {task} {subject_id}-{session} {cond}-stim",
+                    )
+                    csv_file = find_unique(
+                        folder,
+                        csv_regex(subject_id, session, cond, task),
+                        f"behavior CSV {task} {subject_id}-{session} {cond}-stim",
+                    )
+                    jobs.append(
+                        (subject_id, session, task, cond, eeg_file, csv_file)
+                    )
 
     return jobs
 
@@ -510,22 +537,30 @@ def iaf_minus_5_analysis(eeg_clean, srate, posterior_idx):
 
 
 # =====================================================================
-# BETA: TFR ERD
+# BETA: TFR ERD (shared by Bandit and SST)
 # =====================================================================
 
 
-def beta_analysis(decision_epochs, decision_times, srate, frontal_idx):
-    """Estimate the decision-related beta ERD peak frequency."""
-    tfr = morlet_tfr(
-        decision_epochs, srate, DECISION_FREQS, n_cycles=N_CYCLES, ch_idx=frontal_idx
-    )
-    tfr_db = baseline_correct_db(tfr, decision_times, DECISION_BASELINE)
+def beta_analysis(
+    epochs,
+    times,
+    srate,
+    frontal_idx,
+    baseline=DECISION_BASELINE,
+    analysis=DECISION_ANALYSIS,
+):
+    """Estimate the beta ERD peak frequency (most negative dB in 13-30 Hz).
 
-    decision_mask = (
-        (decision_times >= DECISION_ANALYSIS[0])
-        & (decision_times <= DECISION_ANALYSIS[1])
+    Defaults reproduce the Bandit decision-epoch analysis; the SST passes its
+    own baseline and analysis windows.
+    """
+    tfr = morlet_tfr(
+        epochs, srate, DECISION_FREQS, n_cycles=N_CYCLES, ch_idx=frontal_idx
     )
-    beta_spectrum = np.mean(tfr_db[:, decision_mask], axis=1)
+    tfr_db = baseline_correct_db(tfr, times, baseline)
+
+    analysis_mask = (times >= analysis[0]) & (times <= analysis[1])
+    beta_spectrum = np.mean(tfr_db[:, analysis_mask], axis=1)
 
     # Strongest ERD = most negative dB.
     return find_peak(DECISION_FREQS, beta_spectrum, mode="min")
@@ -536,9 +571,18 @@ def beta_analysis(decision_epochs, decision_times, srate, frontal_idx):
 # =====================================================================
 
 
-def analyze_recording(eeg_file, behavior_file):
-    """Run all four measurements for one EEG/behavior pair."""
-    results = {m: np.nan for m in MEASURES}
+def attempt(label, func):
+    """Run one measurement; on failure warn and return NaN."""
+    try:
+        return func()
+    except Exception as exc:  # noqa: BLE001
+        print(f"    WARNING: {label} failed: {exc}")
+        return np.nan
+
+
+def analyze_bandit_recording(eeg_file, behavior_file):
+    """Run all four Bandit measurements for one EEG/behavior pair."""
+    results = {m: np.nan for m in BANDIT_MEASURES}
 
     frontal_idx = [ch - 1 for ch in FRONTAL_CHANNELS]
     posterior_idx = [ch - 1 for ch in POSTERIOR_ALPHA_CHANNELS]
@@ -563,14 +607,6 @@ def analyze_recording(eeg_file, behavior_file):
     print(f"    feedback epochs retained: {len(ep_fb)} | "
           f"decision epochs retained: {len(ep_dec)}")
 
-    # Each measurement is isolated so one failure doesn't blank the others.
-    def attempt(label, func):
-        try:
-            return func()
-        except Exception as exc:  # noqa: BLE001
-            print(f"    WARNING: {label} failed: {exc}")
-            return np.nan
-
     if len(ep_fb) > 0:
         results["theta_specparam"] = attempt(
             "theta Specparam",
@@ -593,6 +629,41 @@ def analyze_recording(eeg_file, behavior_file):
         )
 
     return results
+
+
+def analyze_sst_recording(eeg_file, behavior_file):
+    """Run the SST beta measurement for one EEG/behavior pair."""
+    results = {m: np.nan for m in SST_MEASURES}
+
+    frontal_idx = [ch - 1 for ch in FRONTAL_CHANNELS]
+    ref_idx = [ch - 1 for ch in REF_CHANNELS]
+
+    eeg_uv, unix_ms = load_easy(eeg_file)
+    eeg_clean = preprocess(eeg_uv, SRATE, ref_idx=ref_idx)
+    events = pd.read_csv(behavior_file)
+
+    # All trials with a valid stim_onset_unix_time are used.
+    stim_ms = get_event_times(events, SST_EVENT_COL)
+    ep_sst, t_sst = epoch_from_unix(
+        eeg_clean, unix_ms, SRATE, stim_ms,
+        SST_EPOCH[0], SST_EPOCH[1], reject_ch_idx=ref_idx,
+    )
+
+    print(f"    stim-onset epochs retained: {len(ep_sst)}")
+
+    if len(ep_sst) > 0:
+        results["beta_tfr"] = attempt(
+            "SST beta TFR",
+            lambda: beta_analysis(
+                ep_sst, t_sst, SRATE, frontal_idx,
+                baseline=SST_BASELINE, analysis=SST_ANALYSIS,
+            )[0],
+        )
+
+    return results
+
+
+ANALYZERS = {"bandit": analyze_bandit_recording, "sst": analyze_sst_recording}
 
 
 # =====================================================================
@@ -619,13 +690,18 @@ def main():
 
     rows = {}  # (int subject, int session) -> {column: value}
 
-    for subject_id, session, cond, eeg_file, csv_file in jobs:
+    for subject_id, session, task, cond, eeg_file, csv_file in jobs:
         key = (int(subject_id), session)
         row = rows.setdefault(key, {})
-        for m in MEASURES:
-            row.setdefault(f"bandit_{cond}_{m}", np.nan)
+        for m in TASK_MEASURES[task]:
+            row.setdefault(column_name(task, cond, m), np.nan)
 
-        label = f"{subject_id}-ses{session} [{cond}-stim]"
+        label = f"{subject_id}-ses{session} [{task} {cond}-stim]"
+
+        # A task with no files at all for this session simply wasn't run.
+        if eeg_file is None and csv_file is None:
+            continue
+
         print(f"\n{label}")
 
         if eeg_file is None or csv_file is None:
@@ -638,17 +714,22 @@ def main():
             continue
 
         try:
-            results = analyze_recording(eeg_file, csv_file)
+            results = ANALYZERS[task](eeg_file, csv_file)
         except Exception as exc:  # noqa: BLE001
             print(f"    ERROR: analysis failed: {exc}")
             traceback.print_exc()
             continue
 
         for m, value in results.items():
-            row[f"bandit_{cond}_{m}"] = value
+            row[column_name(task, cond, m)] = value
 
-    # Columns ordered by measure, pre then post (matches requested layout).
-    columns = [f"bandit_{cond}_{m}" for m in MEASURES for cond in CONDITIONS]
+    # Bandit columns first (by measure, pre then post), then SST columns.
+    columns = [
+        column_name(task, cond, m)
+        for task in ("bandit", "sst")
+        for m in TASK_MEASURES[task]
+        for cond in CONDITIONS
+    ]
 
     index = []
     data = []
