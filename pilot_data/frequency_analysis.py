@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 """Batch individualized theta / beta frequency estimation.
 
-Place this script in the base folder that contains the participant folders
-(e.g. ...\\10001, ...\\10002, ...). Every folder whose name contains a subject
-ID is processed. Inside each folder the script expects, for each session n and
-each task (Bandit, SST):
+Run the script to open a small window with two text boxes:
+
+  1. the folder containing the stimulation (EEG .easy) data
+  2. the folder containing the behavioral (.csv) data
+
+Each folder is searched recursively, so the files can sit directly in it or in
+one sub-folder per participant. Subject ID and session are read from the file
+names. For each session n and each task (Bandit, SST) the script looks for:
 
     *<ID>-<n>_Bandit_pre-stim.easy      *<ID>-<n>_SST_pre-stim.easy
     *<ID>-<n>_Bandit_post-stim.easy     *<ID>-<n>_SST_post-stim.easy
     sub-<ID>-<n>_task-bandit_pre-stim*.csv   sub-<ID>-<n>_task-SST_pre-stim*.csv
     sub-<ID>-<n>_task-bandit_post-stim*.csv  sub-<ID>-<n>_task-SST_post-stim*.csv
 
-Sessions are discovered automatically from the filenames, so any number of
-sessions is supported. Pre and post are analyzed independently.
+Sessions are discovered automatically, so any number of sessions is supported.
+Pre and post are analyzed independently.
 
 Bandit:
     theta: Specparam, Morlet TFR, IAF-5  (feedback epochs / posterior alpha)
@@ -21,7 +25,7 @@ SST:
     beta : Morlet TFR ERD                (epochs around stim_onset_unix_time,
                                           0 to 1.5 s after onset, all trials)
 
-Output: batch_theta_beta_results.csv in the base folder, one row per
+Output: batch_theta_beta_results.csv, saved in the stimulation folder, one row per
 subject-session (e.g. 10001-ses1) and one column per measurement
 (e.g. bandit_pre_theta_specparam, sst_pre_beta_tfr).
 
@@ -54,8 +58,7 @@ except ImportError:
 # CONFIGURATION
 # =====================================================================
 
-BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_CSV = BASE_DIR / "batch_theta_beta_results.csv"
+OUTPUT_NAME = "batch_theta_beta_results.csv"
 
 CONDITIONS = ("pre", "post")
 
@@ -124,95 +127,69 @@ def column_name(task, cond, measure):
 # FILE DISCOVERY
 # =====================================================================
 
+_TOKENS = "|".join(re.escape(t) for t in TASK_TOKEN.values())
+_TOKEN_TO_TASK = {v.lower(): k for k, v in TASK_TOKEN.items()}
 
-def subject_id_from_folder(name):
-    """Return the subject ID in a folder name (longest run of digits), or None."""
-    runs = re.findall(r"\d+", name)
-    if not runs:
-        return None
-    return max(runs, key=len)
-
-
-def eeg_regex(subject_id, session, cond, task):
-    token = re.escape(TASK_TOKEN[task])
-    return re.compile(
-        rf"(?<!\d){subject_id}-{session}_{token}_{cond}-stim\.easy$", re.IGNORECASE
-    )
+# e.g. 20260921182620_10085-1_SST_pre-stim.easy  -> (10085, 1, SST, pre)
+EEG_PATTERN = re.compile(
+    rf"(?<!\d)(\d+)-(\d+)_({_TOKENS})_(pre|post)-stim\.easy$", re.IGNORECASE
+)
+# e.g. sub-10085-1_task-SST_pre-stim_2026-09-21_18-24-05.csv
+CSV_PATTERN = re.compile(
+    rf"^sub-(\d+)-(\d+)_task-({_TOKENS})_(pre|post)-stim.*\.csv$", re.IGNORECASE
+)
 
 
-def csv_regex(subject_id, session, cond, task):
-    token = re.escape(TASK_TOKEN[task])
-    return re.compile(
-        rf"^sub-{subject_id}-{session}_task-{token}_{cond}-stim.*\.csv$",
-        re.IGNORECASE,
-    )
+def scan_files(folder, pattern, kind):
+    """Recursively index matching files under `folder`.
 
-
-def discover_sessions(folder, subject_id):
-    """Find all session numbers present in a participant folder (any task)."""
-    tokens = "|".join(re.escape(t) for t in TASK_TOKEN.values())
-    eeg_pat = re.compile(
-        rf"(?<!\d){subject_id}-(\d+)_(?:{tokens})_(?:pre|post)-stim\.easy$",
-        re.IGNORECASE,
-    )
-    csv_pat = re.compile(
-        rf"^sub-{subject_id}-(\d+)_task-(?:{tokens})_(?:pre|post)-stim.*\.csv$",
-        re.IGNORECASE,
-    )
-    sessions = set()
-    for f in folder.iterdir():
-        if not f.is_file():
+    Works whether the folder holds the files directly or has one sub-folder
+    per participant. The subject ID comes from the file name. Returns
+    {(subject_id, session, task, cond): path}; raises DuplicateFileError if
+    more than one file maps to the same key.
+    """
+    found = {}
+    for f in sorted(folder.rglob("*")):
+        if not f.is_file() or f.name.startswith("."):
             continue
-        for pat in (eeg_pat, csv_pat):
-            m = pat.search(f.name)
-            if m:
-                sessions.add(int(m.group(1)))
-    return sorted(sessions)
+        m = pattern.search(f.name)
+        if not m:
+            continue
+        subject_id, session, token, cond = m.groups()
+        key = (subject_id, int(session), _TOKEN_TO_TASK[token.lower()], cond.lower())
+        found.setdefault(key, []).append(f)
+
+    for key, files in found.items():
+        if len(files) > 1:
+            subject_id, session, task, cond = key
+            names = "\n  ".join(str(p) for p in files)
+            raise DuplicateFileError(
+                f"Multiple {kind} files match {task} {subject_id}-{session} "
+                f"{cond}-stim:\n  {names}"
+            )
+
+    return {k: v[0] for k, v in found.items()}
 
 
-def find_unique(folder, regex, description):
-    """Return the single matching file, None if none, raise if duplicates."""
-    matches = sorted(
-        f for f in folder.iterdir() if f.is_file() and regex.search(f.name)
+def build_job_list(stim_dir, behav_dir):
+    """Scan both folders. Raises on duplicates before any analysis starts."""
+    eeg_files = scan_files(stim_dir, EEG_PATTERN, "EEG")
+    csv_files = scan_files(behav_dir, CSV_PATTERN, "behavior CSV")
+
+    subject_sessions = sorted(
+        {(k[0], k[1]) for k in list(eeg_files) + list(csv_files)},
+        key=lambda x: (int(x[0]), x[1]),
     )
-    if len(matches) > 1:
-        names = "\n  ".join(m.name for m in matches)
-        raise DuplicateFileError(
-            f"Multiple files match {description} in {folder}:\n  {names}"
-        )
-    return matches[0] if matches else None
 
-
-def build_job_list():
-    """Scan every participant folder. Raises on duplicates before any analysis."""
     jobs = []  # (subject_id, session, task, cond, eeg_file|None, csv_file|None)
-
-    folders = sorted(
-        (p for p in BASE_DIR.iterdir() if p.is_dir()),
-        key=lambda p: p.name,
-    )
-    for folder in folders:
-        subject_id = subject_id_from_folder(folder.name)
-        if subject_id is None:
-            continue
-
-        for session in discover_sessions(folder, subject_id):
-            for task in TASK_TOKEN:
-                for cond in CONDITIONS:
-                    eeg_file = find_unique(
-                        folder,
-                        eeg_regex(subject_id, session, cond, task),
-                        f"EEG {task} {subject_id}-{session} {cond}-stim",
-                    )
-                    csv_file = find_unique(
-                        folder,
-                        csv_regex(subject_id, session, cond, task),
-                        f"behavior CSV {task} {subject_id}-{session} {cond}-stim",
-                    )
-                    jobs.append(
-                        (subject_id, session, task, cond, eeg_file, csv_file)
-                    )
-
+    for subject_id, session in subject_sessions:
+        for task in TASK_TOKEN:
+            for cond in CONDITIONS:
+                key = (subject_id, session, task, cond)
+                jobs.append(
+                    (subject_id, session, task, cond,
+                     eeg_files.get(key), csv_files.get(key))
+                )
     return jobs
 
 
@@ -667,26 +644,28 @@ ANALYZERS = {"bandit": analyze_bandit_recording, "sst": analyze_sst_recording}
 
 
 # =====================================================================
-# MAIN
+# MAIN ANALYSIS
 # =====================================================================
 
 
-def main():
-    print(f"Base folder: {BASE_DIR}")
+def run_analysis(stim_dir, behav_dir):
+    """Analyze every participant found in the two folders; return output path."""
+    stim_dir = Path(stim_dir)
+    behav_dir = Path(behav_dir)
+    output_csv = stim_dir / OUTPUT_NAME
+
+    print(f"Stimulation (EEG) folder: {stim_dir}")
+    print(f"Behavioral folder:        {behav_dir}")
     if not SPECPARAM_AVAILABLE:
         print("WARNING: specparam is not installed; Specparam theta will be blank "
               "and IAF-5 will use the power-spectrum fallback.")
 
     # Pre-flight scan: raises DuplicateFileError before any analysis starts.
-    try:
-        jobs = build_job_list()
-    except DuplicateFileError as exc:
-        print(f"\nERROR: {exc}", file=sys.stderr)
-        sys.exit(1)
+    jobs = build_job_list(stim_dir, behav_dir)
 
     if not jobs:
         print("No participant sessions were found.")
-        sys.exit(0)
+        return None
 
     rows = {}  # (int subject, int session) -> {column: value}
 
@@ -739,9 +718,152 @@ def main():
 
     df = pd.DataFrame(data, index=index, columns=columns)
     df.index.name = "participant_session"
-    df.round(2).to_csv(OUTPUT_CSV)
+    df.round(2).to_csv(output_csv)
 
-    print(f"\nSaved: {OUTPUT_CSV}")
+    print(f"\nSaved: {output_csv}")
+    return output_csv
+
+
+# =====================================================================
+# GUI
+# =====================================================================
+
+
+def clean_path(text):
+    """Strip whitespace and the quotes Windows adds with 'Copy as path'."""
+    return text.strip().strip("\"'").strip()
+
+
+class _QueueWriter:
+    """File-like object that forwards printed text to the GUI log."""
+
+    def __init__(self, q):
+        self.q = q
+
+    def write(self, text):
+        if text:
+            self.q.put(("log", text))
+
+    def flush(self):
+        pass
+
+
+def launch_gui():
+    import queue
+    import threading
+    import tkinter as tk
+    from contextlib import redirect_stderr, redirect_stdout
+    from tkinter import filedialog, messagebox, scrolledtext
+
+    root = tk.Tk()
+    root.title("Theta / Beta Frequency Estimation")
+    root.geometry("760x560")
+    root.columnconfigure(0, weight=1)
+    root.rowconfigure(4, weight=1)
+
+    stim_var = tk.StringVar()
+    behav_var = tk.StringVar()
+    q = queue.Queue()
+
+    def folder_row(row, title, var):
+        frame = tk.Frame(root)
+        frame.grid(row=row, column=0, sticky="ew", padx=12, pady=(10, 0))
+        frame.columnconfigure(0, weight=1)
+        tk.Label(frame, text=title, anchor="w").grid(
+            row=0, column=0, columnspan=2, sticky="w"
+        )
+        tk.Entry(frame, textvariable=var).grid(row=1, column=0, sticky="ew")
+
+        def browse():
+            chosen = filedialog.askdirectory(title=title)
+            if chosen:
+                var.set(chosen)
+
+        tk.Button(frame, text="Browse...", command=browse).grid(
+            row=1, column=1, padx=(6, 0)
+        )
+
+    folder_row(0, "Paste the folder containing the STIMULATION (EEG .easy) data:",
+               stim_var)
+    folder_row(1, "Paste the folder containing the BEHAVIORAL (.csv) data:",
+               behav_var)
+
+    run_btn = tk.Button(root, text="Run analysis", width=18)
+    run_btn.grid(row=2, column=0, pady=12)
+
+    tk.Label(root, text="Progress:", anchor="w").grid(
+        row=3, column=0, sticky="w", padx=12
+    )
+    log = scrolledtext.ScrolledText(root, state="disabled", wrap="word")
+    log.grid(row=4, column=0, sticky="nsew", padx=12, pady=(0, 12))
+
+    def append_log(text):
+        log.configure(state="normal")
+        log.insert("end", text)
+        log.see("end")
+        log.configure(state="disabled")
+
+    def worker(stim_dir, behav_dir):
+        writer = _QueueWriter(q)
+        try:
+            with redirect_stdout(writer), redirect_stderr(writer):
+                out = run_analysis(stim_dir, behav_dir)
+            q.put(("done", out))
+        except DuplicateFileError as exc:
+            q.put(("error", f"Duplicate files found - nothing was analyzed.\n\n{exc}"))
+        except Exception as exc:  # noqa: BLE001
+            q.put(("error", f"{type(exc).__name__}: {exc}\n\n{traceback.format_exc()}"))
+
+    def poll():
+        try:
+            while True:
+                kind, payload = q.get_nowait()
+                if kind == "log":
+                    append_log(payload)
+                elif kind == "done":
+                    run_btn.configure(state="normal")
+                    if payload is None:
+                        messagebox.showwarning(
+                            "No data", "No participant sessions were found."
+                        )
+                    else:
+                        messagebox.showinfo("Finished", f"Results saved to:\n{payload}")
+                elif kind == "error":
+                    run_btn.configure(state="normal")
+                    append_log(f"\nERROR: {payload}\n")
+                    messagebox.showerror("Error", payload.splitlines()[0])
+        except queue.Empty:
+            pass
+        root.after(100, poll)
+
+    def on_run():
+        stim_dir = Path(clean_path(stim_var.get())).expanduser()
+        behav_dir = Path(clean_path(behav_var.get())).expanduser()
+
+        if not clean_path(stim_var.get()) or not stim_dir.is_dir():
+            messagebox.showerror("Invalid folder",
+                                 "The stimulation data folder was not found.")
+            return
+        if not clean_path(behav_var.get()) or not behav_dir.is_dir():
+            messagebox.showerror("Invalid folder",
+                                 "The behavioral data folder was not found.")
+            return
+
+        log.configure(state="normal")
+        log.delete("1.0", "end")
+        log.configure(state="disabled")
+        run_btn.configure(state="disabled")
+        threading.Thread(
+            target=worker, args=(stim_dir, behav_dir), daemon=True
+        ).start()
+
+    run_btn.configure(command=on_run)
+    poll()
+    root.mainloop()
+
+
+def main():
+    launch_gui()
 
 
 if __name__ == "__main__":
