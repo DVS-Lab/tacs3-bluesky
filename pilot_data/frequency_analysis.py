@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """Batch individualized theta / beta frequency estimation.
 
-Place this script in the base folder that contains the participant folders
-(e.g. ...\\10001, ...\\10002, ...). Every folder whose name contains a subject
-ID is processed. Inside each folder the script expects, for each session n and
-each task (Bandit, SST):
+Set the three folder paths in the "EDIT THESE PATHS" block near the top of this
+file, then run the script:
+
+  STIM_DIR     - folder containing the stimulation (EEG .easy) data
+  BEHAVIOR_DIR - folder containing the behavioral (.csv) data
+                 (may be the same folder as STIM_DIR)
+  OUTPUT_DIR   - folder where the results CSV is saved
+
+Each folder is searched recursively (files can be directly in it or in
+sub-folders). Subject ID (letters/digits, e.g. G11033) and session are read from
+the file names. For each session n and each task (Bandit, SST) it looks for:
 
     *<ID>-<n>_Bandit_pre-stim.easy      *<ID>-<n>_SST_pre-stim.easy
     *<ID>-<n>_Bandit_post-stim.easy     *<ID>-<n>_SST_post-stim.easy
@@ -21,15 +28,16 @@ SST:
     beta : Morlet TFR ERD                (epochs around stim_onset_unix_time,
                                           0 to 1.5 s after onset, all trials)
 
-Output: batch_theta_beta_results.csv in the base folder, one row per
-subject-session (e.g. 10001-ses1) and one column per measurement
+Output: batch_theta_beta_results.csv in OUTPUT_DIR, one row per subject-session
+(e.g. 10001-ses1) and one column per measurement
 (e.g. bandit_pre_theta_specparam, sst_pre_beta_tfr).
 
 Behavior on problems:
   * Missing file(s) or failed analysis -> values left blank, script continues.
-  * Duplicate matching files           -> script stops with an error
-                                          (checked for all participants before
-                                          any analysis starts).
+  * Duplicate matching files           -> that subject is not analyzed; every
+                                          cell in that subject's output rows
+                                          says DUPLICATE_MESSAGE, and the
+                                          script moves on to the next subject.
 """
 
 import re
@@ -54,8 +62,27 @@ except ImportError:
 # CONFIGURATION
 # =====================================================================
 
-BASE_DIR = Path(__file__).resolve().parent
-OUTPUT_CSV = BASE_DIR / "batch_theta_beta_results.csv"
+# ---------------------------------------------------------------------
+# EDIT THESE PATHS
+# ---------------------------------------------------------------------
+# Use a raw string (r"...") for Windows paths, e.g.
+#   STIM_DIR     = Path(r"C:\Study\EEG_stimulation_data")
+#   BEHAVIOR_DIR = Path(r"C:\Study\Behavioral_data")
+#   OUTPUT_DIR   = Path(r"C:\Study\Results")
+# Each input folder is searched recursively, so the files can sit directly in
+# it or in participant sub-folders. The two folders may be the same.
+STIM_DIR = Path(r"/Users/avidachs/Documents/GitHub/tacs3-bluesky/stimulation/stimulation-data")
+BEHAVIOR_DIR = Path(r"/Users/avidachs/Documents/GitHub/tacs3-bluesky/stimulation/pre-stimulation-participant-responses")
+OUTPUT_DIR = Path(r"/Users/avidachs/Documents/GitHub/tacs3-bluesky")   # created if it does not exist
+
+OUTPUT_NAME = "batch_theta_beta_results_correct-feedback-duration.csv"
+
+# Bandit feedback analysis window, in seconds relative to feedback onset.
+# Used by BOTH theta measures (Specparam and TFR). In the bandit task the next
+# trial's fixation cross appears 1.0 s after feedback onset and its flowers at
+# 1.3 s, so the window should not extend past 1.3 s.
+FEEDBACK_WINDOW = (0.1, 1.3)
+# ---------------------------------------------------------------------
 
 CONDITIONS = ("pre", "post")
 
@@ -72,7 +99,7 @@ SRATE = 500.0
 
 SPECPARAM_THETA_BAND = (4.0, 8.0)
 SPECPARAM_FIT_RANGE = (2.0, 40.0)
-SPECPARAM_FEEDBACK_ANALYSIS = (0.1, 1.5)
+SPECPARAM_FEEDBACK_ANALYSIS = FEEDBACK_WINDOW
 SPECPARAM_WELCH_SECONDS = 0.5
 
 THETA_SEARCH_BAND = (4.0, 8.0)
@@ -81,7 +108,7 @@ BETA_SEARCH_BAND = (13.0, 30.0)
 
 FEEDBACK_EPOCH = (-1.5, 2.0)
 FEEDBACK_BASELINE = (-0.8, -0.1)
-FEEDBACK_ANALYSIS = (0.1, 1.5)
+FEEDBACK_ANALYSIS = FEEDBACK_WINDOW
 
 DECISION_EPOCH = (-1.5, 0.5)
 DECISION_BASELINE = (-1.5, -1.0)
@@ -112,8 +139,7 @@ SST_MEASURES = ("beta_tfr",)
 TASK_MEASURES = {"bandit": BANDIT_MEASURES, "sst": SST_MEASURES}
 
 
-class DuplicateFileError(Exception):
-    """Raised when more than one file matches an expected pattern."""
+DUPLICATE_MESSAGE = "DUPLICATE FILES FOUND - not analyzed"
 
 
 def column_name(task, cond, measure):
@@ -124,96 +150,82 @@ def column_name(task, cond, measure):
 # FILE DISCOVERY
 # =====================================================================
 
+_TOKENS = "|".join(re.escape(t) for t in TASK_TOKEN.values())
+_TOKEN_TO_TASK = {v.lower(): k for k, v in TASK_TOKEN.items()}
 
-def subject_id_from_folder(name):
-    """Return the subject ID in a folder name (longest run of digits), or None."""
-    runs = re.findall(r"\d+", name)
-    if not runs:
-        return None
-    return max(runs, key=len)
-
-
-def eeg_regex(subject_id, session, cond, task):
-    token = re.escape(TASK_TOKEN[task])
-    return re.compile(
-        rf"(?<!\d){subject_id}-{session}_{token}_{cond}-stim\.easy$", re.IGNORECASE
-    )
-
-
-def csv_regex(subject_id, session, cond, task):
-    token = re.escape(TASK_TOKEN[task])
-    return re.compile(
-        rf"^sub-{subject_id}-{session}_task-{token}_{cond}-stim.*\.csv$",
-        re.IGNORECASE,
-    )
+# Subject IDs may contain letters and digits (e.g. G11033, 10085).
+# e.g. 20261113100137_G11033-3_Bandit_pre-stim.easy -> (G11033, 3, Bandit, pre)
+EEG_PATTERN = re.compile(
+    rf"(?<![A-Za-z0-9])([A-Za-z0-9]+)-(\d+)_({_TOKENS})_(pre|post)-stim\.easy$",
+    re.IGNORECASE,
+)
+# e.g. sub-G11033-1_task-bandit_pre-stim_2026-10-30_10-04-13.csv
+CSV_PATTERN = re.compile(
+    rf"^sub-([A-Za-z0-9]+)-(\d+)_task-({_TOKENS})_(pre|post)-stim.*\.csv$",
+    re.IGNORECASE,
+)
 
 
-def discover_sessions(folder, subject_id):
-    """Find all session numbers present in a participant folder (any task)."""
-    tokens = "|".join(re.escape(t) for t in TASK_TOKEN.values())
-    eeg_pat = re.compile(
-        rf"(?<!\d){subject_id}-(\d+)_(?:{tokens})_(?:pre|post)-stim\.easy$",
-        re.IGNORECASE,
-    )
-    csv_pat = re.compile(
-        rf"^sub-{subject_id}-(\d+)_task-(?:{tokens})_(?:pre|post)-stim.*\.csv$",
-        re.IGNORECASE,
-    )
-    sessions = set()
-    for f in folder.iterdir():
-        if not f.is_file():
+def natural_key(text):
+    """Sort key so that 'G2' < 'G10' and numeric IDs sort numerically."""
+    return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", text)]
+
+
+def scan_files(folder, pattern, kind):
+    """Recursively index matching files under `folder`.
+
+    Works whether the folder holds the files directly or has one sub-folder
+    per participant. The subject ID comes from the file name. Returns
+    (files, duplicates): files is {(subject_id, session, task, cond): path} for
+    keys with exactly one match; duplicates is {key: [paths]} for keys that
+    matched more than one file (these are left out of `files`).
+    """
+    found = {}
+    for f in sorted(folder.rglob("*")):
+        if not f.is_file() or f.name.startswith("."):
             continue
-        for pat in (eeg_pat, csv_pat):
-            m = pat.search(f.name)
-            if m:
-                sessions.add(int(m.group(1)))
-    return sorted(sessions)
+        m = pattern.search(f.name)
+        if not m:
+            continue
+        subject_id, session, token, cond = m.groups()
+        key = (subject_id.upper(), int(session), _TOKEN_TO_TASK[token.lower()],
+               cond.lower())
+        found.setdefault(key, []).append(f)
 
+    files = {k: v[0] for k, v in found.items() if len(v) == 1}
+    duplicates = {k: v for k, v in found.items() if len(v) > 1}
+    for key, paths in duplicates.items():
+        subject_id, session, task, cond = key
+        names = "\n      ".join(str(p) for p in paths)
+        print(f"WARNING: multiple {kind} files match {task} {subject_id}-{session} "
+              f"{cond}-stim:\n      {names}")
 
-def find_unique(folder, regex, description):
-    """Return the single matching file, None if none, raise if duplicates."""
-    matches = sorted(
-        f for f in folder.iterdir() if f.is_file() and regex.search(f.name)
-    )
-    if len(matches) > 1:
-        names = "\n  ".join(m.name for m in matches)
-        raise DuplicateFileError(
-            f"Multiple files match {description} in {folder}:\n  {names}"
-        )
-    return matches[0] if matches else None
+    return files, duplicates
 
 
 def build_job_list():
-    """Scan every participant folder. Raises on duplicates before any analysis."""
-    jobs = []  # (subject_id, session, task, cond, eeg_file|None, csv_file|None)
+    """Scan both folders; return (jobs, subjects_with_duplicate_files)."""
+    eeg_files, eeg_dups = scan_files(Path(STIM_DIR), EEG_PATTERN, "EEG")
+    csv_files, csv_dups = scan_files(Path(BEHAVIOR_DIR), CSV_PATTERN, "behavior CSV")
 
-    folders = sorted(
-        (p for p in BASE_DIR.iterdir() if p.is_dir()),
-        key=lambda p: p.name,
+    duplicate_subjects = {k[0] for k in list(eeg_dups) + list(csv_dups)}
+
+    subject_sessions = sorted(
+        {(k[0], k[1]) for k in
+         list(eeg_files) + list(csv_files) + list(eeg_dups) + list(csv_dups)},
+        key=lambda x: (natural_key(x[0]), x[1]),
     )
-    for folder in folders:
-        subject_id = subject_id_from_folder(folder.name)
-        if subject_id is None:
-            continue
 
-        for session in discover_sessions(folder, subject_id):
-            for task in TASK_TOKEN:
-                for cond in CONDITIONS:
-                    eeg_file = find_unique(
-                        folder,
-                        eeg_regex(subject_id, session, cond, task),
-                        f"EEG {task} {subject_id}-{session} {cond}-stim",
-                    )
-                    csv_file = find_unique(
-                        folder,
-                        csv_regex(subject_id, session, cond, task),
-                        f"behavior CSV {task} {subject_id}-{session} {cond}-stim",
-                    )
-                    jobs.append(
-                        (subject_id, session, task, cond, eeg_file, csv_file)
-                    )
-
-    return jobs
+    jobs = []  # (subject_id, session, task, cond, eeg_file|None, csv_file|None)
+    for subject_id, session in subject_sessions:
+        for task in TASK_TOKEN:
+            for cond in CONDITIONS:
+                key = (subject_id, session, task, cond)
+                jobs.append(
+                    (subject_id, session, task, cond,
+                     eeg_files.get(key), csv_files.get(key))
+                )
+    return jobs, duplicate_subjects
 
 
 # =====================================================================
@@ -672,17 +684,26 @@ ANALYZERS = {"bandit": analyze_bandit_recording, "sst": analyze_sst_recording}
 
 
 def main():
-    print(f"Base folder: {BASE_DIR}")
+    for label, folder in (("STIM_DIR", STIM_DIR), ("BEHAVIOR_DIR", BEHAVIOR_DIR)):
+        if not Path(folder).is_dir():
+            print(f"ERROR: {label} not found: {folder}\n"
+                  f"Edit the paths at the top of this file.", file=sys.stderr)
+            sys.exit(1)
+
+    output_csv = Path(OUTPUT_DIR) / OUTPUT_NAME
+
+    print(f"Stimulation (EEG) folder: {STIM_DIR}")
+    print(f"Behavioral folder:        {BEHAVIOR_DIR}")
+    print(f"Output folder:            {OUTPUT_DIR}")
     if not SPECPARAM_AVAILABLE:
         print("WARNING: specparam is not installed; Specparam theta will be blank "
               "and IAF-5 will use the power-spectrum fallback.")
 
-    # Pre-flight scan: raises DuplicateFileError before any analysis starts.
-    try:
-        jobs = build_job_list()
-    except DuplicateFileError as exc:
-        print(f"\nERROR: {exc}", file=sys.stderr)
-        sys.exit(1)
+    # Scan both folders. Subjects with duplicate files are flagged, not fatal.
+    jobs, duplicate_subjects = build_job_list()
+    if duplicate_subjects:
+        print("\nSubjects with duplicate files (will be marked in the output): "
+              + ", ".join(sorted(duplicate_subjects, key=natural_key)))
 
     if not jobs:
         print("No participant sessions were found.")
@@ -691,10 +712,13 @@ def main():
     rows = {}  # (int subject, int session) -> {column: value}
 
     for subject_id, session, task, cond, eeg_file, csv_file in jobs:
-        key = (int(subject_id), session)
+        key = (subject_id, session)
         row = rows.setdefault(key, {})
         for m in TASK_MEASURES[task]:
             row.setdefault(column_name(task, cond, m), np.nan)
+
+        if subject_id in duplicate_subjects:
+            continue  # cells are filled with DUPLICATE_MESSAGE below
 
         label = f"{subject_id}-ses{session} [{task} {cond}-stim]"
 
@@ -731,17 +755,27 @@ def main():
         for cond in CONDITIONS
     ]
 
+    def cell(subject, session, column):
+        if subject in duplicate_subjects:
+            return DUPLICATE_MESSAGE
+        value = rows[(subject, session)].get(column, np.nan)
+        if isinstance(value, (float, np.floating)):
+            value = round(float(value), 2)
+        return value
+
     index = []
     data = []
-    for (subject, session) in sorted(rows):
+    for (subject, session) in sorted(rows, key=lambda k: (natural_key(k[0]), k[1])):
         index.append(f"{subject}-ses{session}")
-        data.append([rows[(subject, session)].get(c, np.nan) for c in columns])
+        data.append([cell(subject, session, c) for c in columns])
 
     df = pd.DataFrame(data, index=index, columns=columns)
     df.index.name = "participant_session"
-    df.round(2).to_csv(OUTPUT_CSV)
 
-    print(f"\nSaved: {OUTPUT_CSV}")
+    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
+    df.to_csv(output_csv)
+
+    print(f"\nSaved: {output_csv}")
 
 
 if __name__ == "__main__":
