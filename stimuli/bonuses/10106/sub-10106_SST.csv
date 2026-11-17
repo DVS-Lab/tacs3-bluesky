@@ -1,0 +1,8 @@
+participant_id,run,bet_amount,amount_kept,avg_rt,go_accuracy,stop_accuracy,meets_rt_criteria,meets_go_accuracy_criteria,meets_stop_accuracy_criteria,wins_bet,bet_winnings,run_bonus,error
+10106,"(1, 1)",5.0,5.0,0.59,96.8,57.1,False,True,True,False,0.0,5.0,
+10106,"(1, 2)",10.0,0.0,0.564,100.0,57.9,False,True,True,False,0.0,0.0,
+10106,"(2, 1)",0.0,10.0,0.503,98.4,51.7,False,True,True,False,0.0,10.0,
+10106,"(2, 2)",5.0,5.0,0.523,96.8,55.2,False,True,True,False,0.0,5.0,
+10106,"(3, 1)",5.0,5.0,0.416,93.8,48.1,True,True,False,False,0.0,5.0,
+10106,"(3, 2)",10.0,0.0,0.521,100.0,56.2,False,True,True,False,0.0,0.0,
+10106,TOTAL,,,,,,,,,,,,25.0,
