@@ -1,0 +1,228 @@
+{
+  "date": "2026-11-17",
+  "source_main_commit": "ef109bc41405a7b7a882ea2584f629ccb6b9b82c",
+  "analysis_version": "offline-rhythm-validation-1.3",
+  "test_count": 105,
+  "inventory": {
+    "tracked_file_counts": {
+      "": 15,
+      ".md": 8,
+      ".crdownload": 1,
+      ".csv": 376,
+      ".py": 53,
+      ".json": 2,
+      ".txt": 456,
+      ".exe": 7,
+      ".png": 83,
+      ".tsv": 82,
+      ".easy": 380,
+      ".neprot": 190,
+      ".info": 358
+    },
+    "tracked_easy_files": 380,
+    "unique_easy_content": 342,
+    "duplicate_easy_copies": 38,
+    "missing_tracked_input_files": [],
+    "manifest_recordings": 139,
+    "historical_recordings": 38,
+    "recordings_with_all_input_paths": 121,
+    "unresolved_recordings": 18,
+    "excluded_easy_content": 203,
+    "excluded_easy_copies": 204,
+    "unresolved_reasons": {
+      "no_unique_identity_and_timestamp_matched_behavior": 9,
+      "ambiguous_behavior": 4,
+      "missing_metadata": 2,
+      "missing_explicit_behavior": 3
+    },
+    "acquisition_completeness": "Unknown: no master acquisition/session inventory supplied. Git availability does not verify completeness, wiring, timing, or executable build provenance.",
+    "pairing_policy": "No newest-file, nearest-identity, maximum-overlap, phase, or clock-offset substitution. Exact SHA256 duplicates are counted once. Downstream identity/clock/channel checks remain mandatory.",
+    "excluded_filename_categories": {
+      "generic_run_label": 25,
+      "non_stim_named": 1,
+      "stimulation_named": 40,
+      "test_named": 3,
+      "other_unclassified": 1,
+      "generic_template_label": 26,
+      "task_phase_present_missing_session": 1,
+      "numbered_task_run_phase_unspecified": 106
+    },
+    "excluded_category_interpretation": "Filename categories only. Numbered task runs have no verified pre/post phase and may involve stimulation; a name or zero recorded STIM samples does not establish delivered stimulation.",
+    "distinct_filename_alias_groups": 10
+  },
+  "rerun": {
+    "completed": true,
+    "recordings": 139,
+    "estimates": 349,
+    "passing_estimates": 0
+  },
+  "limiting_stage_counts": {
+    "input_or_timing_unresolved": 106,
+    "channel_or_retained_trial_yield_limited": 85,
+    "too_few_eligible_trials_before_artifact_screening": 100,
+    "no_qualified_task_related_carrier": 58
+  },
+  "estimand_counts": {
+    "stop_failure_beta_enhancement": 71,
+    "response_beta_erd": 139,
+    "stop_success_beta_enhancement": 71,
+    "feedback_theta_enhancement": 68
+  },
+  "artifact_screen_comparison": {
+    "n_recordings": 139,
+    "n_recordings_preprocessed": 119,
+    "n_estimands_screened": 240,
+    "n_eligible_estimand_trials": 15371,
+    "n_old_retained": 9736,
+    "n_new_retained": 7695,
+    "n_estimands_with_retention_change": 131,
+    "n_old_only_retained": 2041,
+    "n_new_only_retained": 0,
+    "change_reasons": {
+      "ocular_artifact_spreads_to_roi": 2041
+    },
+    "all_channel_membership_equal": true,
+    "all_filtered_arrays_equal": true,
+    "all_referenced_arrays_equal": true,
+    "recording_errors": {
+      "no_unique_identity_and_timestamp_matched_behavior": 9,
+      "ambiguous_behavior": 4,
+      "missing_metadata": 2,
+      "missing_explicit_behavior": 3,
+      "behavior_subject_id_mismatch": 2
+    },
+    "estimand_errors": {
+      "event_recording_overlap_below_threshold": 23,
+      "event_unix_lsl_clock_inconsistency": 21,
+      "no_eligible_events": 3,
+      "missing_explicit_event_column:response_onset_unix_time": 3,
+      "missing_explicit_event_column:stop_onset_unix_time": 6
+    },
+    "elapsed_sec": 52.627835750579834
+  },
+  "carrier_regression": {
+    "note": "Re-execution of the existing benchmark, not a new independent held-out dataset.",
+    "decision": {
+      "criteria": ">=85% moderate/strong accepted; no wrong accepted known frequencies; <=5% unsuitable controls accepted",
+      "moderate_strong_acceptance": 1.0,
+      "wrong_accepted_known": 0,
+      "control_acceptance": 0.0,
+      "passed": true
+    },
+    "summary": [
+      {
+        "scenario": "known",
+        "strength": "weak",
+        "datasets": 18,
+        "accepted": 18,
+        "correct_location": 18
+      },
+      {
+        "scenario": "known",
+        "strength": "moderate",
+        "datasets": 18,
+        "accepted": 18,
+        "correct_location": 18
+      },
+      {
+        "scenario": "known",
+        "strength": "strong",
+        "datasets": 18,
+        "accepted": 18,
+        "correct_location": 18
+      },
+      {
+        "scenario": "noise",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "stationary",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "broadband",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "broadband_stationary",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "switch",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "boundary",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "transient",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "chirp",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      },
+      {
+        "scenario": "competing",
+        "strength": null,
+        "datasets": 9,
+        "accepted": 0,
+        "correct_location": 0
+      }
+    ]
+  },
+  "source_code_sha256": {
+    "rhythm_validation_carrier.py": "31c50a669435174c5122981382aca9083a13576ac2c3e39bb59508e88dc9eb9b",
+    "rhythm_validation_core.py": "54481e02fe26a5ba3d78791385bace0372ca6386332332db310211ca5303e2f8",
+    "rhythm_validation_io.py": "f9826e06bdaac995c9cae0d6d986f6f2c4c0a253dd8e9f2556a9ba7bd6e3e0ab",
+    "rhythm_validation_report.py": "c46689af9d11b00c56d024d2dc0d34fe5ed75dd4ceca754c0dc513f734eaf157",
+    "validate_rhythms.py": "4750d5b7230f92422f52d6e0cf7a0b033dc372f16bdc3fbbf5993efab3b9d5ad"
+  },
+  "config_sha256": "c4277748464925f1533f23e35639b073512381c4afde124541d58ae86365a4f0",
+  "input_integrity_verified": true,
+  "repeat_results_identical": true,
+  "limitations": [
+    "Provisional Fp1 proxy screen requires manual/native artifact validation.",
+    "No cross-day test-retest qualification.",
+    "Zero accepted does not prove all EEG is bad.",
+    "Installed executable unchanged and build provenance unverified."
+  ],
+  "baseline_v1_2": {
+    "recordings": 139,
+    "estimates": 349,
+    "passing": 0,
+    "limiting_stage_counts": {
+      "input_or_timing_unresolved": 106,
+      "too_few_eligible_trials_before_artifact_screening": 100,
+      "channel_or_retained_trial_yield_limited": 62,
+      "no_qualified_task_related_carrier": 81
+    },
+    "additional_ocular_flags_poor_proxy": 864,
+    "additional_ocular_flags_ordinary_proxy": 1177
+  }
+}
