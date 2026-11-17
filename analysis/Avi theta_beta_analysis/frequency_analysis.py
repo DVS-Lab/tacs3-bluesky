@@ -9,8 +9,8 @@ file, then run the script:
                  (may be the same folder as STIM_DIR)
   OUTPUT_DIR   - folder where the results CSV is saved
 
-Each folder is searched recursively (files can be directly in it or in
-sub-folders). Subject ID (letters/digits, e.g. G11033) and session are read from
+Only the files sitting directly in each folder are used (sub-folders are NOT
+searched). Subject ID (letters/digits, e.g. G11033) and session are read from
 the file names. For each session n and each task (Bandit, SST) it looks for:
 
     *<ID>-<n>_Bandit_pre-stim.easy      *<ID>-<n>_SST_pre-stim.easy
@@ -34,12 +34,19 @@ Output: batch_theta_beta_results.csv in OUTPUT_DIR, one row per subject-session
 
 Behavior on problems:
   * Missing file(s) or failed analysis -> values left blank, script continues.
-  * Duplicate matching files           -> that subject is not analyzed; every
-                                          cell in that subject's output rows
-                                          says DUPLICATE_MESSAGE, and the
+  * Duplicate matching files           -> the first and last Unix time of every
+                                          candidate .easy and behavior CSV are
+                                          compared, and the EEG/CSV pair that
+                                          overlaps the most in time is used.
+                                          If no pair can be chosen (no overlap,
+                                          unreadable times, a tie, or nothing to
+                                          pair with), that subject is not
+                                          analyzed; every cell in its output
+                                          rows says DUPLICATE_MESSAGE and the
                                           script moves on to the next subject.
 """
 
+import os
 import re
 import sys
 import traceback
@@ -69,13 +76,13 @@ except ImportError:
 #   STIM_DIR     = Path(r"C:\Study\EEG_stimulation_data")
 #   BEHAVIOR_DIR = Path(r"C:\Study\Behavioral_data")
 #   OUTPUT_DIR   = Path(r"C:\Study\Results")
-# Each input folder is searched recursively, so the files can sit directly in
-# it or in participant sub-folders. The two folders may be the same.
+# Only files sitting directly in each folder are used; sub-folders are NOT
+# searched. The two folders may be the same.
 STIM_DIR = Path(r"/Users/avidachs/Documents/GitHub/tacs3-bluesky/stimulation/stimulation-data")
 BEHAVIOR_DIR = Path(r"/Users/avidachs/Documents/GitHub/tacs3-bluesky/stimulation/pre-stimulation-participant-responses")
 OUTPUT_DIR = Path(r"/Users/avidachs/Documents/GitHub/tacs3-bluesky")   # created if it does not exist
 
-OUTPUT_NAME = "batch_theta_beta_results_correct-feedback-duration.csv"
+OUTPUT_NAME = "batch_theta_beta_results_1p3.csv"
 
 # Bandit feedback analysis window, in seconds relative to feedback onset.
 # Used by BOTH theta measures (Specparam and TFR). In the bandit task the next
@@ -171,17 +178,15 @@ def natural_key(text):
     return [int(t) if t.isdigit() else t.lower() for t in re.split(r"(\d+)", text)]
 
 
-def scan_files(folder, pattern, kind):
-    """Recursively index matching files under `folder`.
+def scan_files(folder, pattern):
+    """Index matching files directly inside `folder` (no sub-folders).
 
-    Works whether the folder holds the files directly or has one sub-folder
-    per participant. The subject ID comes from the file name. Returns
-    (files, duplicates): files is {(subject_id, session, task, cond): path} for
-    keys with exactly one match; duplicates is {key: [paths]} for keys that
-    matched more than one file (these are left out of `files`).
+    The subject ID comes from the file name. Returns
+    {(subject_id, session, task, cond): [paths]}; a list with more than one
+    path means duplicate files for that key.
     """
     found = {}
-    for f in sorted(folder.rglob("*")):
+    for f in sorted(folder.iterdir()):
         if not f.is_file() or f.name.startswith("."):
             continue
         m = pattern.search(f.name)
@@ -191,28 +196,117 @@ def scan_files(folder, pattern, kind):
         key = (subject_id.upper(), int(session), _TOKEN_TO_TASK[token.lower()],
                cond.lower())
         found.setdefault(key, []).append(f)
+    return found
 
-    files = {k: v[0] for k, v in found.items() if len(v) == 1}
-    duplicates = {k: v for k, v in found.items() if len(v) > 1}
-    for key, paths in duplicates.items():
-        subject_id, session, task, cond = key
-        names = "\n      ".join(str(p) for p in paths)
-        print(f"WARNING: multiple {kind} files match {task} {subject_id}-{session} "
-              f"{cond}-stim:\n      {names}")
 
-    return files, duplicates
+def easy_time_range(path):
+    """First and last Unix timestamp (last column) of a .easy file, in ms.
+
+    Only the first and last lines are read, so this is fast on large files.
+    """
+    with open(path, "rb") as fh:
+        first = fh.readline()
+        fh.seek(0, os.SEEK_END)
+        size = fh.tell()
+        fh.seek(max(0, size - 65536))
+        tail = [ln for ln in fh.read().splitlines() if ln.strip()]
+    if not first.strip() or not tail:
+        raise ValueError("empty file")
+    t0 = float(first.split()[-1])
+    t1 = float(tail[-1].split()[-1])
+    return min(t0, t1), max(t0, t1)
+
+
+def csv_time_range(path):
+    """Earliest and latest value across every *unix_time* column of a CSV."""
+    df = pd.read_csv(path)
+    cols = [c for c in df.columns if "unix_time" in str(c).lower()]
+    if not cols:
+        raise KeyError("no *unix_time* columns")
+    vals = df[cols].apply(pd.to_numeric, errors="coerce").to_numpy(float).ravel()
+    vals = vals[np.isfinite(vals)]
+    if vals.size == 0:
+        raise ValueError("no valid unix times")
+    return float(vals.min()), float(vals.max())
+
+
+def _label(key):
+    subject_id, session, task, cond = key
+    return f"{task} {subject_id}-{session} {cond}-stim"
+
+
+def pick_best_pair(key, eegs, csvs):
+    """Choose the EEG/CSV pair whose Unix time ranges overlap the most.
+
+    Returns (eeg_path, csv_path) or None when no pair can be chosen.
+    """
+    label = _label(key)
+    print(f"WARNING: duplicate files for {label}; comparing Unix time ranges")
+
+    def ranges(paths, reader):
+        out = {}
+        for path in paths:
+            try:
+                out[path] = reader(path)
+                lo, hi = out[path]
+                print(f"      {path.name}: {lo:.0f} to {hi:.0f} "
+                      f"({(hi - lo) / 1000:.0f} s)")
+            except Exception as exc:  # noqa: BLE001
+                print(f"      {path.name}: could not read times ({exc})")
+        return out
+
+    eeg_ranges = ranges(eegs, easy_time_range)
+    csv_ranges = ranges(csvs, csv_time_range)
+
+    if not eeg_ranges or not csv_ranges:
+        print(f"      -> cannot choose: need at least one readable EEG file and "
+              f"one readable behavior CSV for {label}")
+        return None
+
+    pairs = []
+    for e, (e0, e1) in eeg_ranges.items():
+        for c, (c0, c1) in csv_ranges.items():
+            overlap = max(0.0, min(e1, c1) - max(e0, c0))
+            pairs.append((overlap, e, c))
+    pairs.sort(key=lambda x: -x[0])
+
+    best = pairs[0]
+    if best[0] <= 0:
+        print(f"      -> cannot choose: no EEG/CSV pair overlaps in time for {label}")
+        return None
+    if len(pairs) > 1 and abs(pairs[1][0] - best[0]) < 1e-6:
+        print(f"      -> cannot choose: two pairs overlap equally for {label}")
+        return None
+
+    print(f"      -> using EEG {best[1].name} + CSV {best[2].name} "
+          f"(overlap {best[0] / 1000:.0f} s)")
+    return best[1], best[2]
 
 
 def build_job_list():
-    """Scan both folders; return (jobs, subjects_with_duplicate_files)."""
-    eeg_files, eeg_dups = scan_files(Path(STIM_DIR), EEG_PATTERN, "EEG")
-    csv_files, csv_dups = scan_files(Path(BEHAVIOR_DIR), CSV_PATTERN, "behavior CSV")
+    """Scan both folders; return (jobs, subjects_with_unresolved_duplicates)."""
+    eeg_all = scan_files(Path(STIM_DIR), EEG_PATTERN)
+    csv_all = scan_files(Path(BEHAVIOR_DIR), CSV_PATTERN)
 
-    duplicate_subjects = {k[0] for k in list(eeg_dups) + list(csv_dups)}
+    all_keys = set(eeg_all) | set(csv_all)
+    chosen = {}                # key -> (eeg|None, csv|None)
+    duplicate_subjects = set()  # subjects with a duplicate we could not resolve
+
+    for key in sorted(all_keys, key=lambda k: (natural_key(k[0]), k[1], k[2], k[3])):
+        eegs = eeg_all.get(key, [])
+        csvs = csv_all.get(key, [])
+        if len(eegs) <= 1 and len(csvs) <= 1:
+            chosen[key] = (eegs[0] if eegs else None, csvs[0] if csvs else None)
+            continue
+
+        pair = pick_best_pair(key, eegs, csvs)
+        if pair is None:
+            duplicate_subjects.add(key[0])
+        else:
+            chosen[key] = pair
 
     subject_sessions = sorted(
-        {(k[0], k[1]) for k in
-         list(eeg_files) + list(csv_files) + list(eeg_dups) + list(csv_dups)},
+        {(k[0], k[1]) for k in all_keys},
         key=lambda x: (natural_key(x[0]), x[1]),
     )
 
@@ -220,11 +314,10 @@ def build_job_list():
     for subject_id, session in subject_sessions:
         for task in TASK_TOKEN:
             for cond in CONDITIONS:
-                key = (subject_id, session, task, cond)
-                jobs.append(
-                    (subject_id, session, task, cond,
-                     eeg_files.get(key), csv_files.get(key))
+                eeg_file, csv_file = chosen.get(
+                    (subject_id, session, task, cond), (None, None)
                 )
+                jobs.append((subject_id, session, task, cond, eeg_file, csv_file))
     return jobs, duplicate_subjects
 
 
@@ -699,10 +792,11 @@ def main():
         print("WARNING: specparam is not installed; Specparam theta will be blank "
               "and IAF-5 will use the power-spectrum fallback.")
 
-    # Scan both folders. Subjects with duplicate files are flagged, not fatal.
+    # Scan both folders. Duplicates are resolved by Unix time overlap where
+    # possible; subjects that cannot be resolved are flagged, not fatal.
     jobs, duplicate_subjects = build_job_list()
     if duplicate_subjects:
-        print("\nSubjects with duplicate files (will be marked in the output): "
+        print("\nSubjects with unresolved duplicate files (marked in the output): "
               + ", ".join(sorted(duplicate_subjects, key=natural_key)))
 
     if not jobs:

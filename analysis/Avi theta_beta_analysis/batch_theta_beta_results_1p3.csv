@@ -1,0 +1,41 @@
+participant_session,bandit_pre_theta_specparam,bandit_post_theta_specparam,bandit_pre_theta_tfr,bandit_post_theta_tfr,bandit_pre_theta_iaf5,bandit_post_theta_iaf5,bandit_pre_beta_tfr,bandit_post_beta_tfr,sst_pre_beta_tfr,sst_post_beta_tfr
+2002-ses1,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed
+4004-ses1,,,,,,,,,,
+6006-ses1,,,,,,,,,,
+10010-ses1,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed
+10029-ses1,,,8.0,8.0,5.77,4.0,13.0,15.0,13.0,28.5
+10029-ses2,,,8.0,8.0,4.0,5.83,13.0,19.5,13.0,30.0
+10034-ses1,,,8.0,5.5,4.0,4.18,13.0,29.5,28.5,30.0
+10037-ses1,,,,,,,,,,
+10040-ses1,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed
+10052-ses1,,5.77,4.0,5.5,4.0,4.0,24.5,25.0,26.0,13.0
+10085-ses1,,,4.5,7.0,4.0,5.83,30.0,17.5,24.5,13.0
+10166-ses1,,,5.25,6.25,7.63,7.06,20.5,19.0,,
+10383-ses1,,,6.75,6.75,5.67,5.17,13.0,23.0,30.0,13.0
+10579-ses1,,,,,,,,,,
+010579-ses1,,,,,,,,,,
+10696-ses1,4.96,,8.0,8.0,6.96,6.17,24.5,19.0,13.0,13.0
+10890-ses1,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed,DUPLICATE FILES FOUND - not analyzed
+11450-ses1,4.86,,7.5,8.0,4.0,4.0,30.0,22.0,30.0,22.5
+11450-ses2,,,,4.0,,4.0,,21.0,17.0,19.0
+G10029-ses3,,,8.0,8.0,5.83,5.31,13.0,14.5,28.0,26.5
+G10106-ses1,,,4.0,4.0,6.42,6.36,13.0,19.5,30.0,23.0
+G10106-ses2,,,4.0,8.0,4.0,6.05,18.5,21.0,30.0,30.0
+G10106-ses3,,,4.0,4.0,4.0,4.0,19.5,13.0,30.0,30.0
+G10150-ses1,,,8.0,5.5,5.85,5.88,15.5,16.0,24.0,24.5
+G10150-ses2,,,6.5,6.0,5.32,5.72,15.5,13.0,13.0,24.0
+G10150-ses3,6.83,,8.0,4.75,5.34,5.57,13.0,13.0,29.0,26.5
+G10231-ses1,,,4.0,,8.0,,14.5,,30.0,
+G10322-ses1,,,8.0,6.0,6.29,6.16,18.0,13.0,30.0,25.0
+G10322-ses2,,,4.0,,4.0,,13.0,,30.0,30.0
+G10358-ses1,,,4.0,5.75,6.44,6.31,21.0,20.5,30.0,23.0
+G11033-ses1,4.2,,4.0,4.0,4.95,4.0,23.5,13.0,28.0,13.0
+G11033-ses2,,,4.0,4.0,4.5,4.39,17.5,13.0,,30.0
+G11033-ses3,,,4.0,8.0,4.83,4.28,30.0,15.5,,30.0
+G11090-ses1,,,,7.5,,6.0,,16.0,13.0,29.0
+G11090-ses2,,,8.0,8.0,5.92,5.55,15.5,18.0,26.5,23.5
+G11302-ses1,,,4.5,8.0,5.17,7.01,18.5,18.0,27.0,13.0
+G11302-ses2,,,8.0,8.0,5.19,4.88,15.0,27.0,25.5,29.0
+G11450-ses2,,,4.0,,4.0,,30.0,,,
+G11450-ses3,,,8.0,8.0,4.0,4.0,21.0,19.5,30.0,13.0
+TEST-ses1,,,,,,,,,,
