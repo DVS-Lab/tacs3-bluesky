@@ -1,0 +1,20 @@
+Record to upload:
+{
+  "sub_id": "G11481",
+  "redcap_event_name": "visit_1_arm_1",
+  "panas_task3_timestamp_1": "2026-11-18 10:42:57",
+  "task_panas_3_complete": 2,
+  "panas_task3_pos1": 5,
+  "panas_task3_neg1": 3,
+  "panas_task3_pos2": 5,
+  "panas_task3_neg2": 1,
+  "panas_task3_pos3": 5,
+  "panas_task3_neg3": 1,
+  "panas_task3_pos4": 5,
+  "panas_task3_neg4": 4,
+  "panas_task3_pos5": 4,
+  "panas_task3_neg5": 1
+}
+Connection test: HTTP 200, response: 17.2.1
+Upload: HTTP 200, response: {"count": 1}
+Upload SUCCEEDED.
