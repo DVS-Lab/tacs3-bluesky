@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Lab-style individualized theta / beta frequency estimation.
 
-GUI version.
+Historical GUI calculations: unvalidated and disabled for automatic frequency export.
+Use code/validate_rhythms.py for offline QC and reliability assessment.
 
 The script:
 1. Asks for Subject ID.
@@ -186,61 +187,19 @@ def get_subject_and_session():
 # =====================================================================
 
 
-def newest_file(matches):
-    """Return the most recently modified path from an iterable of paths."""
-    return max(matches, key=lambda p: p.stat().st_mtime)
-
-
 def find_input_files(subject_id, session):
-    """Find the EEG and behavioral files for a subject/session."""
-    eeg_pattern = f"*_{subject_id}-{session}_Bandit_pre-stim*.easy"
-    behavior_pattern = f"sub-{subject_id}-{session}_task-bandit_*.csv"
-
-    eeg_matches = list(STIM_DATA_DIR.glob(eeg_pattern))
-    behavior_matches = list(BEHAVIOR_DATA_DIR.glob(behavior_pattern))
-
-    if not behavior_matches:
-        raise FileNotFoundError(
-            "No behavioral CSV file was found.\n\n"
-            f"Directory:\n{BEHAVIOR_DATA_DIR}\n\n"
-            f"Pattern:\n{behavior_pattern}"
-        )
-
-    behavior_file = newest_file(behavior_matches)
-
-    if eeg_matches:
-        return newest_file(eeg_matches), behavior_file
-
-    all_easy_files = list(STIM_DATA_DIR.glob("*.easy"))
-    if not all_easy_files:
-        raise FileNotFoundError(
-            "No EEG .easy file could be found.\n\n"
-            f"Directory:\n{STIM_DATA_DIR}\n\n"
-            f"Expected pattern:\n{eeg_pattern}\n\n"
-            "There are also no .easy files in the stimulation-data directory."
-        )
-
-    most_recent_easy = newest_file(all_easy_files)
-
-    root = tk.Tk()
-    root.withdraw()
-    use_fallback = messagebox.askyesno(
-        "EEG File Not Found",
-        (
-            f"Couldn't locate:\n\n{eeg_pattern}\n\n"
-            f"The most recent .easy file is:\n\n{most_recent_easy.name}\n\n"
-            f"Would you like to use this file to calculate "
-            f"{subject_id}'s session {session} theta and beta?"
-        ),
-    )
-    root.destroy()
-
-    if not use_fallback:
-        raise FileNotFoundError(
-            "No matching EEG file was found and the fallback file was declined."
-        )
-
-    return most_recent_easy, behavior_file
+    """Require one explicitly labelled PRE pair; never substitute other data."""
+    if not str(subject_id).isalnum() or not str(session).isdigit():
+        raise ValueError("Invalid subject/session")
+    eeg = list(STIM_DATA_DIR.glob(f"*_{subject_id}-{session}_Bandit_pre-stim.easy"))
+    behavior = list(BEHAVIOR_DATA_DIR.glob(
+        f"sub-{subject_id}-{session}_task-bandit_pre-stim_*.csv"))
+    for kind, matches in (("EEG", eeg), ("behavior", behavior)):
+        if len(matches) != 1:
+            raise FileNotFoundError(
+                f"Expected one explicit pre-stim {kind} file; found {len(matches)}. "
+                "Use the validation manifest to review missing or ambiguous inputs.")
+    return eeg[0], behavior[0]
 
 
 # =====================================================================
@@ -721,6 +680,14 @@ def format_band(band):
 
 
 def run_analysis(subject_id, session):
+    """Prevent the unvalidated GUI hierarchy from exporting stimulation values."""
+    raise RuntimeError(
+        "This legacy GUI does not validate individualized frequencies. "
+        "Run code/build_rhythm_manifest.py and code/validate_rhythms.py instead; "
+        "see docs/artifact_reliability_audit.md. No stimulation file was written.")
+
+
+def _historical_analysis_reference(subject_id, session):
     eeg_file, behavior_file = find_input_files(subject_id, session)
 
     print()

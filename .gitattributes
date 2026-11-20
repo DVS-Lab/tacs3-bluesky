@@ -1,0 +1,3 @@
+# Scientific provenance hashes refer to exact bytes. Do not rewrite line endings
+# on Windows checkout (including EEG, behavior, metadata, source and protocols).
+* -text
