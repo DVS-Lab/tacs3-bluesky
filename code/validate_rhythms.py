@@ -10,12 +10,12 @@ import json
 import os
 from pathlib import Path
 import platform
-import subprocess
 import sys
 
 import numpy as np
 import pandas as pd
 
+import build_rhythm_manifest as inventory
 from rhythm_validation_io import InputError, alignment_qc, load_pair, resolve, select_events, sha256, validate_identity
 from rhythm_validation_core import POWER_NORMALIZATION, estimate, preprocess, preview
 from rhythm_validation_report import legacy_replay, plot_channels, plot_result, summarize, theta_secondary, write_json
@@ -51,10 +51,13 @@ def run(root, manifest_path, config_path, subject=None, output_name=None, replay
     write_json(out/'config.json',cfg)
     write_json(out/'manifest.json',dict(schema=manifest['schema'],jobs=jobs))
     cfg_hash=sha256(config_path)
-    try:git_sha=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
-    except (OSError,subprocess.CalledProcessError):git_sha=None
+    try:
+        git_sha = inventory.git_output(root, 'rev-parse', 'HEAD').decode('ascii').strip()
+    except (OSError, ValueError):
+        git_sha = None
     code_hashes={p.name:sha256(p) for p in sorted((root/'code').glob('*validation*.py'))}
     code_hashes['validate_rhythms.py']=sha256(Path(__file__))
+    code_hashes['build_rhythm_manifest.py'] = sha256(Path(inventory.__file__))
     provenance=dict(created_at=datetime.now(timezone.utc).isoformat(),python=platform.python_version(),
                     platform=platform.platform(),git_commit=git_sha,source_sha256=code_hashes,
                     config_sha256=cfg_hash,manifest_sha256=sha256(manifest_path),
@@ -147,13 +150,20 @@ def run(root, manifest_path, config_path, subject=None, output_name=None, replay
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--subject',help='One participant, e.g. 10034; omit for all pilot recordings')
-    parser.add_argument('--manifest',type=Path,default=ROOT/'validation/pilot_manifest.json')
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument('--manifest', type=Path, default=ROOT/'validation/pilot_manifest.json')
+    inputs.add_argument('--from-checkout', action='store_true',
+                        help='Build a fresh inventory from HEAD and validate it in one run')
     parser.add_argument('--config',type=Path,default=ROOT/'code/rhythm_validation_config.json')
     parser.add_argument('--output-name',help='Optional NEW directory name within validation_outputs')
     parser.add_argument('--skip-legacy',action='store_true',help='Skip historical replay; revised analysis unchanged')
     args=parser.parse_args()
-    try:run(ROOT,args.manifest.resolve(),args.config.resolve(),args.subject,args.output_name,not args.skip_legacy)
-    except (InputError,FileExistsError) as exc:parser.exit(2,f'Input error: {exc}\n')
+    try:
+        manifest = inventory.build_inventory(ROOT) if args.from_checkout else args.manifest.resolve()
+        out = run(ROOT, manifest, args.config.resolve(), args.subject, args.output_name, not args.skip_legacy)
+        print(f'Review: {out / "qc_summary.csv"}')
+    except (ValueError, OSError) as exc:
+        parser.exit(2, f'Input error: {exc}\n')
 
 
 if __name__=='__main__':main()

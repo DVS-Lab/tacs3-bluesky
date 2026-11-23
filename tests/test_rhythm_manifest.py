@@ -1,5 +1,9 @@
+import json
 from pathlib import Path
+import subprocess
 import sys
+
+import pytest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'code'))
 from build_rhythm_manifest import build,digest
 
@@ -56,3 +60,54 @@ def test_post_not_substituted_for_pre(tmp_path):
            put(tmp_path,'sub-G12-1_task-bandit_post-stim.csv','wrong')]
     m,_=build(tmp_path,paths,{'jobs':[]})
     assert m['jobs'][0]['events'] is None
+
+
+def test_github_desktop_git_follows_installed_versions(tmp_path):
+    from build_rhythm_manifest import desktop_git
+
+    for version in ['3.9.11', '3.10.0', 'invalid']:
+        binary = tmp_path / f'app-{version}/resources/app/git/cmd/git.exe'
+        binary.parent.mkdir(parents=True)
+        binary.touch()
+    assert desktop_git(tmp_path) == str(tmp_path / 'app-3.10.0/resources/app/git/cmd/git.exe')
+
+
+def test_checkout_inventory_and_retries(tmp_path):
+    from build_rhythm_manifest import build_inventory, find_git
+
+    def git(*args):
+        subprocess.run([find_git(), '-C', str(tmp_path), *args], check=True, capture_output=True)
+
+    # Standalone clone with no main or origin refs.
+    git('init', '-b', 'review')
+    seed = put(tmp_path, 'validation/pilot_manifest.json', '{"jobs":[]}')
+    raw = put(tmp_path, 'sample with space.csv', 'source')
+    git('add', '.')
+    git('-c', 'user.name=Test', '-c', 'user.email=test@example.org', 'commit', '-m', 'fixture')
+    first = build_inventory(tmp_path)
+    second = build_inventory(tmp_path)
+    assert first.parent != second.parent
+    report = json.loads((first.parent / 'inventory.json').read_text())
+    assert report['git_source_ref'] == 'HEAD'
+    assert report['input_sha256'][raw] == digest(tmp_path / raw)
+    assert report['historical_manifest_sha256'] == digest(tmp_path / seed)
+    with pytest.raises(FileExistsError, match='already exists'):
+        build_inventory(tmp_path, output_name=first.parent.name)
+    assert first.read_bytes() == second.read_bytes()
+    with pytest.raises(ValueError, match='Git could not read'):
+        build_inventory(tmp_path, ref='origin/main', output_name='retry')
+    assert not (tmp_path / 'validation_outputs/retry').exists()
+    (tmp_path / raw).write_text('edited')
+    with pytest.raises(ValueError, match='inputs differ'):
+        build_inventory(tmp_path, output_name='retry')
+    assert not (tmp_path / 'validation_outputs/retry').exists()
+
+
+def test_missing_git_does_not_claim_output(tmp_path, monkeypatch):
+    import build_rhythm_manifest as inventory
+
+    monkeypatch.setattr(inventory.shutil, 'which', lambda command: None)
+    monkeypatch.setenv('LOCALAPPDATA', str(tmp_path))
+    with pytest.raises(FileNotFoundError, match='GitHub Desktop'):
+        inventory.build_inventory(tmp_path, output_name='review')
+    assert not (tmp_path / 'validation_outputs').exists()

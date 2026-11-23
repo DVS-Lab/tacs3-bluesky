@@ -1,5 +1,7 @@
 # Artifact and frequency reliability audit — November 17, 2026
 
+For Windows review, start with [Test the PR with GitHub Desktop](#test-the-pr-with-github-desktop).
+
 ## Recommendation
 
 Use the offline validation workflow below to distinguish unresolved inputs, insufficient usable observations, and lack of a reproducible task-related rhythm. Do not use a band maximum/minimum, an alpha-minus-five proxy, or a fixed default as evidence of an individualized theta/beta frequency. A failed frequency estimate does not establish that the EEG is bad.
@@ -54,22 +56,36 @@ The manifest includes 139 distinct pre/post task recordings: 38 historical and 1
 
 Another 203 unique EEG contents are excluded from this pre/post analysis. Importantly, 106 are numbered Bandit/SST runs without verified pre/post phase; the others have stimulation, template, generic-run, test or incomplete names. These are filename categories, not proof of stimulation delivery. They are inventoried rather than silently reassigned or discarded. A master acquisition/session log is needed to establish whether every collected recording is on GitHub and what those runs represent.
 
-## Run it
+## Test the PR with GitHub Desktop
 
-From the repository root, use Python 3.11 in a separate environment (no NIC/PsychoPy needed):
+1. If you changed `exist_ok=False` locally, undo just that workaround in your editor. Preserve any other local work. A fresh run now chooses its own output directories.
+2. In GitHub Desktop, select `tacs3-bluesky`, click **Fetch origin**, then **Current Branch → Pull Requests → #2**. If you already have the PR checked out, use **Pull origin** when offered. Your branch should be `codex/artifact-reliability-audit`. The review runs directly on this branch before merge. [GitHub Desktop checkout guide](https://docs.github.com/en/desktop/working-with-your-remote-repository-on-github-or-github-enterprise/viewing-a-pull-request-in-github-desktop)
+3. From GitHub Desktop open the repository in VS Code. Open a **PowerShell** terminal at the repository root, the folder containing `requirements-validation.txt`. Use Python **3.11** for the pinned analysis dependencies. If `py -3.11 --version` fails, install Python 3.11 alongside your existing interpreter or use the full path to your installed 3.11 interpreter for the first command. Create the dedicated review environment once:
 
-```sh
-python -m venv .venv
-# Activate .venv using your operating system's normal command.
-python -m pip install -r requirements-validation.txt
-python -m pytest tests -q
-python code/build_rhythm_manifest.py --ref origin/main --output-name current_inventory
-python code/validate_rhythms.py --manifest validation_outputs/current_inventory/manifest.json --output-name artifact_review --skip-legacy
-```
+   ```powershell
+   py -3.11 -m venv .venv-review
+   .\.venv-review\Scripts\python.exe -m pip install -r requirements-validation.txt
+   ```
 
-Use a new output name for every run. Do not overwrite the original EEG/behavior or resolve a failure by selecting the newest file. Generated inventories, participant paths, per-trial decisions and plots remain in ignored `validation_outputs/`.
+4. Run the following command from the same folder. It builds a hash-checked inventory from the checked-out commit and runs the revised analysis for one historical participant. The initial inventory reads the tracked data and may take a few minutes.
 
-Start with `artifact_review/qc_summary.csv`. Inspect `analysis_limiting_stage`, `failure_reasons`, retained/eligible counts and the result's split/bootstrap diagnostics. Each recording has `channels.json`; each estimand has `events.csv`, `result.json`, `spectrum.csv`, `carrier_spectrum.csv` and `spectra_tfr.png` when computable. `events.csv` records exact exclusion reasons and raw/filtered/ocular diagnostics. No result in this workflow authorizes a stimulation frequency; the separate selector refuses these offline outputs.
+   ```powershell
+   .\.venv-review\Scripts\python.exe .\code\validate_rhythms.py --from-checkout --subject 10034 --skip-legacy
+   ```
+
+5. Open the **qc_summary.csv** path printed after **Review**. A completed run also contains `completion.json`. Inspect `qc`, `analysis_limiting_stage`, and `failure_reasons`. For the review case above, expect **4 recordings, 10 estimates, 0 passing**, matching the original audit. A completed run can report FAIL for every estimate. This means the recordings did not support an individualized frequency under these criteria. If the command stops before printing the summary path, report the command and the last terminal error.
+
+The validator uses Git from PATH or a standard Windows GitHub Desktop installation. The Git commands run locally. The default data revision is `HEAD` (the checked-out commit). Earlier examples used `--ref origin/main` to select the tracked **input files** for the historical audit. That option does not change branches or choose which Python code runs. The inventory checks the selected inputs against the files on disk and records the resolved commit in `inventory.json`.
+
+**Executable scope.** This PR delivers offline validation. `calculate_theta_beta.py` explains how to run the review, and its old automatic export is disabled. Packaging that file as `calculate_theta_beta.exe` would only package the notice. Keep participant-use executable replacement as a separate decision after the frequency workflow is validated.
+
+## Running other offline reviews
+
+Omit `--subject 10034` for all inventoried recordings. Omit `--skip-legacy` to include the historical replay. To run the regression suite, use the review environment's Python with `-m pytest tests -q`.
+
+To inspect an inventory before analysis, run `python code/build_rhythm_manifest.py` using the review environment. Copy the printed manifest path into `python code/validate_rhythms.py --manifest "<path>" --skip-legacy`. Both steps create fresh directories under ignored `validation_outputs/`. An explicit `--output-name` must be unused. Prior partial runs can stay in place. To reproduce the published inventory, pass `--ref ef109bc` to the builder with matching input files on disk.
+
+Each recording has channel diagnostics when computable. Each estimate has a result and can have trial decisions, spectra and plots. Keep participant-level outputs local.
 
 ## Script codebook
 

@@ -12,9 +12,12 @@ from collections import Counter, defaultdict
 from copy import deepcopy
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+import shutil
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 EEG = re.compile(r'^(?P<run>\d{14})_(?P<subject>[A-Za-z0-9]+)-(?P<session>\d+)_(?P<task>Bandit|SST)_(?P<phase>pre|post)-stim\.easy$', re.I)
@@ -47,8 +50,39 @@ def exclusion_category(paths):
     return 'other_unclassified'
 
 
-def tracked_paths(root, ref):
-    return subprocess.check_output(['git','-C',str(root),'ls-tree','-r','--name-only',ref], text=True).splitlines()
+def desktop_git(install_dir):
+    """Find the newest installed GitHub Desktop Git without pinning an app version."""
+    candidates = []
+    for binary in install_dir.glob('app-*/resources/app/git/cmd/git.exe'):
+        version = binary.relative_to(install_dir).parts[0][4:]
+        if re.fullmatch(r'\d+(?:\.\d+)+', version) and binary.is_file():
+            candidates.append((tuple(map(int, version.split('.'))), binary))
+    return str(max(candidates)[1]) if candidates else None
+
+
+def find_git():
+    binary = shutil.which('git')
+    if not binary and os.name == 'nt' and os.environ.get('LOCALAPPDATA'):
+        binary = desktop_git(Path(os.environ['LOCALAPPDATA']) / 'GitHubDesktop')
+    if not binary:
+        raise FileNotFoundError(
+            'Git was not found. Open a GitHub Desktop clone and check that GitHub Desktop '
+            'or Git for Windows is installed, then reopen the terminal.')
+    return binary
+
+
+def git_output(root, *args):
+    try:
+        return subprocess.check_output(
+            [find_git(), '-C', str(root), *args], stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as exc:
+        detail = exc.stderr.decode('utf-8', errors='replace').strip()
+        raise ValueError(f'Git could not read the checkout: {detail}') from exc
+
+
+def git_paths(root, *args):
+    # -z returns literal UTF-8 paths, including names with spaces and non-ASCII text.
+    return git_output(root, *args).decode('utf-8', errors='surrogateescape').split('\0')[:-1]
 
 
 def build(root, paths, historical):
@@ -152,25 +186,51 @@ def build(root, paths, historical):
     return dict(schema='rhythm-input-manifest-v1',jobs=jobs),dict(summary=summary,historical_relocations=provenance,excluded_eeg=excluded,distinct_filename_aliases=aliases,input_sha256=hashes)
 
 
+def build_inventory(root, ref='HEAD', historical=None, output_name=None):
+    base = root / 'validation_outputs'
+    if output_name is not None:
+        if not output_name or Path(output_name).name != output_name or output_name in {'.', '..'}:
+            raise ValueError('output-name must be a single new directory name')
+        if (base / output_name).exists():
+            raise FileExistsError(f'{base / output_name} already exists. Omit --output-name '
+                                  'to create a fresh inventory, or supply a new name.')
+
+    commit = git_output(root, 'rev-parse', '--verify', '--end-of-options',
+                        ref + '^{commit}').decode('ascii').strip()
+    paths = git_paths(root, 'ls-tree', '-r', '--name-only', '-z', commit)
+    changed = set(git_paths(root, 'diff', '--no-renames', '--name-only', '-z', commit, '--'))
+    if any(p in changed and Path(p).suffix.lower() in {'.easy','.info','.csv','.tsv'} for p in paths):
+        raise ValueError('Tracked source inputs differ from the requested Git revision. '
+                         'Check the data changes in GitHub Desktop before retrying.')
+
+    historical = historical or root / 'validation/pilot_manifest.json'
+    manifest, inventory = build(root, paths, json.loads(historical.read_text(encoding='utf-8')))
+    inventory.update(tracked_source_files_match_ref=True, git_source_ref=ref,
+                     git_source_commit=commit, historical_manifest_sha256=digest(historical))
+    base.mkdir(parents=True, exist_ok=True)
+    if output_name is None:
+        out = Path(tempfile.mkdtemp(prefix='inventory_', dir=base))
+    else:
+        out = base / output_name
+        out.mkdir()  # exclusive even if two processes race for the same name
+    for filename, content in [('inventory.json', inventory), ('manifest.json', manifest)]:
+        (out / filename).write_text(json.dumps(content, indent=2) + '\n', encoding='utf-8')
+    print(f'Inventoried {len(manifest["jobs"])} recordings at {ref} ({commit[:12]}).', flush=True)
+    print(f'Manifest: {out / "manifest.json"}', flush=True)
+    return out / 'manifest.json'
+
+
 def main():
-    p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--ref',default='origin/main');p.add_argument('--historical',type=Path,default=ROOT/'validation/pilot_manifest.json')
-    p.add_argument('--output-name',default='current_inventory')
-    a=p.parse_args()
-    if Path(a.output_name).name!=a.output_name or a.output_name in {'.','..'}:p.error('output-name must be a new directory name')
-    out=ROOT/'validation_outputs'/a.output_name;out.mkdir(parents=True,exist_ok=False)
-    paths=tracked_paths(ROOT,a.ref)
-    changed=set(subprocess.check_output(['git','-C',str(ROOT),'diff','--name-only',a.ref],text=True).splitlines())
-    dirty_inputs=sorted(p for p in paths if p in changed and Path(p).suffix.lower() in {'.easy','.info','.csv','.tsv'})
-    if dirty_inputs: raise ValueError('Tracked source inputs differ from requested Git ref; resolve or explicitly audit them before building a manifest.')
-    manifest,inventory=build(ROOT,paths,json.loads(a.historical.read_text()))
-    inventory['tracked_source_files_match_ref']=True
-    inventory['git_source_ref']=a.ref
-    inventory['git_source_commit']=subprocess.check_output(['git','-C',str(ROOT),'rev-parse',a.ref],text=True).strip()
-    inventory['historical_manifest_sha256']=digest(a.historical)
-    (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-    (out/'inventory.json').write_text(json.dumps(inventory,indent=2)+'\n')
-    print(json.dumps(inventory['summary'],indent=2));print(out)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--ref', default='HEAD', help='Git revision for tracked data (default: current checkout)')
+    parser.add_argument('--historical', type=Path, default=ROOT / 'validation/pilot_manifest.json')
+    parser.add_argument('--output-name', help='New inventory directory (default: automatically generated)')
+    args = parser.parse_args()
+    try:
+        build_inventory(ROOT, args.ref, args.historical, args.output_name)
+    except (OSError, ValueError) as exc:
+        parser.exit(2, f'Inventory error: {exc}\n')
 
 
-if __name__=='__main__':main()
+if __name__ == '__main__':
+    main()

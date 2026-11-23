@@ -4,17 +4,8 @@
 Historical GUI calculations: unvalidated and disabled for automatic frequency export.
 Use code/validate_rhythms.py for offline QC and reliability assessment.
 
-The script:
-1. Asks for Subject ID.
-2. Asks for Session number (1-3).
-3. Automatically finds the matching EEG .easy file.
-4. Automatically finds the matching behavioral .csv file.
-5. Uses Unix timestamps in the two files to align EEG and behavior.
-6. Estimates outcome theta frequency using two methods:
-   - Specparam (periodic peak above the aperiodic background)
-   - Morlet TFR power peak
-7. Estimates decision beta ERD peak frequency using Morlet TFR.
-8. Saves a single text report named SUBJECT-SESSION_pre-stim_theta-beta.txt.
+The functions below retain the historical calculation for comparison.
+Running this file displays directions for reviewing the offline analysis.
 """
 
 from pathlib import Path
@@ -954,28 +945,20 @@ def _historical_analysis_reference(subject_id, session):
 
 
 def main():
-    subject_id, session = get_subject_and_session()
-
-    if subject_id is None:
-        print("Analysis cancelled.")
-        return
-
-    try:
-        output_path = run_analysis(subject_id, session)
-    except Exception as exc:
-        root = tk.Tk()
-        root.withdraw()
-        messagebox.showerror("Analysis Error", str(exc))
-        root.destroy()
-        raise
-
     root = tk.Tk()
     root.withdraw()
-    messagebox.showinfo(
-        "Analysis Complete",
-        f"Theta/beta analysis completed.\n\nOutput:\n{output_path}",
-    )
-    root.destroy()
+    try:
+        messagebox.showinfo(
+            "Offline theta/beta validation",
+            "This PR provides offline quality-control reports. Automatic export of "
+            "stimulation frequencies is disabled.\n\n"
+            "To test the PR on Windows, open docs/artifact_reliability_audit.md "
+            "in your checkout and follow ‘Test the PR with GitHub Desktop’. "
+            "The review command prints the path to qc_summary.csv.",
+            parent=root,
+        )
+    finally:
+        root.destroy()
 
 
 if __name__ == "__main__":
