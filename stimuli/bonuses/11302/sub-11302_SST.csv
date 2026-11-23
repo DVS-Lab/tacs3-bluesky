@@ -1,0 +1,8 @@
+participant_id,run,bet_amount,amount_kept,avg_rt,go_accuracy,stop_accuracy,meets_rt_criteria,meets_go_accuracy_criteria,meets_stop_accuracy_criteria,wins_bet,bet_winnings,run_bonus,error
+11302,"(1, 1)",0.0,10.0,0.475,100.0,50.0,True,True,True,True,0.0,10.0,
+11302,"(1, 2)",10.0,0.0,,,,False,False,False,False,0.0,0.0,No stop trials found
+11302,"(2, 1)",0.0,10.0,0.561,100.0,50.0,False,True,True,False,0.0,10.0,
+11302,"(2, 2)",0.0,10.0,0.476,100.0,51.9,True,True,True,True,0.0,10.0,
+11302,"(3, 1)",10.0,0.0,0.533,100.0,56.5,False,True,True,False,0.0,0.0,
+11302,"(3, 2)",10.0,0.0,0.431,100.0,50.0,True,True,True,True,20.0,20.0,
+11302,TOTAL,,,,,,,,,,,,50.0,

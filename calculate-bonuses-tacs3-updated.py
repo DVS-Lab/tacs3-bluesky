@@ -474,7 +474,7 @@ def process_participant_all_tasks(
 
 
 if __name__ == "__main__":
-    participant_id = "10106"  # change as needed; "G10106" gives identical results
+    participant_id = "11302"  # change as needed; "G11302" gives identical results
 
     # Optional: specify which tasks to process.
     tasks_to_process = ['Bandit', 'SST']
