@@ -1,0 +1,36 @@
+name: Offline rhythm validation
+on:
+  pull_request:
+    paths:
+      - 'code/**'
+      - 'tests/**'
+      - 'validation/**'
+      - 'requirements-validation.txt'
+      - '.github/workflows/rhythm-validation.yml'
+  workflow_dispatch:
+jobs:
+  validation:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: requirements-validation.txt
+      - run: python -m pip install -r requirements-validation.txt
+      - run: python -m pytest tests -q
+      - name: Test the documented checkout review
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python code/validate_rhythms.py --from-checkout --subject 10034 --skip-legacy --output-name review_ci > $null
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $rows = @(Import-Csv validation_outputs/review_ci/qc_summary.csv)
+          if ($rows.Count -ne 10 -or @($rows | Where-Object { [int]$_.n_retained -gt 0 }).Count -eq 0) {
+            throw "Expected 10 offline estimates and at least one estimate with retained trials."
+          }

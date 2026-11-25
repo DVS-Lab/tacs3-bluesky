@@ -1,9 +1,10 @@
-"""Task-evoked rhythm estimation for bandit and SST localizers.
+"""Historical enhancement-oriented rhythm estimator, retained for compatibility.
 
-The primary goal is to estimate participant-specific task-evoked rhythms for
-stimulation planning. For the bandit task, the main target is feedback-locked
-theta. For both bandit and SST, the same reliability-gated machinery can also
-estimate decision/response beta when configured.
+This API is not the validated ERD workflow. In particular, its beta argmax and
+channel-voltage averaging preserve historical behavior. For audited offline
+response ERD, stop enhancement, and feedback theta use validate_rhythms.py.
+No validation candidate is a stimulation prescription; prospective deployment
+requires PI approval and a separately reviewed integration.
 """
 
 from __future__ import annotations
